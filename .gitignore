@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+
+# production
+build/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# env
+.env
+.env*.local
+.agent-toolkit.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# generated output
+dist/
+
+# user-local overrides
+overrides/*
+!overrides/.gitkeep
+
+# backups
+~/.agent-toolkit-backup/

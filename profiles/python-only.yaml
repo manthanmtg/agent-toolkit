@@ -1,0 +1,16 @@
+name: python-only
+description: Python skills only
+include:
+  - "python/*"
+exclude: []
+tools:
+  claude-code:
+    enabled: true
+  cursor:
+    enabled: true
+  windsurf:
+    enabled: true
+  opencode:
+    enabled: true
+  codex:
+    enabled: true

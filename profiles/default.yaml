@@ -1,0 +1,16 @@
+name: default
+description: All skills included — deploy to all detected tools
+include:
+  - "*"
+exclude: []
+tools:
+  claude-code:
+    enabled: true
+  cursor:
+    enabled: true
+  windsurf:
+    enabled: true
+  opencode:
+    enabled: true
+  codex:
+    enabled: true
