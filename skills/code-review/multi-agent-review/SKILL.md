@@ -4,7 +4,7 @@ description: >
   Run multiple AI reviewer agents to analyze a branch, commit, or local changes.
   Use when the user asks for multi agent review, code analysis, or branch review.
 domain: code-review
-version: 2.0.0
+version: 2.1.0
 tags: [code-review, multi-agent, quality, architecture, testing, scoring]
 author: agent-toolkit
 activation:
@@ -59,16 +59,50 @@ For each agent below, adopt its persona, scan the entire changeset, and record f
 
 ---
 
-### Agent 1 — Code Quality Reviewer
+### Agent 1 — Code Quality & Duplication Reviewer
 
 **Focus:** Readability, naming, duplication, dead code, maintainability, SOLID principles.
 
 Ask yourself:
 - Can a new developer understand this code without extra context?
 - Are names descriptive and consistent with the codebase conventions?
-- Is there copy-pasted or near-duplicate logic that should be extracted?
 - Are functions/methods a reasonable length and doing one thing?
 - Is there dead code, unused imports, or commented-out blocks?
+
+#### Duplication Deep Scan
+
+This agent **must** perform a thorough, systematic scan for all forms of code duplication across the entire changeset. For every duplicate found, report the exact locations (file + lines) of **both** the original and the duplicate so the author can consolidate them.
+
+**Exact & near-duplicate code blocks:**
+- Functions, methods, or multi-line blocks that are identical or differ only in variable/parameter names.
+- Copy-pasted logic across files — even if small (3+ similar lines is worth flagging).
+- Repeated class methods that perform the same operation on different fields.
+
+**Structural duplication (same shape, different data):**
+- Conditional chains (`if/else if`, `switch/case`) that follow the same branching pattern in multiple places.
+- Repeated mapping/transformation pipelines (e.g., `.filter().map().reduce()` chains with near-identical callbacks).
+- Similar loop bodies that iterate over different collections but apply the same logic.
+
+**Cross-file & path-level duplication:**
+- Multiple files that serve the same purpose or contain overlapping responsibilities (e.g., two utility files with similar helpers).
+- Identical or near-identical type/interface definitions declared in separate files instead of a shared module.
+- Repeated import groups — if 3+ files import the same set of modules, a barrel or shared module may be needed.
+
+**Data & constant duplication:**
+- Magic numbers or string literals repeated across files instead of a shared constant.
+- Duplicated configuration objects, default values, or inline option maps.
+- Repeated regex patterns or validation rules that should be centralized.
+
+**Error handling & boilerplate duplication:**
+- Identical `try/catch` or error-handling wrappers around similar operations.
+- Repeated logging/telemetry blocks that could be extracted into a decorator, middleware, or utility.
+- Duplicated setup/teardown logic in tests (should be `beforeEach`/shared fixtures).
+
+**How to report duplicates:**
+For each duplicate group, include:
+1. All locations (file + line range) where the duplication occurs.
+2. A severity based on scope: **High** if duplicated across 3+ sites or >10 lines each; **Medium** for 2 sites or smaller blocks; **Low** for minor repetition.
+3. A concrete consolidation suggestion — name the helper, utility, constant, or abstraction to extract, and where to place it.
 
 ---
 
