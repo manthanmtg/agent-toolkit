@@ -1,77 +1,120 @@
+<div align="center">
+
 # Agent Toolkit
 
-A Next.js 15 webapp for managing AI coding agent skills and configurations. Build once, deploy to **Claude Code**, **Cursor**, **Windsurf**, **OpenCode**, and **Codex** — with an extensible adapter pattern for adding more tools.
+**Write skills once. Deploy everywhere.**
 
-## What It Does
+Build, manage, and deploy AI coding agent skills across
+**Claude Code** · **Cursor** · **Windsurf** · **OpenCode** · **Codex**
 
-- **Skills** — Write reusable AI agent instructions in Markdown with YAML frontmatter
-- **Profiles** — Compose skill sets for different use cases (e.g., "python-only", "full-stack")
-- **Adapters** — Automatically translate skills into each tool's native format
-- **Build & Link** — Generate output files and symlink them into each tool's config directory
-- **Safety** — Atomic writes, backups, duplicate detection, manifest tracking
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
+</div>
+
+---
+
+## Why Agent Toolkit?
+
+Every AI coding tool has its own format for instructions — `.mdc` files, `SKILL.md`, `AGENTS.md`, global rules, project rules. Keeping them in sync is painful.
+
+Agent Toolkit solves this. You write a skill **once** as a Markdown file, and the toolkit translates and deploys it to every tool you use — handling format differences, activation modes, character limits, and file placement automatically.
+
+## Features
+
+- **Universal Skills** — Write Markdown + YAML frontmatter, deploy to 5+ tools
+- **Adapter System** — Each tool gets its native format (`.mdc`, `SKILL.md`, `AGENTS.md`, etc.)
+- **My Skills Dashboard** — See what's deployed where, detect drift, update outdated skills in one click
+- **Cross-Agent Discovery** — Skills deployed to Claude Code are automatically visible in Cursor & Windsurf
+- **Profiles** — Compose skill sets per use case (e.g., "python-only", "full-stack")
+- **Install Wizard** — Guided flow to detect tools, pick a profile, build & link
+- **Safety First** — Atomic writes, backups to `~/.agent-toolkit-backup/`, duplicate detection
+- **Health Diagnostics** — Doctor page checks tool detection, file integrity, and config issues
 
 ## Quick Start
 
 ```bash
+git clone https://github.com/manthanmtg/agent-toolkit.git
+cd agent-toolkit
 npm install
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Tech Stack
+## Skill Library
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 15 (App Router, Server Actions, Turbopack) |
-| Language | TypeScript (strict) |
-| UI | React 19, TailwindCSS 4, Lucide icons |
-| Validation | Zod |
-| Toasts | sonner |
+15 production-ready skills across 13 domains:
 
-## Project Structure
+| Domain | Skill | Description |
+|--------|-------|-------------|
+| **ci-cd** | `pipeline-hardening` | Reliable pipelines, safe deploys, caching, release checks |
+| **code-review** | `deep-review` | Deep review focused on bugs, security, performance, resilience |
+| **code-review** | `multi-agent-review` | Run multiple AI reviewers to analyze a branch or commit |
+| **debugging** | `root-cause-debugging` | Analyze logs, traces, stack traces, and state to find root causes |
+| **devops** | `docker-best-practices` | Efficient, secure, reproducible container images |
+| **docs-gen** | `engineering-docs` | READMEs, API docs, runbooks, changelogs, migration guides |
+| **git-pro** | `perfect-commits` | Precise commits, reviewable PRs, clean rebases |
+| **perf-opt** | `performance-tuning` | Profiling, bottleneck analysis, query optimization |
+| **planning** | `change-architect` | Architect code changes by analyzing branches, schemas, and protos |
+| **productivity** | `weekly-work-review` | Weekly summary from Slack + Jira + Confluence activity |
+| **python** | `error-handling` | Custom exceptions, context managers, structured logging, retries |
+| **python** | `pydantic-patterns` | Pydantic v2 validators, serialization, generics, unions |
+| **security** | `appsec-review` | OWASP risks, secrets exposure, dependency audits |
+| **testing** | `test-strategy` | TDD, coverage strategy, regression tests, mocks, fixtures |
+| **typescript** | `nextjs-patterns` | Next.js 15 App Router, Server Components, Server Actions |
 
-```
-app/                  Pages (App Router)
-lib/                  Core logic
-  types.ts            Zod schemas, shared types
-  registry.ts         Load skills & profiles from disk
-  builder.ts          Build output files per adapter
-  linker.ts           Symlink management
-  detector.ts         Detect installed AI tools
-  doctor.ts           Health diagnostics
-  safety.ts           Atomic writes, backups, dedup
-  adapters/           Tool-specific translators
-    base.ts           Abstract BaseAdapter
-    claude-code.ts    Claude Code
-    cursor.ts         Cursor
-    windsurf.ts       Windsurf
-    opencode.ts       OpenCode
-    codex.ts          Codex
-    agents-md.ts      AGENTS.md (cross-tool)
-  actions/            Next.js Server Actions
-skills/               Skill definitions (source of truth)
-profiles/             Profile YAML files
-dist/                 Built output (gitignored)
-```
+## Supported Tools
+
+| Tool | Deployment | Global Path | Project Path | Format |
+|------|-----------|-------------|--------------|--------|
+| **Claude Code** | Per-skill | `~/.claude/skills/` | `.claude/skills/` | `SKILL.md` |
+| **Cursor** | Per-skill | `~/.cursor/skills/` | `.cursor/rules/` | `SKILL.md` + `.mdc` |
+| **Windsurf** | Per-skill | `~/.codeium/windsurf/skills/` | `.windsurf/rules/` | `SKILL.md` + `.md` rules |
+| **OpenCode** | Per-skill | `~/.config/opencode/skills/` | `.opencode/skills/` | `SKILL.md` |
+| **Codex** | Bundled | `~/.codex/` | Project root | `AGENTS.md` (merged) |
+
+> **Cross-agent compatibility:** Cursor and Windsurf automatically discover skills in `~/.claude/skills/`. Deploy once to Claude Code, use everywhere.
 
 ## Pages
 
-| Route | Description |
+| Route | What it does |
 |-------|-------------|
-| `/` | Dashboard — skill count, profiles, detected tools, health |
-| `/skills` | Browse skills grouped by domain |
-| `/skills/[domain]/[name]` | Skill detail — metadata, activation, content |
-| `/skills/new` | Create a new skill |
-| `/add-skill` | Deploy skills to selected tools |
-| `/install` | Guided wizard — detect → profile → build & link |
-| `/doctor` | Health checks + tool detection |
-| `/profiles` | Profile management |
-| `/projects` | Link skills to project directories |
-| `/mcp` | MCP server configuration |
-| `/settings` | Toolkit info and configuration |
+| `/` | Dashboard — skill count, profiles, detected tools, health summary |
+| `/skills` | Browse all skills grouped by domain |
+| `/skills/[domain]/[name]` | Skill detail — metadata, activation config, rendered content |
+| `/skills/new` | Create a new skill with the guided editor |
+| `/my-skills` | Deployed skills per tool — drift detection, update, add, cross-agent view |
+| `/add-skill` | Deploy selected skills to chosen tools |
+| `/install` | Guided wizard — detect tools, pick profile, build & link |
+| `/doctor` | Health diagnostics and tool detection |
+| `/profiles` | Create and manage skill profiles |
+| `/projects` | Link skills to specific project directories |
+| `/settings` | Toolkit configuration and info |
 
-## Adding a Skill
+## Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│                   Next.js App                    │
+│  Dashboard · Skills · My Skills · Install · ...  │
+├─────────────────────────────────────────────────┤
+│                 Server Actions                   │
+│  build · sync · detect · my-skills · doctor      │
+├─────────────────────────────────────────────────┤
+│                  Core Library                    │
+│  registry · builder · linker · safety · detector │
+├──────┬──────┬──────┬──────┬──────┬──────────────┤
+│Claude│Cursor│Winds.│Open  │Codex │ AGENTS.md    │
+│ Code │      │      │ Code │      │  (cross)     │
+└──────┴──────┴──────┴──────┴──────┴──────────────┘
+         ▼          ▼         ▼         ▼
+    ~/.claude/  ~/.cursor/ ~/.codeium/  ~/.codex/
+```
+
+## Writing a Skill
 
 Create `skills/<domain>/<skill-name>/SKILL.md`:
 
@@ -82,65 +125,101 @@ description: >
   What this skill teaches AI agents.
 domain: my-domain
 version: 1.0.0
-tags: [tag1, tag2]
+tags: [productivity, review]
 author: your-name
 activation:
-  claude-code: model
-  cursor: auto
-  windsurf: model_decision
-  opencode: model
-  codex: auto
+  claude-code: model       # model | user-only | both
+  cursor: auto             # auto | always | glob | manual
+  windsurf: model_decision # always_on | model_decision | glob | manual
+  opencode: model          # model
+  codex: auto              # auto
 ---
 
-# Skill content in markdown
+# Skill Title
+
+Your skill content in Markdown. This is what gets deployed
+to AI tools as instructions.
 ```
 
-**Naming:** `[a-z0-9]+(-[a-z0-9]+)*` — must match directory name.
+**Naming rules:**
+- Skill name: `[a-z0-9]+(-[a-z0-9]+)*` — must match directory name
+- Domain: lowercase with hyphens (e.g., `python`, `code-review`)
+- Place supporting files (examples, templates) alongside `SKILL.md`
 
-## Adding a Profile
+## Creating a Profile
 
 Create `profiles/<name>.yaml`:
 
 ```yaml
 name: my-profile
-description: What this profile is for
+description: Skills for Python backend work
 include:
   - "python/*"
-  - "devops/*"
-exclude: []
+  - "testing-master/*"
+  - "debugging/*"
+exclude:
+  - "typescript/*"
 tools:
   claude-code:
     enabled: true
   cursor:
     enabled: true
+  windsurf:
+    enabled: false
 ```
 
 ## Adding an Adapter
 
 1. Create `lib/adapters/<tool>.ts`
-2. Import `BaseAdapter` from `./base` (not `./index`)
+2. Import `BaseAdapter` from `./base` (never `./index` — avoids circular deps)
 3. Implement: `translateSkill`, `translateGlobal`, `getGlobalSymlinkTargets`, `getProjectSymlinkTargets`, `getCharacterLimit`
 4. Register in `lib/adapters/index.ts` and add tool ID to `lib/types.ts`
 
-## Supported Tools
+## Tech Stack
 
-| Tool | Global Skills | Project Skills | Format |
-|------|--------------|---------------|--------|
-| Claude Code | `~/.claude/skills/` | `.claude/skills/` | SKILL.md with frontmatter |
-| Cursor | `~/.cursor/rules/` | `.cursor/rules/` | .mdc with frontmatter |
-| Windsurf | `~/.codeium/windsurf/memories/` | `.windsurf/rules/` | .md with trigger frontmatter |
-| OpenCode | `~/.config/opencode/skills/` | `.opencode/skills/` | SKILL.md with frontmatter |
-| Codex | `~/.codex/` | project root | AGENTS.md sections |
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 15 (App Router, Server Actions, Turbopack) |
+| Language | TypeScript (strict) |
+| UI | React 19, TailwindCSS 4, Lucide icons |
+| Validation | Zod |
+| Toasts | sonner |
+| Testing | Vitest, React Testing Library |
 
-## Safety Features
+## Safety
 
-- **Atomic writes** — temp file + `fs.rename` prevents partial writes
-- **Backups** — existing files backed up to `~/.agent-toolkit-backup/` before modification
-- **Duplicate detection** — checks for toolkit ownership markers before overwriting
-- **Manifest tracking** — tracks all deployed files with checksums
-- **AGENTS.md section markers** — safe merge without clobbering existing content
-- **Character limit enforcement** — per-tool limits (e.g., Windsurf 12k, Codex 32KB)
+| Feature | How |
+|---------|-----|
+| Atomic writes | Write to temp file, then `fs.rename` — no partial writes |
+| Backups | Existing files saved to `~/.agent-toolkit-backup/` before overwrite |
+| Duplicate detection | Checks for toolkit ownership markers before writing |
+| Manifest tracking | Tracks all deployed files with content checksums |
+| Section markers | `AGENTS.md` merge without clobbering existing content |
+| Character limits | Per-tool enforcement (e.g., Windsurf 12K, Codex 32KB) |
+
+## Project Structure
+
+```
+app/                  Next.js pages (App Router)
+  my-skills/          Deployed skills dashboard
+  skills/             Skill browser + detail + editor
+  install/            Install wizard
+  doctor/             Health diagnostics
+lib/                  Core logic
+  types.ts            Zod schemas, shared types
+  registry.ts         Load skills & profiles from disk
+  builder.ts          Build output files per adapter
+  linker.ts           Symlink management
+  detector.ts         Detect installed AI tools
+  doctor.ts           Diagnostic checks
+  safety.ts           Atomic writes, backups, dedup
+  adapters/           Tool-specific translators
+  actions/            Next.js Server Actions
+skills/               Source of truth — skill Markdown files
+profiles/             Profile YAML definitions
+dist/                 Built output (gitignored)
+```
 
 ## License
 
-MIT
+[MIT](./LICENSE)
