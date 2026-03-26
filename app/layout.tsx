@@ -1,19 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
-import {
-  LayoutDashboard,
-  Puzzle,
-  MonitorSmartphone,
-  PlusCircle,
-  FolderOpen,
-  Layers,
-  Stethoscope,
-  Plug,
-  Settings,
-  Zap,
-} from "lucide-react";
+import { Zap } from "lucide-react";
 import { Toaster } from "sonner";
+import { SidebarNav } from "./sidebar-nav";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -23,19 +13,6 @@ export const metadata: Metadata = {
   title: "Agent Toolkit",
   description: "Universal infrastructure for AI coding agents",
 };
-
-const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/skills", label: "Skills", icon: Puzzle },
-  { href: "/my-skills", label: "My Skills", icon: MonitorSmartphone },
-  { href: "/add-skill", label: "Add Skill", icon: PlusCircle },
-  { href: "/profiles", label: "Profiles", icon: Layers },
-  { href: "/projects", label: "Projects", icon: FolderOpen },
-  { href: "/doctor", label: "Doctor", icon: Stethoscope },
-  { href: "/mcp", label: "MCP", icon: Plug },
-  { href: "/install", label: "Install", icon: Zap },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 
 export default function RootLayout({
   children,
@@ -58,18 +35,7 @@ export default function RootLayout({
                 <span className="font-semibold text-lg">Agent Toolkit</span>
               </Link>
             </div>
-            <nav className="flex-1 p-4 space-y-1">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            <SidebarNav />
             <div className="p-4 border-t border-border">
               <p className="text-xs text-muted-foreground">v0.1.0</p>
             </div>
