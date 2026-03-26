@@ -1,5 +1,5 @@
 ---
-name: change-architect
+name: design-architect
 description: >
   Architect code changes by analyzing existing branches, schemas, protos, and
   new requirements to produce a phased implementation plan before writing code.
@@ -17,7 +17,7 @@ activation:
   codex: auto
 ---
 
-# Change Architect
+# Design Architect
 
 Design the surgery before making the incision.
 
