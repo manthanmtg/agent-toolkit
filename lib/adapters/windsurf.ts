@@ -81,13 +81,11 @@ export class WindsurfAdapter extends BaseAdapter {
     return new Map([
       [
         "global_rules.md",
-        path.join(
-          HOME,
-          ".codeium",
-          "windsurf",
-          "memories",
-          "global_rules.md"
-        ),
+        path.join(HOME, ".codeium", "windsurf", "memories", "global_rules.md"),
+      ],
+      [
+        "skills",
+        path.join(HOME, ".codeium", "windsurf", "skills"),
       ],
     ]);
   }

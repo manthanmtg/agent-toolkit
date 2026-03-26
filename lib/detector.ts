@@ -122,7 +122,7 @@ export function getGlobalPath(toolId: ToolId): string | undefined {
     case "claude-code":
       return path.join(HOME, ".claude");
     case "cursor":
-      return undefined; // Cursor global rules are UI-only
+      return path.join(HOME, ".cursor");
     case "windsurf":
       return path.join(HOME, ".codeium", "windsurf");
     case "opencode":

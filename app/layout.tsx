@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   LayoutDashboard,
   Puzzle,
+  MonitorSmartphone,
   PlusCircle,
   FolderOpen,
   Layers,
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/skills", label: "Skills", icon: Puzzle },
+  { href: "/my-skills", label: "My Skills", icon: MonitorSmartphone },
   { href: "/add-skill", label: "Add Skill", icon: PlusCircle },
   { href: "/profiles", label: "Profiles", icon: Layers },
   { href: "/projects", label: "Projects", icon: FolderOpen },
