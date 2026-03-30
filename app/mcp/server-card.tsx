@@ -15,6 +15,7 @@ import {
   Pencil,
   X,
   Save,
+  Share2,
 } from "lucide-react";
 import { TOOL_LABELS, type ToolId } from "@/lib/types";
 import {
@@ -22,6 +23,7 @@ import {
   copyMcpServerAction,
   getRawMcpServerAction,
   editMcpServerAction,
+  exportMcpServerAction,
   type McpServerConfig,
   type AddMcpServerInput,
 } from "@/lib/actions/mcp";
@@ -77,6 +79,7 @@ export function ServerCard({
   const [showCopyMenu, setShowCopyMenu] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [editName, setEditName] = useState(server.name);
   const [editTransport, setEditTransport] = useState<"stdio" | "sse" | "streamable-http">(
@@ -160,6 +163,19 @@ export function ServerCard({
       toast.error("Failed to update", { description: result.error });
     }
     setEditSaving(false);
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    const result = await exportMcpServerAction(toolId, server.name);
+    if (result.success) {
+      const json = JSON.stringify(result.data, null, 2);
+      await navigator.clipboard.writeText(json);
+      toast.success(`Copied export JSON for "${server.name}" to clipboard`);
+    } else {
+      toast.error("Failed to export", { description: result.error });
+    }
+    setExporting(false);
   }
 
   async function handleRemove() {
@@ -484,6 +500,18 @@ export function ServerCard({
             >
               {editLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Pencil className="w-3 h-3" />}
               Edit
+            </button>
+
+            {/* Share / Export */}
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                border text-muted-foreground hover:text-foreground hover:bg-muted/50
+                disabled:opacity-50 transition-colors"
+            >
+              {exporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Share2 className="w-3 h-3" />}
+              Share
             </button>
 
             {/* Copy to another tool */}

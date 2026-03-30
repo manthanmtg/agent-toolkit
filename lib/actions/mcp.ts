@@ -382,6 +382,97 @@ export async function copyMcpServerAction(
   }
 }
 
+// ── Export / Import ──────────────────────────────────────────────
+
+export interface McpExportPayload {
+  "agent-toolkit": "mcp-server";
+  version: 1;
+  name: string;
+  transport: "stdio" | "sse" | "streamable-http";
+  command?: string;
+  args?: string[];
+  url?: string;
+  env?: Record<string, string>;
+  source_tool?: string;
+  exported_at: string;
+}
+
+export async function exportMcpServerAction(
+  toolId: ToolId,
+  serverName: string
+): Promise<{ success: true; data: McpExportPayload } | { success: false; error: string }> {
+  const config = getWritableConfigPath(toolId);
+  if (!config) return { success: false, error: `No config path for ${TOOL_LABELS[toolId]}` };
+
+  let json: Record<string, unknown>;
+  try {
+    json = (await readJsonFile(config.filePath)) ?? {};
+  } catch (err) {
+    return { success: false, error: String(err) };
+  }
+  const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+  const raw = servers[serverName];
+  if (!raw || typeof raw !== "object") {
+    return { success: false, error: `Server "${serverName}" not found` };
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  let transport: "stdio" | "sse" | "streamable-http" = "stdio";
+  if (typeof obj.transport === "string") {
+    transport = obj.transport as typeof transport;
+  } else if (typeof obj.url === "string") {
+    transport = (obj.url as string).includes("/sse") ? "sse" : "streamable-http";
+  }
+
+  const payload: McpExportPayload = {
+    "agent-toolkit": "mcp-server",
+    version: 1,
+    name: serverName,
+    transport,
+    exported_at: new Date().toISOString(),
+    source_tool: TOOL_LABELS[toolId],
+  };
+
+  if (typeof obj.command === "string") payload.command = obj.command;
+  if (Array.isArray(obj.args)) payload.args = obj.args.map(String);
+  if (typeof obj.url === "string") payload.url = obj.url;
+  if (obj.env && typeof obj.env === "object") {
+    payload.env = {};
+    for (const [k, v] of Object.entries(obj.env as Record<string, unknown>)) {
+      payload.env[k] = String(v);
+    }
+  }
+
+  return { success: true, data: payload };
+}
+
+export async function importMcpServerAction(
+  toolId: ToolId,
+  payload: McpExportPayload
+): Promise<ActionResult> {
+  if (payload["agent-toolkit"] !== "mcp-server") {
+    return { success: false, error: "Invalid payload: not an agent-toolkit MCP export" };
+  }
+  if (payload.version !== 1) {
+    return { success: false, error: `Unsupported export version: ${payload.version}` };
+  }
+  if (!payload.name || !/^[a-zA-Z0-9_-]+$/.test(payload.name)) {
+    return { success: false, error: "Server name must be alphanumeric (with hyphens/underscores)" };
+  }
+
+  const input: AddMcpServerInput = {
+    name: payload.name,
+    transport: payload.transport,
+    command: payload.command,
+    args: payload.args,
+    url: payload.url,
+    env: payload.env,
+  };
+
+  return addMcpServerAction(toolId, input);
+}
+
 // ── Read action ──────────────────────────────────────────────────
 
 export async function getMcpOverview(): Promise<McpOverviewResult> {

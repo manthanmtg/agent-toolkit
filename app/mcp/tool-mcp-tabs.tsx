@@ -15,6 +15,7 @@ import type { ToolId } from "@/lib/types";
 import type { McpOverviewResult, McpToolEntry } from "@/lib/actions/mcp";
 import { ServerCard } from "./server-card";
 import { AddServerDialog } from "./add-server-dialog";
+import { ImportServerDialog } from "./import-server-dialog";
 
 const TOOL_ICONS: Partial<Record<ToolId, React.ReactNode>> = {
   "claude-code": <Sparkles className="w-4 h-4" />,
@@ -189,8 +190,11 @@ function ToolMcpContent({
         </div>
       )}
 
-      {/* Add Server */}
-      <AddServerDialog toolId={tool.toolId} onAdded={onRefresh} />
+      {/* Add / Import Server */}
+      <div className="flex flex-wrap gap-3">
+        <AddServerDialog toolId={tool.toolId} onAdded={onRefresh} />
+        <ImportServerDialog toolId={tool.toolId} onImported={onRefresh} />
+      </div>
     </div>
   );
 }
