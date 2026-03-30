@@ -382,6 +382,123 @@ export async function copyMcpServerAction(
   }
 }
 
+// ── Health Check ─────────────────────────────────────────────────
+
+export type HealthStatus = "healthy" | "unhealthy" | "unknown";
+
+export interface HealthCheckResult {
+  status: HealthStatus;
+  latencyMs: number | null;
+  message: string;
+  checkedAt: string;
+}
+
+export async function healthCheckMcpServerAction(
+  toolId: ToolId,
+  serverName: string
+): Promise<{ success: true; data: HealthCheckResult } | { success: false; error: string }> {
+  const config = getWritableConfigPath(toolId);
+  if (!config) return { success: false, error: `No config path for ${TOOL_LABELS[toolId]}` };
+
+  let json: Record<string, unknown>;
+  try {
+    json = (await readJsonFile(config.filePath)) ?? {};
+  } catch (err) {
+    return { success: false, error: String(err) };
+  }
+  const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+  const raw = servers[serverName];
+  if (!raw || typeof raw !== "object") {
+    return { success: false, error: `Server "${serverName}" not found` };
+  }
+
+  const obj = raw as Record<string, unknown>;
+  const checkedAt = new Date().toISOString();
+
+  // HTTP / SSE endpoint check
+  if (typeof obj.url === "string") {
+    const url = obj.url as string;
+    const start = Date.now();
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(url, {
+        method: "HEAD",
+        signal: controller.signal,
+        redirect: "follow",
+      }).catch(() =>
+        fetch(url, { method: "GET", signal: controller.signal, redirect: "follow" })
+      );
+      clearTimeout(timeout);
+      const latencyMs = Date.now() - start;
+
+      if (res.ok || res.status === 405) {
+        return {
+          success: true,
+          data: { status: "healthy", latencyMs, message: `Reachable (HTTP ${res.status})`, checkedAt },
+        };
+      }
+      return {
+        success: true,
+        data: { status: "unhealthy", latencyMs, message: `HTTP ${res.status} ${res.statusText}`, checkedAt },
+      };
+    } catch (err) {
+      const latencyMs = Date.now() - start;
+      const msg = err instanceof Error ? err.message : String(err);
+      const isTimeout = msg.includes("abort");
+      return {
+        success: true,
+        data: {
+          status: "unhealthy",
+          latencyMs: isTimeout ? null : latencyMs,
+          message: isTimeout ? "Connection timed out (5s)" : `Connection failed: ${msg}`,
+          checkedAt,
+        },
+      };
+    }
+  }
+
+  // stdio command check — verify binary exists on PATH
+  if (typeof obj.command === "string") {
+    const cmd = obj.command as string;
+    const { execFile } = await import("child_process");
+    const { promisify } = await import("util");
+    const execFileAsync = promisify(execFile);
+
+    const start = Date.now();
+    try {
+      // Use `which` (macOS/Linux) to check if command is resolvable
+      await execFileAsync("which", [cmd], { timeout: 3000 });
+      const latencyMs = Date.now() - start;
+      return {
+        success: true,
+        data: { status: "healthy", latencyMs, message: `Command "${cmd}" found on PATH`, checkedAt },
+      };
+    } catch {
+      const latencyMs = Date.now() - start;
+      // Try `where` on Windows
+      try {
+        await execFileAsync("where", [cmd], { timeout: 3000 });
+        const latencyMs2 = Date.now() - start;
+        return {
+          success: true,
+          data: { status: "healthy", latencyMs: latencyMs2, message: `Command "${cmd}" found on PATH`, checkedAt },
+        };
+      } catch {
+        return {
+          success: true,
+          data: { status: "unhealthy", latencyMs, message: `Command "${cmd}" not found on PATH`, checkedAt },
+        };
+      }
+    }
+  }
+
+  return {
+    success: true,
+    data: { status: "unknown", latencyMs: null, message: "No command or URL to check", checkedAt },
+  };
+}
+
 // ── Export / Import ──────────────────────────────────────────────
 
 export interface McpExportPayload {

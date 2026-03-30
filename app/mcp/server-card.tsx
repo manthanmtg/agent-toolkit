@@ -16,6 +16,7 @@ import {
   X,
   Save,
   Share2,
+  HeartPulse,
 } from "lucide-react";
 import { TOOL_LABELS, type ToolId } from "@/lib/types";
 import {
@@ -24,8 +25,10 @@ import {
   getRawMcpServerAction,
   editMcpServerAction,
   exportMcpServerAction,
+  healthCheckMcpServerAction,
   type McpServerConfig,
   type AddMcpServerInput,
+  type HealthCheckResult,
 } from "@/lib/actions/mcp";
 import { toast } from "sonner";
 
@@ -80,6 +83,8 @@ export function ServerCard({
   const [editing, setEditing] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [healthResult, setHealthResult] = useState<HealthCheckResult | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [editName, setEditName] = useState(server.name);
   const [editTransport, setEditTransport] = useState<"stdio" | "sse" | "streamable-http">(
@@ -163,6 +168,27 @@ export function ServerCard({
       toast.error("Failed to update", { description: result.error });
     }
     setEditSaving(false);
+  }
+
+  async function handleHealthCheck() {
+    setChecking(true);
+    setHealthResult(null);
+    const result = await healthCheckMcpServerAction(toolId, server.name);
+    if (result.success) {
+      setHealthResult(result.data);
+      if (result.data.status === "healthy") {
+        toast.success(`"${server.name}" is healthy`, {
+          description: result.data.message + (result.data.latencyMs != null ? ` (${result.data.latencyMs}ms)` : ""),
+        });
+      } else if (result.data.status === "unhealthy") {
+        toast.error(`"${server.name}" is unhealthy`, { description: result.data.message });
+      } else {
+        toast.info(`"${server.name}": ${result.data.message}`);
+      }
+    } else {
+      toast.error("Health check failed", { description: result.error });
+    }
+    setChecking(false);
   }
 
   async function handleExport() {
@@ -278,6 +304,35 @@ export function ServerCard({
             </span>
           )}
         </div>
+
+        {/* Health check result */}
+        {healthResult && (
+          <div
+            className={`mt-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium animate-in fade-in slide-in-from-top-1 duration-200 ${
+              healthResult.status === "healthy"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800"
+                : healthResult.status === "unhealthy"
+                ? "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
+                : "bg-muted text-muted-foreground border"
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${
+                healthResult.status === "healthy"
+                  ? "bg-emerald-500"
+                  : healthResult.status === "unhealthy"
+                  ? "bg-red-500"
+                  : "bg-gray-400"
+              }`}
+            />
+            <span className="truncate">{healthResult.message}</span>
+            {healthResult.latencyMs != null && (
+              <span className="ml-auto shrink-0 text-[10px] opacity-70">
+                {healthResult.latencyMs}ms
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Expand/collapse details */}
         {hasDetails && (
@@ -512,6 +567,18 @@ export function ServerCard({
             >
               {exporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Share2 className="w-3 h-3" />}
               Share
+            </button>
+
+            {/* Health Check / Ping */}
+            <button
+              onClick={handleHealthCheck}
+              disabled={checking}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                border text-muted-foreground hover:text-foreground hover:bg-muted/50
+                disabled:opacity-50 transition-colors"
+            >
+              {checking ? <Loader2 className="w-3 h-3 animate-spin" /> : <HeartPulse className="w-3 h-3" />}
+              Ping
             </button>
 
             {/* Copy to another tool */}

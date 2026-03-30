@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Zap } from "lucide-react";
 import { Toaster } from "sonner";
 import { SidebarNav } from "./sidebar-nav";
+import { ThemeProvider } from "./theme-provider";
+import { ThemeToggle } from "./theme-toggle";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -20,10 +22,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
+        <ThemeProvider>
         <div className="flex h-screen">
           {/* Sidebar */}
           <aside className="w-64 border-r border-border bg-card flex flex-col">
@@ -36,8 +39,9 @@ export default function RootLayout({
               </Link>
             </div>
             <SidebarNav />
-            <div className="p-4 border-t border-border">
+            <div className="p-4 border-t border-border flex items-center justify-between">
               <p className="text-xs text-muted-foreground">v0.1.0</p>
+              <ThemeToggle />
             </div>
           </aside>
 
@@ -47,6 +51,7 @@ export default function RootLayout({
           </main>
         </div>
         <Toaster richColors position="bottom-right" />
+        </ThemeProvider>
       </body>
     </html>
   );
