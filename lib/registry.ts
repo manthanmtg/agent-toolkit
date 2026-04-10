@@ -2,58 +2,88 @@ import fs from "fs/promises";
 import path from "path";
 import matter from "gray-matter";
 import { glob } from "glob";
-import { SkillFrontmatterSchema, type Skill, type Profile, ProfileSchema } from "./types";
+import { SkillFrontmatterSchema, type Skill, type SkillSource, type Profile, ProfileSchema } from "./types";
 
 const REPO_ROOT = path.resolve(process.cwd());
 const SKILLS_DIR = path.join(REPO_ROOT, "skills");
 const PROFILES_DIR = path.join(REPO_ROOT, "profiles");
+const HOME = process.env.HOME || process.env.USERPROFILE || "~";
+const LOCAL_SKILLS_DIR = path.join(HOME, ".agent-toolkit", "local-skills");
 
-export async function loadSkill(skillDir: string): Promise<Skill> {
+export async function loadSkill(
+  skillDir: string,
+  source: SkillSource = "toolkit"
+): Promise<Skill> {
+  const baseDir = source === "local" ? LOCAL_SKILLS_DIR : SKILLS_DIR;
   const skillMdPath = path.join(skillDir, "SKILL.md");
   const raw = await fs.readFile(skillMdPath, "utf-8");
   const { data, content } = matter(raw);
 
   const frontmatter = SkillFrontmatterSchema.parse(data);
 
-  const rel = path.relative(SKILLS_DIR, skillDir);
+  const rel = path.relative(baseDir, skillDir);
   const parts = rel.split(path.sep);
   const domain = parts[0];
   const skillName = parts[parts.length - 1];
 
-  // Find supporting files
   const allFiles = await glob("**/*", { cwd: skillDir, nodir: true });
   const supportingFiles = allFiles
     .filter((f) => f !== "SKILL.md")
     .map((f) => path.join(rel, f));
 
+  const pathPrefix = source === "local" ? "local-skills" : "skills";
+
   return {
     frontmatter,
     content: content.trim(),
     rawContent: raw,
-    path: path.join("skills", rel),
+    path: path.join(pathPrefix, rel),
     domain,
     skillName,
     supportingFiles,
+    source,
   };
 }
 
-export async function loadAllSkills(): Promise<Skill[]> {
-  const skillMdFiles = await glob("*/*/SKILL.md", { cwd: SKILLS_DIR });
+async function loadSkillsFromDir(
+  dir: string,
+  source: SkillSource
+): Promise<Skill[]> {
+  try {
+    await fs.access(dir);
+  } catch {
+    return [];
+  }
+
+  const skillMdFiles = await glob("*/*/SKILL.md", { cwd: dir });
   const skills: Skill[] = [];
 
   for (const relPath of skillMdFiles) {
-    const skillDir = path.join(SKILLS_DIR, path.dirname(relPath));
+    const skillDir = path.join(dir, path.dirname(relPath));
     try {
-      const skill = await loadSkill(skillDir);
+      const skill = await loadSkill(skillDir, source);
       skills.push(skill);
     } catch (err) {
-      console.warn(`Failed to load skill at ${skillDir}:`, err);
+      console.warn(`Failed to load ${source} skill at ${skillDir}:`, err);
     }
   }
 
-  return skills.sort((a, b) =>
+  return skills;
+}
+
+export async function loadAllSkills(): Promise<Skill[]> {
+  const [toolkitSkills, localSkills] = await Promise.all([
+    loadSkillsFromDir(SKILLS_DIR, "toolkit"),
+    loadSkillsFromDir(LOCAL_SKILLS_DIR, "local"),
+  ]);
+
+  return [...toolkitSkills, ...localSkills].sort((a, b) =>
     `${a.domain}/${a.skillName}`.localeCompare(`${b.domain}/${b.skillName}`)
   );
+}
+
+export async function loadAllLocalSkills(): Promise<Skill[]> {
+  return loadSkillsFromDir(LOCAL_SKILLS_DIR, "local");
 }
 
 export async function loadProfile(name: string): Promise<Profile> {
@@ -118,6 +148,10 @@ function matchGlob(skillPath: string, pattern: string): boolean {
 
 export function getSkillsDir(): string {
   return SKILLS_DIR;
+}
+
+export function getLocalSkillsDir(): string {
+  return LOCAL_SKILLS_DIR;
 }
 
 export function getProfilesDir(): string {

@@ -1,9 +1,10 @@
 import { getSkillAction } from "@/lib/actions/skills";
 import { TOOL_IDS, TOOL_LABELS } from "@/lib/types";
 import Link from "next/link";
-import { ArrowLeft, FileText, Tag, Layers } from "lucide-react";
+import { ArrowLeft, FileText, Tag, Layers, Pencil } from "lucide-react";
 import { notFound } from "next/navigation";
 import InstallSkillButton from "./install-skill-button";
+import DeleteSkillButton from "./delete-skill-button";
 
 interface Props {
   params: Promise<{ domain: string; name: string }>;
@@ -18,6 +19,7 @@ export default async function SkillDetailPage({ params }: Props) {
   }
 
   const activation = skill.frontmatter.activation || {};
+  const isLocal = skill.source === "local";
 
   return (
     <div className="space-y-8">
@@ -29,11 +31,36 @@ export default async function SkillDetailPage({ params }: Props) {
           <ArrowLeft className="w-4 h-4" />
           Back to Skills
         </Link>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{name}</h1>
-          <p className="text-muted-foreground mt-1 capitalize">
-            {domain.replace(/-/g, " ")}
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">{name}</h1>
+              {isLocal ? (
+                <span className="px-2.5 py-1 text-xs rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium">
+                  Local Skill
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 text-xs rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 font-medium">
+                  Toolkit Skill
+                </span>
+              )}
+            </div>
+            <p className="text-muted-foreground mt-1 capitalize">
+              {domain.replace(/-/g, " ")}
+            </p>
+          </div>
+          {isLocal && (
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href={`/skills/${domain}/${name}/edit`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+              >
+                <Pencil className="w-4 h-4" />
+                Edit
+              </Link>
+              <DeleteSkillButton domain={domain} skillName={name} />
+            </div>
+          )}
         </div>
       </div>
 

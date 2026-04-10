@@ -156,11 +156,22 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {skills.slice(0, 6).map((skill) => (
             <Link
-              key={`${skill.domain}/${skill.skillName}`}
+              key={`${skill.source}/${skill.domain}/${skill.skillName}`}
               href={`/skills/${skill.domain}/${skill.skillName}`}
               className="border rounded-lg p-4 hover:bg-accent transition-colors"
             >
-              <p className="font-medium">{skill.skillName}</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium">{skill.skillName}</p>
+                {skill.source === "local" ? (
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium shrink-0">
+                    Local
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 font-medium shrink-0">
+                    Toolkit
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {skill.domain}
               </p>

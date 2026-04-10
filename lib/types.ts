@@ -59,14 +59,17 @@ export const SkillFrontmatterSchema = z.object({
 
 export type SkillFrontmatter = z.infer<typeof SkillFrontmatterSchema>;
 
+export type SkillSource = "toolkit" | "local";
+
 export interface Skill {
   frontmatter: SkillFrontmatter;
   content: string; // markdown body (after frontmatter)
   rawContent: string; // full file content
-  path: string; // relative path from repo root, e.g. "skills/python/pydantic-patterns"
+  path: string; // relative path from repo root or local skills dir
   domain: string;
   skillName: string;
   supportingFiles: string[]; // relative paths of examples/, scripts/, templates/
+  source: SkillSource;
 }
 
 // ── Profile schema ────────────────────────────────────────────────

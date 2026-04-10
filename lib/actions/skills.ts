@@ -2,7 +2,7 @@
 
 import fs from "fs/promises";
 import path from "path";
-import { loadAllSkills, loadSkill, loadProfile, getSkillsDir } from "../registry";
+import { loadAllSkills, loadSkill, loadProfile, getSkillsDir, getLocalSkillsDir } from "../registry";
 import { getAdapter } from "../adapters";
 import { getGlobalPath } from "../detector";
 import { atomicWrite } from "../safety";
@@ -16,9 +16,17 @@ export async function getSkillAction(
   domain: string,
   name: string
 ): Promise<Skill | null> {
-  const skillDir = path.join(getSkillsDir(), domain, name);
+  // Try toolkit skills first, then local skills
+  const toolkitDir = path.join(getSkillsDir(), domain, name);
   try {
-    return await loadSkill(skillDir);
+    return await loadSkill(toolkitDir, "toolkit");
+  } catch {
+    // Not found in toolkit, try local
+  }
+
+  const localDir = path.join(getLocalSkillsDir(), domain, name);
+  try {
+    return await loadSkill(localDir, "local");
   } catch {
     return null;
   }
@@ -38,11 +46,16 @@ export async function createSkillAction(
     // Good — doesn't exist yet
   }
 
+  const indentedDesc = description
+    .split("\n")
+    .map((line) => `  ${line}`)
+    .join("\n");
+
   const frontmatter = [
     "---",
     `name: ${name}`,
-    `description: >`,
-    `  ${description}`,
+    `description: |`,
+    indentedDesc,
     `domain: ${domain}`,
     `version: 1.0.0`,
     `tags: []`,
@@ -79,12 +92,18 @@ export async function installSkillAction(
   const installed: string[] = [];
   const errors: string[] = [];
 
-  const skillDir = path.join(getSkillsDir(), domain, skillName);
-  let skill: Skill;
+  let skill: Skill | null = null;
+
+  const toolkitDir = path.join(getSkillsDir(), domain, skillName);
   try {
-    skill = await loadSkill(skillDir);
-  } catch (err) {
-    return { success: false, installed, errors: [`Skill not found: ${err}`] };
+    skill = await loadSkill(toolkitDir, "toolkit");
+  } catch {
+    const localDir = path.join(getLocalSkillsDir(), domain, skillName);
+    try {
+      skill = await loadSkill(localDir, "local");
+    } catch (err) {
+      return { success: false, installed, errors: [`Skill not found: ${err}`] };
+    }
   }
 
   let profile;
