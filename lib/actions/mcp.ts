@@ -590,6 +590,324 @@ export async function importMcpServerAction(
   return addMcpServerAction(toolId, input);
 }
 
+// ── Bulk Export / Import ─────────────────────────────────────────
+
+export interface McpBulkServerEntry {
+  name: string;
+  source_tool_id: ToolId;
+  source_tool_label: string;
+  transport: "stdio" | "sse" | "streamable-http";
+  command?: string;
+  args?: string[];
+  url?: string;
+  env?: Record<string, string>;
+}
+
+export interface McpBulkExportPayload {
+  "agent-toolkit": "mcp-bulk-export";
+  version: 1;
+  exported_at: string;
+  env_masked: boolean;
+  total_servers: number;
+  source_tools: string[];
+  servers: McpBulkServerEntry[];
+}
+
+export interface ExportAllOptions {
+  toolIds?: ToolId[];
+  maskEnv: boolean;
+}
+
+export async function exportAllMcpServersAction(
+  options: ExportAllOptions
+): Promise<
+  | { success: true; data: McpBulkExportPayload }
+  | { success: false; error: string }
+> {
+  const allTools: ToolId[] = ["claude-code", "cursor", "windsurf", "codex"];
+  const tools =
+    options.toolIds && options.toolIds.length > 0 ? options.toolIds : allTools;
+
+  const servers: McpBulkServerEntry[] = [];
+  const sourceTools = new Set<string>();
+
+  for (const toolId of tools) {
+    const config = getWritableConfigPath(toolId);
+    if (!config) continue;
+
+    let json: Record<string, unknown>;
+    try {
+      json = (await readJsonFile(config.filePath)) ?? {};
+    } catch {
+      continue;
+    }
+
+    const rawServers = (json[config.key] ?? {}) as Record<string, unknown>;
+    for (const [name, rawConfig] of Object.entries(rawServers)) {
+      if (!rawConfig || typeof rawConfig !== "object") continue;
+      const obj = rawConfig as Record<string, unknown>;
+
+      let transport: "stdio" | "sse" | "streamable-http" = "stdio";
+      if (
+        typeof obj.transport === "string" &&
+        ["stdio", "sse", "streamable-http"].includes(obj.transport)
+      ) {
+        transport = obj.transport as typeof transport;
+      } else if (typeof obj.url === "string") {
+        transport = (obj.url as string).includes("/sse")
+          ? "sse"
+          : "streamable-http";
+      }
+
+      const entry: McpBulkServerEntry = {
+        name,
+        source_tool_id: toolId,
+        source_tool_label: TOOL_LABELS[toolId],
+        transport,
+      };
+      if (typeof obj.command === "string") entry.command = obj.command;
+      if (Array.isArray(obj.args)) entry.args = obj.args.map(String);
+      if (typeof obj.url === "string") entry.url = obj.url;
+      if (obj.env && typeof obj.env === "object") {
+        entry.env = {};
+        for (const [k, v] of Object.entries(obj.env as Record<string, unknown>)) {
+          entry.env[k] = options.maskEnv
+            ? maskEnvValue(String(v))
+            : String(v);
+        }
+      }
+      servers.push(entry);
+      sourceTools.add(TOOL_LABELS[toolId]);
+    }
+  }
+
+  return {
+    success: true,
+    data: {
+      "agent-toolkit": "mcp-bulk-export",
+      version: 1,
+      exported_at: new Date().toISOString(),
+      env_masked: options.maskEnv,
+      total_servers: servers.length,
+      source_tools: Array.from(sourceTools).sort(),
+      servers,
+    },
+  };
+}
+
+export interface ImportAllSelection {
+  name: string;
+  target_tool_id: ToolId;
+  action: "import" | "overwrite" | "skip";
+  transport: "stdio" | "sse" | "streamable-http";
+  command?: string;
+  args?: string[];
+  url?: string;
+  env?: Record<string, string>;
+}
+
+export type ImportResultStatus =
+  | "imported"
+  | "overwritten"
+  | "skipped"
+  | "failed";
+
+export interface ImportAllResultDetail {
+  name: string;
+  target_tool_id: ToolId;
+  target_tool_label: string;
+  status: ImportResultStatus;
+  error?: string;
+}
+
+export interface ImportAllResult {
+  total: number;
+  imported: number;
+  overwritten: number;
+  skipped: number;
+  failed: number;
+  details: ImportAllResultDetail[];
+}
+
+export async function importAllMcpServersAction(
+  selections: ImportAllSelection[]
+): Promise<
+  | { success: true; data: ImportAllResult }
+  | { success: false; error: string }
+> {
+  if (!selections || selections.length === 0) {
+    return { success: false, error: "No servers selected for import" };
+  }
+
+  const details: ImportAllResultDetail[] = [];
+  let imported = 0;
+  let overwritten = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  // Group by target tool to batch reads/writes per file.
+  const byTool = new Map<ToolId, ImportAllSelection[]>();
+  for (const sel of selections) {
+    const bucket = byTool.get(sel.target_tool_id);
+    if (bucket) bucket.push(sel);
+    else byTool.set(sel.target_tool_id, [sel]);
+  }
+
+  for (const [toolId, sels] of byTool.entries()) {
+    const toolLabel = TOOL_LABELS[toolId];
+    const config = getWritableConfigPath(toolId);
+
+    if (!config) {
+      for (const sel of sels) {
+        details.push({
+          name: sel.name,
+          target_tool_id: toolId,
+          target_tool_label: toolLabel,
+          status: "failed",
+          error: `No MCP config path for ${toolLabel}`,
+        });
+        failed++;
+      }
+      continue;
+    }
+
+    let json: Record<string, unknown>;
+    try {
+      json = (await readJsonFile(config.filePath)) ?? {};
+    } catch (err) {
+      for (const sel of sels) {
+        details.push({
+          name: sel.name,
+          target_tool_id: toolId,
+          target_tool_label: toolLabel,
+          status: "failed",
+          error: String(err),
+        });
+        failed++;
+      }
+      continue;
+    }
+
+    const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+    const applied: ImportAllResultDetail[] = [];
+
+    for (const sel of sels) {
+      if (sel.action === "skip") {
+        applied.push({
+          name: sel.name,
+          target_tool_id: toolId,
+          target_tool_label: toolLabel,
+          status: "skipped",
+        });
+        continue;
+      }
+
+      if (!sel.name || !/^[a-zA-Z0-9_-]+$/.test(sel.name)) {
+        applied.push({
+          name: sel.name,
+          target_tool_id: toolId,
+          target_tool_label: toolLabel,
+          status: "failed",
+          error:
+            "Server name must be alphanumeric (with hyphens/underscores)",
+        });
+        continue;
+      }
+
+      const exists = !!servers[sel.name];
+
+      if (exists && sel.action === "import") {
+        applied.push({
+          name: sel.name,
+          target_tool_id: toolId,
+          target_tool_label: toolLabel,
+          status: "failed",
+          error: `"${sel.name}" already exists in ${toolLabel} — use overwrite`,
+        });
+        continue;
+      }
+
+      const serverDef: Record<string, unknown> = {};
+      if (sel.transport === "stdio") {
+        if (!sel.command) {
+          applied.push({
+            name: sel.name,
+            target_tool_id: toolId,
+            target_tool_label: toolLabel,
+            status: "failed",
+            error: "Command is required for stdio transport",
+          });
+          continue;
+        }
+        serverDef.command = sel.command;
+        if (sel.args && sel.args.length > 0) serverDef.args = sel.args;
+      } else {
+        if (!sel.url) {
+          applied.push({
+            name: sel.name,
+            target_tool_id: toolId,
+            target_tool_label: toolLabel,
+            status: "failed",
+            error: "URL is required for remote transport",
+          });
+          continue;
+        }
+        serverDef.url = sel.url;
+      }
+      if (sel.env && Object.keys(sel.env).length > 0) {
+        serverDef.env = sel.env;
+      }
+
+      servers[sel.name] = serverDef;
+      applied.push({
+        name: sel.name,
+        target_tool_id: toolId,
+        target_tool_label: toolLabel,
+        status: exists ? "overwritten" : "imported",
+      });
+    }
+
+    json[config.key] = servers;
+
+    const hasMutation = applied.some(
+      (d) => d.status === "imported" || d.status === "overwritten"
+    );
+
+    if (hasMutation) {
+      try {
+        await writeJsonFileSafely(config.filePath, json);
+      } catch (err) {
+        for (const d of applied) {
+          if (d.status === "imported" || d.status === "overwritten") {
+            d.status = "failed";
+            d.error = `Write failed: ${err}`;
+          }
+        }
+      }
+    }
+
+    for (const d of applied) {
+      details.push(d);
+      if (d.status === "imported") imported++;
+      else if (d.status === "overwritten") overwritten++;
+      else if (d.status === "skipped") skipped++;
+      else if (d.status === "failed") failed++;
+    }
+  }
+
+  return {
+    success: true,
+    data: {
+      total: selections.length,
+      imported,
+      overwritten,
+      skipped,
+      failed,
+      details,
+    },
+  };
+}
+
 // ── Read action ──────────────────────────────────────────────────
 
 export async function getMcpOverview(): Promise<McpOverviewResult> {

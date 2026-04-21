@@ -1,6 +1,8 @@
 import { getMcpOverview } from "@/lib/actions/mcp";
 import { ToolMcpTabs } from "./tool-mcp-tabs";
 import { McpDocs } from "./mcp-docs";
+import { ExportAllDialog } from "./export-all-dialog";
+import { ImportAllDialog } from "./import-all-dialog";
 
 export default async function McpPage() {
   const data = await getMcpOverview();
@@ -10,11 +12,17 @@ export default async function McpPage() {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">MCP Servers</h1>
-        <p className="text-muted-foreground mt-1">
-          Model Context Protocol servers configured across your AI tools
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">MCP Servers</h1>
+          <p className="text-muted-foreground mt-1">
+            Model Context Protocol servers configured across your AI tools
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ExportAllDialog overview={data} />
+          <ImportAllDialog overview={data} />
+        </div>
       </div>
 
       {/* Summary Stats */}
