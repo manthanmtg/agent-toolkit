@@ -106,12 +106,15 @@ export function ToolTabs({ data }: ToolTabsProps) {
                 className={`
                   relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium
                   transition-all duration-200 flex-1 justify-center
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+                  focus-visible:ring-offset-2 focus-visible:z-10
                   ${
                     isActive
                       ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                   }
                 `}
+                aria-current={isActive ? "page" : undefined}
               >
                 {isActive && (
                   <div
