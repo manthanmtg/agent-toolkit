@@ -16,9 +16,14 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 app/                  → Next.js pages (App Router)
   page.tsx            → Dashboard
   skills/             → /skills, /skills/[domain]/[name], /skills/new
+  my-skills/          → Deployed skills dashboard
+  add-skill/          → Deploy selected skills to tools
+  mcp/                → MCP server management, import, export
+  projects/           → Project-level skill linking
   install/            → Install wizard
   doctor/             → Health diagnostics
   profiles/           → Profile management
+  settings/           → Toolkit configuration and info
   ...
 lib/                  → Core logic (server-side)
   types.ts            → Zod schemas, TypeScript types
@@ -36,12 +41,14 @@ lib/                  → Core logic (server-side)
     opencode.ts       → OpenCode adapter
     codex.ts          → Codex adapter
     agents-md.ts      → AGENTS.md cross-tool adapter
-  actions/            → Next.js Server Actions
+  actions/            → Next.js Server Actions, including build, install, sync, doctor, detect, skills, profiles, my-skills, local-skills, mcp
 skills/               → Source of truth — skill markdown files
   <domain>/
     <skill-name>/
       SKILL.md        → Skill definition (YAML frontmatter + markdown body)
 profiles/             → YAML profile definitions
+prompts/              → Autonomous maintenance prompts for small safe improvements
+issues_to_look/       → Deferred investigation notes; resolved notes live in issues_to_look/resolved/
 dist/                 → Built output (gitignored)
 ```
 
