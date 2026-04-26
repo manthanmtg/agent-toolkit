@@ -46,7 +46,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Skill Library
 
-15 production-ready skills across 13 domains:
+19 production-ready skills across 14 domains:
 
 | Domain | Skill | Description |
 |--------|-------|-------------|
