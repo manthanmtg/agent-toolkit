@@ -8,6 +8,15 @@ import { getGlobalPath } from "../detector";
 import { atomicWrite } from "../safety";
 import type { Skill, ToolId } from "../types";
 
+const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function validateIdentifier(type: string, value: string): string | null {
+  if (!IDENTIFIER_RE.test(value)) {
+    return `${type} must be lowercase letters, numbers, and hyphens (e.g. my-skill-name).`;
+  }
+  return null;
+}
+
 export async function listSkillsAction(): Promise<Skill[]> {
   return loadAllSkills();
 }
@@ -16,6 +25,12 @@ export async function getSkillAction(
   domain: string,
   name: string
 ): Promise<Skill | null> {
+  const domainError = validateIdentifier("domain", domain);
+  if (domainError) return null;
+
+  const nameError = validateIdentifier("name", name);
+  if (nameError) return null;
+
   // Try toolkit skills first, then local skills
   const toolkitDir = path.join(getSkillsDir(), domain, name);
   try {
@@ -37,6 +52,16 @@ export async function createSkillAction(
   name: string,
   description: string
 ): Promise<{ success: boolean; error?: string }> {
+  const domainError = validateIdentifier("domain", domain);
+  if (domainError) {
+    return { success: false, error: `Invalid domain: ${domainError}` };
+  }
+
+  const nameError = validateIdentifier("name", name);
+  if (nameError) {
+    return { success: false, error: `Invalid name: ${nameError}` };
+  }
+
   const skillDir = path.join(getSkillsDir(), domain, name);
 
   try {
@@ -77,7 +102,7 @@ export async function createSkillAction(
 
   try {
     await fs.mkdir(skillDir, { recursive: true });
-    await fs.writeFile(path.join(skillDir, "SKILL.md"), frontmatter, "utf-8");
+    await atomicWrite(path.join(skillDir, "SKILL.md"), frontmatter);
     return { success: true };
   } catch (err) {
     return { success: false, error: `Failed to create skill: ${err}` };
@@ -89,6 +114,24 @@ export async function installSkillAction(
   skillName: string,
   toolIds: ToolId[]
 ): Promise<{ success: boolean; installed: string[]; errors: string[] }> {
+  const domainError = validateIdentifier("domain", domain);
+  if (domainError) {
+    return {
+      success: false,
+      installed: [],
+      errors: [`Invalid domain: ${domainError}`],
+    };
+  }
+
+  const nameError = validateIdentifier("name", skillName);
+  if (nameError) {
+    return {
+      success: false,
+      installed: [],
+      errors: [`Invalid skill name: ${nameError}`],
+    };
+  }
+
   const installed: string[] = [];
   const errors: string[] = [];
 
