@@ -11,6 +11,16 @@ export interface LinkResult {
   errors: string[];
 }
 
+function isWithinProjectPath(
+  projectPath: string,
+  destination: string
+): boolean {
+  const base = path.resolve(projectPath);
+  const resolved = path.resolve(destination);
+  const baseWithSep = base.endsWith(path.sep) ? base : `${base}${path.sep}`;
+  return resolved === base || resolved.startsWith(baseWithSep);
+}
+
 export async function createSymlink(
   source: string,
   destination: string
@@ -152,6 +162,17 @@ export async function linkProject(
 
   for (const target of targets) {
     const dest = path.resolve(projectPath, target.destination);
+    if (!isWithinProjectPath(projectPath, dest)) {
+      result.errors.push(
+        `Refusing to link outside project: ${target.destination}`
+      );
+      result.skipped.push({
+        target,
+        reason: "destination is outside project root",
+      });
+      continue;
+    }
+
     const { backedUp, error } = await createSymlink(target.source, dest);
 
     if (error) {
