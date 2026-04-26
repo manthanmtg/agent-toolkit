@@ -115,25 +115,32 @@ export function filterSkillsByProfile(
   skills: Skill[],
   profile: Profile
 ): Skill[] {
+  const includePatterns = normalizePatterns(profile.include);
+  const excludePatterns = normalizePatterns(profile.exclude);
+
   return skills.filter((skill) => {
     const skillPath = `${skill.domain}/${skill.skillName}`;
 
     // Check exclusions first
-    for (const pattern of profile.exclude) {
+    for (const pattern of excludePatterns) {
       if (matchGlob(skillPath, pattern)) return false;
     }
 
     // Check inclusions
-    if (profile.include.length === 0 || profile.include.includes("*")) {
+    if (includePatterns.length === 0 || includePatterns.includes("*")) {
       return true;
     }
 
-    for (const pattern of profile.include) {
+    for (const pattern of includePatterns) {
       if (matchGlob(skillPath, pattern)) return true;
     }
 
     return false;
   });
+}
+
+function normalizePatterns(patterns: string[]): string[] {
+  return [...new Set(patterns.map((pattern) => pattern.trim()).filter(Boolean))];
 }
 
 function matchGlob(skillPath: string, pattern: string): boolean {
