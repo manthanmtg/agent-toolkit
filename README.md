@@ -42,6 +42,14 @@ npm install
 npm run dev
 ```
 
+Common maintenance commands:
+
+```bash
+npm run build   # production build
+npm run lint    # lint checks
+npm run test    # run Vitest
+```
+
 Open [http://localhost:3000](http://localhost:3000).
 
 ## Skill Library
