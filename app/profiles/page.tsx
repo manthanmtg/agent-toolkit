@@ -1,8 +1,14 @@
-import { listProfilesAction } from "@/lib/actions/profiles";
+import {
+  listProfilesWithDiagnosticsAction,
+} from "@/lib/actions/profiles";
 import { Layers } from "lucide-react";
 
 export default async function ProfilesPage() {
-  const profiles = await listProfilesAction().catch(() => []);
+  const { profiles, invalidProfiles } =
+    (await listProfilesWithDiagnosticsAction().catch(() => ({
+      profiles: [],
+      invalidProfiles: [],
+    })));
 
   return (
     <div className="space-y-8">
@@ -12,6 +18,22 @@ export default async function ProfilesPage() {
           Skill compositions for different use cases.
         </p>
       </div>
+
+      {invalidProfiles.length > 0 && (
+        <div className="border border-amber-500/40 bg-amber-500/10 rounded-xl p-4 text-sm">
+          <p className="font-medium text-amber-700 dark:text-amber-200">
+            Some profile files are not valid YAML:
+          </p>
+          <ul className="list-disc pl-5 mt-2 text-amber-700 dark:text-amber-200">
+            {invalidProfiles.map((profileName) => (
+              <li key={profileName}>{profileName}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-amber-700/90 dark:text-amber-200/90">
+            Fix these files so they include valid profile fields.
+          </p>
+        </div>
+      )}
 
       {profiles.length === 0 ? (
         <div className="border rounded-xl p-12 text-center">

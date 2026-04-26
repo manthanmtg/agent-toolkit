@@ -94,9 +94,19 @@ export async function loadProfile(name: string): Promise<Profile> {
   return ProfileSchema.parse(data);
 }
 
+export interface ProfileLoadResult {
+  profiles: Profile[];
+  invalidFiles: string[];
+}
+
 export async function loadAllProfiles(): Promise<Profile[]> {
+  return (await loadAllProfilesWithDiagnostics()).profiles;
+}
+
+export async function loadAllProfilesWithDiagnostics(): Promise<ProfileLoadResult> {
   const files = await glob("*.yaml", { cwd: PROFILES_DIR });
   const profiles: Profile[] = [];
+  const invalidFiles: string[] = [];
 
   for (const file of files) {
     try {
@@ -104,11 +114,12 @@ export async function loadAllProfiles(): Promise<Profile[]> {
       const profile = await loadProfile(name);
       profiles.push(profile);
     } catch (err) {
+      invalidFiles.push(file);
       console.warn(`Failed to load profile ${file}:`, err);
     }
   }
 
-  return profiles;
+  return { profiles, invalidFiles };
 }
 
 export function filterSkillsByProfile(
