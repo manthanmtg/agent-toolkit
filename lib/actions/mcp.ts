@@ -39,6 +39,10 @@ interface ConfigSource {
   extract: (data: unknown) => Record<string, unknown> | null;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 const TOOL_CONFIG_SOURCES: Partial<Record<ToolId, ConfigSource[]>> = {
   "claude-code": [
     {
@@ -71,10 +75,10 @@ const TOOL_CONFIG_SOURCES: Partial<Record<ToolId, ConfigSource[]>> = {
 };
 
 function getNestedObject(data: unknown, key: string): Record<string, unknown> | null {
-  if (data && typeof data === "object" && key in data) {
-    const val = (data as Record<string, unknown>)[key];
-    if (val && typeof val === "object" && !Array.isArray(val)) {
-      return val as Record<string, unknown>;
+  if (isRecord(data) && key in data) {
+    const val = data[key];
+    if (isRecord(val)) {
+      return val;
     }
   }
   return null;
@@ -86,7 +90,7 @@ function maskEnvValue(value: string): string {
 }
 
 function parseServerConfig(name: string, raw: unknown): McpServerConfig {
-  const obj = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const obj = isRecord(raw) ? raw : {};
 
   const command = typeof obj.command === "string" ? obj.command : undefined;
   const args = Array.isArray(obj.args) ? obj.args.map(String) : undefined;
@@ -94,7 +98,9 @@ function parseServerConfig(name: string, raw: unknown): McpServerConfig {
 
   let transport: McpServerConfig["transport"] = "unknown";
   if (typeof obj.transport === "string") {
-    transport = obj.transport as McpServerConfig["transport"];
+    if (obj.transport === "stdio" || obj.transport === "sse" || obj.transport === "streamable-http" || obj.transport === "unknown") {
+      transport = obj.transport;
+    }
   } else if (command) {
     transport = "stdio";
   } else if (url) {
@@ -102,9 +108,9 @@ function parseServerConfig(name: string, raw: unknown): McpServerConfig {
   }
 
   let env: Record<string, string> | undefined;
-  if (obj.env && typeof obj.env === "object") {
+  if (isRecord(obj.env)) {
     env = {};
-    for (const [k, v] of Object.entries(obj.env as Record<string, unknown>)) {
+    for (const [k, v] of Object.entries(obj.env)) {
       env[k] = maskEnvValue(String(v));
     }
   }
