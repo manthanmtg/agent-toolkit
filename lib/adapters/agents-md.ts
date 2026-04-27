@@ -35,7 +35,7 @@ export class AgentsMdAdapter extends BaseAdapter {
     return new Map([["AGENTS.md", "AGENTS.md"]]);
   }
 
-  getCharacterLimit(): number | null {
+  getCharacterLimit(_scope: "global" | "workspace"): number | null {
     return null;
   }
 }
