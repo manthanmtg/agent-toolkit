@@ -60,18 +60,22 @@ Open [http://localhost:3000](http://localhost:3000).
 |--------|-------|-------------|
 | **ci-cd** | `pipeline-hardening` | Reliable pipelines, safe deploys, caching, release checks |
 | **code-review** | `deep-review` | Deep review focused on bugs, security, performance, resilience |
+| **code-review** | `multi-agent-regression` | Multi-agent regression review for behavior breakage and backward-compatibility risk |
 | **code-review** | `multi-agent-review` | Run multiple AI reviewers to analyze a branch or commit |
 | **debugging** | `root-cause-debugging` | Analyze logs, traces, stack traces, and state to find root causes |
 | **devops** | `docker-best-practices` | Efficient, secure, reproducible container images |
 | **docs-gen** | `engineering-docs` | READMEs, API docs, runbooks, changelogs, migration guides |
+| **frontend** | `frontend-design` | Create production-grade frontend UI with strong aesthetics and implementation quality |
+| **frontend** | `frontend-review` | Review frontend code for design, accessibility, responsiveness, and performance |
 | **git-pro** | `perfect-commits` | Precise commits, reviewable PRs, clean rebases |
 | **perf-opt** | `performance-tuning` | Profiling, bottleneck analysis, query optimization |
-| **planning** | `change-architect` | Architect code changes by analyzing branches, schemas, and protos |
-| **productivity** | `weekly-work-review` | Weekly summary from Slack + Jira + Confluence activity |
+| **planning** | `design-architect` | Architect code changes by analyzing branches, schemas, and requirements |
+| **planning** | `design-reviewer` | Review implementation plans for completeness, risk, and feasibility |
+| **productivity-work** | `weekly-work-review` | Weekly summary from Slack + Jira + Confluence activity |
 | **python** | `error-handling` | Custom exceptions, context managers, structured logging, retries |
 | **python** | `pydantic-patterns` | Pydantic v2 validators, serialization, generics, unions |
-| **security** | `appsec-review` | OWASP risks, secrets exposure, dependency audits |
-| **testing** | `test-strategy` | TDD, coverage strategy, regression tests, mocks, fixtures |
+| **security-scan** | `appsec-review` | OWASP risks, secrets exposure, dependency audits |
+| **testing-master** | `test-strategy` | TDD, coverage strategy, regression tests, mocks, fixtures |
 | **typescript** | `nextjs-patterns` | Next.js 15 App Router, Server Components, Server Actions |
 
 ## Supported Tools
