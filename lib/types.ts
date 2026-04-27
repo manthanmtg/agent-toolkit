@@ -52,7 +52,7 @@ export const SkillFrontmatterSchema = z.object({
   version: z.string().optional().default("1.0.0"),
   tags: z.array(z.string()).optional().default([]),
   author: z.string().optional().default(""),
-  activation: ActivationSchema.optional(),
+  activation: ActivationSchema.optional().default(ActivationSchema.parse({})),
   globs: z.string().optional(),
   depends_on: z.array(z.string()).optional().default([]),
 });
