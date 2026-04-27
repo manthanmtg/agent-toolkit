@@ -102,6 +102,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `/my-skills` | Deployed skills per tool — drift detection, update, add, cross-agent view |
 | `/add-skill` | Deploy selected skills to chosen tools |
 | `/install` | Guided wizard — detect tools, pick profile, build & link |
+| `/mcp` | Configure MCP server manifests, sync, and export skill/tool mappings |
 | `/doctor` | Health diagnostics and tool detection |
 | `/profiles` | Create and manage skill profiles |
 | `/projects` | Link skills to specific project directories |
