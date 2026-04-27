@@ -303,10 +303,10 @@ A Next.js fullstack app (`localhost:3000`) is the primary interface. Server Acti
 ├── PRD.md
 ├── README.md
 ├── package.json                    # Next.js + deps
+├── next-env.d.ts
 ├── next.config.ts
+├── postcss.config.mjs
 ├── tsconfig.json
-├── tailwind.config.ts
-├── toolkit.yaml                    # Global toolkit configuration
 │
 ├── app/                            # Next.js App Router
 │   ├── layout.tsx                  # Root layout (sidebar nav, theme)
