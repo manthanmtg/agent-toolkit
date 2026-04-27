@@ -21,6 +21,85 @@ interface ImportServerDialogProps {
   onImported: () => void;
 }
 
+const MCP_TRANSPORTS = ["stdio", "sse", "streamable-http"] as const;
+type McpTransport = (typeof MCP_TRANSPORTS)[number];
+
+function isMcpTransport(value: unknown): value is McpTransport {
+  return typeof value === "string" && MCP_TRANSPORTS.includes(value as McpTransport);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asStringRecord(value: unknown): Record<string, string> | undefined {
+  if (!isRecord(value)) return undefined;
+
+  const result: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (typeof raw !== "string") {
+      return undefined;
+    }
+    result[key] = raw;
+  }
+
+  return result;
+}
+
+function isValidMcpExportPayload(
+  value: unknown
+): { success: true; data: McpExportPayload } | { success: false; error: string } {
+  if (!isRecord(value)) {
+    return { success: false, error: "Invalid JSON payload" };
+  }
+
+  const raw = value;
+  if (raw["agent-toolkit"] !== "mcp-server") {
+    return { success: false, error: "Not a valid agent-toolkit MCP export" };
+  }
+  if (raw.version !== 1) {
+    return { success: false, error: `Unsupported version: ${String(raw.version)}` };
+  }
+  if (typeof raw.name !== "string" || !raw.name.trim()) {
+    return { success: false, error: "Missing server name" };
+  }
+
+  if (!isMcpTransport(raw.transport)) {
+    return { success: false, error: "Unsupported transport" };
+  }
+  const transport = raw.transport;
+
+  const args =
+    raw.args === undefined
+      ? undefined
+      : Array.isArray(raw.args)
+        ? raw.args.map(String)
+        : undefined;
+  if (args !== undefined && raw.args !== undefined && !Array.isArray(raw.args)) {
+    return { success: false, error: "Invalid args list" };
+  }
+
+  const env = asStringRecord(raw.env);
+  if (raw.env !== undefined && env === undefined) {
+    return { success: false, error: "Invalid env object" };
+  }
+
+  const payload: McpExportPayload = {
+    "agent-toolkit": "mcp-server",
+    version: 1,
+    name: raw.name,
+    transport,
+    command: typeof raw.command === "string" ? raw.command : undefined,
+    args,
+    url: typeof raw.url === "string" ? raw.url : undefined,
+    env,
+    source_tool: typeof raw.source_tool === "string" ? raw.source_tool : undefined,
+    exported_at: typeof raw.exported_at === "string" ? raw.exported_at : new Date().toISOString(),
+  };
+
+  return { success: true, data: payload };
+}
+
 export function ImportServerDialog({ toolId, onImported }: ImportServerDialogProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -41,24 +120,21 @@ export function ImportServerDialog({ toolId, onImported }: ImportServerDialogPro
 
     if (!value.trim()) return;
 
+    let obj: unknown;
     try {
-      const parsed = JSON.parse(value);
-      if (parsed["agent-toolkit"] !== "mcp-server") {
-        setParseError("Not a valid agent-toolkit MCP export");
-        return;
-      }
-      if (parsed.version !== 1) {
-        setParseError(`Unsupported version: ${parsed.version}`);
-        return;
-      }
-      if (!parsed.name) {
-        setParseError("Missing server name");
-        return;
-      }
-      setPreview(parsed as McpExportPayload);
+      obj = JSON.parse(value);
     } catch {
       setParseError("Invalid JSON");
+      return;
     }
+
+    const parsed = isValidMcpExportPayload(obj);
+    if (!parsed.success) {
+      setParseError(parsed.error);
+      return;
+    }
+
+    setPreview(parsed.data);
   }
 
   async function handleImport() {
