@@ -48,6 +48,7 @@ export function SidebarNav() {
                 ? "bg-primary/10 text-primary font-medium"
                 : "text-muted-foreground hover:text-foreground hover:bg-accent"
             }`}
+            aria-current={isActive ? "page" : undefined}
           >
             <item.icon className={`w-4 h-4 ${isActive ? "text-primary" : ""}`} />
             {item.label}
