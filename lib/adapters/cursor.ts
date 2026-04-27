@@ -72,7 +72,7 @@ export class CursorAdapter extends BaseAdapter {
     ]);
   }
 
-  getCharacterLimit(): number | null {
+  getCharacterLimit(_scope: "global" | "workspace"): number | null {
     return null;
   }
 }
