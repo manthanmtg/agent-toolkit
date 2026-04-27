@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { getRepoRoot } from "./registry";
-import { backupFile, writeToolkitMarker, checkDuplicate } from "./safety";
+import { atomicWrite, backupFile, writeToolkitMarker, checkDuplicate } from "./safety";
 import type { SymlinkTarget, ToolId } from "./types";
 
 export interface LinkResult {
@@ -214,7 +214,7 @@ async function updateGitignore(
   }
 
   const section = `\n${marker}\n${paths.join("\n")}\n`;
-  await fs.writeFile(gitignorePath, content.trimEnd() + section, "utf-8");
+  await atomicWrite(gitignorePath, content.trimEnd() + section);
 }
 
 export async function unlinkAll(
