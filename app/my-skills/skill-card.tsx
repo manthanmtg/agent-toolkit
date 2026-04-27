@@ -106,7 +106,7 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
               {skill.domain && (
                 <Link
                   href={`/skills/${skill.domain}/${skill.name}`}
-                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                  className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-colors shrink-0 rounded-sm"
                   title="View in registry"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -159,8 +159,10 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
                   onClick={handleUpdate}
                   disabled={updating}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                    bg-amber-500 text-white hover:bg-amber-600
-                    disabled:opacity-50 transition-colors"
+                    bg-amber-500 text-white hover:bg-amber-600 active:bg-amber-700
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background
+                    transition-colors"
                 >
                   {updating ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -176,7 +178,9 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
                 disabled={removing}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
                   border text-muted-foreground hover:text-destructive hover:border-destructive/50 hover:bg-destructive/5
-                  disabled:opacity-50 transition-colors ml-auto"
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background
+                  active:bg-destructive/10 transition-colors ml-auto"
               >
                 {removing ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
