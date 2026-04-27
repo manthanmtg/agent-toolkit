@@ -70,7 +70,7 @@ export class ClaudeCodeAdapter extends BaseAdapter {
     ]);
   }
 
-  getCharacterLimit(): number | null {
+  getCharacterLimit(_scope: "global" | "workspace"): number | null {
     return null; // No hard limit
   }
 }
