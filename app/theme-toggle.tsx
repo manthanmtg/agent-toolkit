@@ -27,8 +27,11 @@ export function ThemeToggle() {
         return (
           <button
             key={t.value}
+            type="button"
             onClick={() => setTheme(t.value)}
             title={t.label}
+            aria-label={`Set ${t.label.toLowerCase()} theme`}
+            aria-pressed={isActive}
             className={`p-1.5 rounded-md transition-all duration-200 ${
               isActive
                 ? "bg-card text-foreground shadow-sm"
