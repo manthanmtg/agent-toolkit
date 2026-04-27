@@ -29,7 +29,9 @@ You are generating a **comprehensive weekly work review** for a person. Your job
 
 2. **Time Range**: Default to the **last 7 days** (Monday–Sunday of the current or previous week). If the user specifies a different range, use that instead.
 
-3. **Confirm** the person and date range before proceeding:
+3. **Data-source availability**: If one or more required MCP sources are unavailable, continue with only available sources and explicitly note what could not be pulled.
+
+4. **Confirm** the person and date range before proceeding:
    > Generating weekly review for **{name}** — {start_date} to {end_date}
 
 ---
