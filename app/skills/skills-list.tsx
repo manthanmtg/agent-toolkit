@@ -62,6 +62,7 @@ export function SkillsList({ skills }: { skills: Skill[] }) {
             <button
               key={f.value}
               onClick={() => setFilter(f.value)}
+              aria-pressed={filter === f.value}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 filter === f.value
                   ? "bg-background text-foreground shadow-sm"
