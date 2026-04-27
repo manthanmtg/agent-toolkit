@@ -25,7 +25,7 @@ You are generating a **comprehensive weekly work review** for a person. Your job
 
 ## Step 0 — Identify the Person & Time Range
 
-1. **Person ID / Name**: If the user provides a person ID, username, or email — use it. Otherwise, determine the current user's identity from the system (e.g., `whoami`, git config `user.name` / `user.email`, or ask the user).
+1. **Person ID / Name**: Prefer identity explicitly provided by the user (`person ID`, username, or email). If absent, only derive identity from available system context (for example `whoami` or `git config user.name/user.email`) when that context is clearly available; otherwise ask the user to confirm it before continuing.
 
 2. **Time Range**: Default to the **last 7 days** (Monday–Sunday of the current or previous week). If the user specifies a different range, use that instead.
 
