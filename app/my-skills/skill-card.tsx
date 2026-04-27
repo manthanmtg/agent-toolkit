@@ -107,7 +107,7 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
                 <Link
                   href={`/skills/${skill.domain}/${skill.name}`}
                   className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-colors shrink-0 rounded-sm"
-                  title="View in registry"
+                  aria-label={`View ${skill.name} in registry`}
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </Link>
