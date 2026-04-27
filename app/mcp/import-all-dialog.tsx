@@ -25,7 +25,7 @@ import {
   FileUp,
   EyeOff,
 } from "lucide-react";
-import type { ToolId } from "@/lib/types";
+import { TOOL_IDS, type ToolId } from "@/lib/types";
 import { TOOL_LABELS } from "@/lib/types";
 import {
   importAllMcpServersAction,
@@ -78,6 +78,22 @@ interface ImportAllDialogProps {
   overview: McpOverviewResult;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isToolId(value: unknown): value is ToolId {
+  return typeof value === "string" && TOOL_IDS.includes(value);
+}
+
+function isTransport(value: unknown): value is Transport {
+  return value === "stdio" || value === "sse" || value === "streamable-http";
+}
+
+function toStringArray(value: unknown): string[] | undefined {
+  return Array.isArray(value) ? value.map((v) => String(v)) : undefined;
+}
+
 function parsePayload(
   obj: unknown
 ):
@@ -86,14 +102,18 @@ function parsePayload(
   if (!obj || typeof obj !== "object") {
     return { success: false, error: "Invalid payload (not an object)" };
   }
-  const o = obj as Record<string, unknown>;
+  if (!isRecord(obj)) {
+    return { success: false, error: "Invalid payload (not a record)" };
+  }
+  const o = obj;
 
-  function parseServer(srv: Record<string, unknown>): ParsedServer | null {
+  function parseServer(srv: unknown): ParsedServer | null {
+    if (!isRecord(srv)) return null;
     if (typeof srv.name !== "string" || !srv.name) return null;
     const env =
-      srv.env && typeof srv.env === "object"
+      isRecord(srv.env)
         ? Object.fromEntries(
-            Object.entries(srv.env as Record<string, unknown>).map(([k, v]) => [
+            Object.entries(srv.env).map(([k, v]) => [
               k,
               String(v),
             ])
@@ -104,10 +124,8 @@ function parsePayload(
       : false;
 
     const rawTransport = typeof srv.transport === "string" ? srv.transport : "";
-    const transport: Transport = (
-      ["stdio", "sse", "streamable-http"] as const
-    ).includes(rawTransport as Transport)
-      ? (rawTransport as Transport)
+    const transport: Transport = isTransport(rawTransport)
+      ? rawTransport
       : typeof srv.url === "string"
       ? (srv.url as string).includes("/sse")
         ? "sse"
@@ -115,9 +133,7 @@ function parsePayload(
       : "stdio";
 
     const sourceId =
-      typeof srv.source_tool_id === "string"
-        ? (srv.source_tool_id as ToolId)
-        : undefined;
+      isToolId(srv.source_tool_id) ? srv.source_tool_id : undefined;
 
     return {
       name: srv.name,
@@ -130,9 +146,7 @@ function parsePayload(
           : undefined,
       transport,
       command: typeof srv.command === "string" ? srv.command : undefined,
-      args: Array.isArray(srv.args)
-        ? (srv.args as unknown[]).map(String)
-        : undefined,
+      args: toStringArray(srv.args),
       url: typeof srv.url === "string" ? srv.url : undefined,
       env,
       envMaskedDetected,
@@ -152,8 +166,7 @@ function parsePayload(
     }
     const servers: ParsedServer[] = [];
     for (const s of o.servers) {
-      if (!s || typeof s !== "object") continue;
-      const parsed = parseServer(s as Record<string, unknown>);
+      const parsed = parseServer(s);
       if (parsed) servers.push(parsed);
     }
     if (servers.length === 0) {
