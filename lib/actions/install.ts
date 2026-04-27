@@ -8,6 +8,11 @@ import { getAllAdapters } from "../adapters";
 import { getRepoRoot } from "../registry";
 import type { DetectedTool, SymlinkTarget } from "../types";
 
+function formatError(err: unknown): string {
+  if (err instanceof Error) return err.message || "Unknown error";
+  return typeof err === "string" ? err : "Unknown error";
+}
+
 export interface InstallStep {
   id: string;
   label: string;
@@ -32,11 +37,48 @@ export interface InstallResult {
 export async function runInstall(
   profileName: string = "default"
 ): Promise<InstallResult> {
+  const normalizedProfile =
+    typeof profileName === "string" && profileName.trim().length > 0
+      ? profileName.trim()
+      : "default";
+
   // Step 1: Detect tools
-  const tools = await detectTools();
+  let tools: DetectedTool[] = [];
+  try {
+    tools = await detectTools();
+  } catch (err) {
+    // Surface detection failures but continue the install flow where possible.
+    return {
+      tools: [],
+      buildResult: {
+        totalSkills: 0,
+        totalFiles: 0,
+        errors: [`Failed to detect installed tools: ${formatError(err)}`],
+      },
+      linkResult: {
+        created: 0,
+        backedUp: 0,
+        errors: ["Install flow stopped due to detection failure."],
+      },
+    };
+  }
 
   // Step 2: Build
-  const buildResult = await build(profileName);
+  let buildResult = {
+    totalSkills: 0,
+    totalFiles: 0,
+    errors: [] as string[],
+  };
+  try {
+    const result = await build(normalizedProfile);
+    buildResult = {
+      totalSkills: result.totalSkills,
+      totalFiles: result.totalFiles,
+      errors: [...result.errors],
+    };
+  } catch (err) {
+    buildResult.errors.push(`Build failed: ${formatError(err)}`);
+  }
 
   // Step 3: Link global configs
   const distDir = path.join(getRepoRoot(), "dist");
@@ -58,7 +100,16 @@ export async function runInstall(
     }
   }
 
-  const linkResult = await linkGlobal(targets);
+  let linkResult;
+  try {
+    linkResult = await linkGlobal(targets);
+  } catch (err) {
+    linkResult = {
+      created: [],
+      backedUp: [],
+      errors: [`Failed to link global configs: ${formatError(err)}`],
+    };
+  }
 
   return {
     tools,
