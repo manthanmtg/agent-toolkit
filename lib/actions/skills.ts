@@ -195,6 +195,15 @@ export async function uninstallSkillAction(
   skillName: string,
   toolIds: ToolId[]
 ): Promise<{ success: boolean; removed: string[]; errors: string[] }> {
+  const nameError = validateIdentifier("skill name", skillName);
+  if (nameError) {
+    return {
+      success: false,
+      removed: [],
+      errors: [`Invalid skill name: ${nameError}`],
+    };
+  }
+
   const removed: string[] = [];
   const errors: string[] = [];
 
