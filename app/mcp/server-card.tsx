@@ -404,7 +404,12 @@ export function ServerCard({
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Edit Server
               </p>
-              <button type="button" onClick={() => setEditing(false)} className="p-1 rounded-md hover:bg-muted text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="p-1 rounded-md hover:bg-muted text-muted-foreground"
+                aria-label="Close edit form"
+              >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -513,6 +518,7 @@ export function ServerCard({
                   <button
                     type="button"
                     onClick={() => setEditEnv(editEnv.filter((_, j) => j !== i))}
+                    aria-label={`Remove env variable ${i + 1}`}
                     className="p-1 rounded-md text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="w-3 h-3" />
