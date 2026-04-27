@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TOOL_LABELS, type ToolId } from "@/lib/types";
@@ -62,12 +62,40 @@ interface ToolTabsProps {
 
 export function ToolTabs({ data }: ToolTabsProps) {
   const router = useRouter();
-  const detectedTools = data.tools.filter((t) => t.detected);
+  const detectedTools = useMemo(
+    () => data.tools.filter((t) => t.detected),
+    [data.tools]
+  );
   const [activeTab, setActiveTab] = useState<ToolId>(
     detectedTools[0]?.toolId ?? "claude-code"
   );
 
-  const activeTool = data.tools.find((t) => t.toolId === activeTab);
+  const toolStats = useMemo(() => {
+    const stats = new Map<
+      ToolId,
+      { totalSkills: number; outdatedCount: number }
+    >();
+
+    for (const tool of detectedTools) {
+      let outdatedCount = 0;
+      for (const skill of tool.skills) {
+        if (skill.status === "outdated") {
+          outdatedCount++;
+        }
+      }
+
+      stats.set(tool.toolId, {
+        totalSkills: tool.skills.length,
+        outdatedCount,
+      });
+    }
+    return stats;
+  }, [detectedTools]);
+
+  const activeTool = useMemo(
+    () => detectedTools.find((t) => t.toolId === activeTab) ?? null,
+    [detectedTools, activeTab]
+  );
 
   const handleRefresh = useCallback(() => {
     router.refresh();
@@ -95,9 +123,9 @@ export function ToolTabs({ data }: ToolTabsProps) {
         <div className="flex gap-1 p-1 rounded-xl bg-muted/50 border">
           {detectedTools.map((tool) => {
             const isActive = activeTab === tool.toolId;
-            const outdatedCount = tool.skills.filter(
-              (s) => s.status === "outdated"
-            ).length;
+            const stats = toolStats.get(tool.toolId);
+            const outdatedCount = stats?.outdatedCount ?? 0;
+            const totalSkills = stats?.totalSkills ?? tool.skills.length;
 
             return (
               <button
@@ -125,7 +153,7 @@ export function ToolTabs({ data }: ToolTabsProps) {
                 <span className="hidden sm:inline">
                   {TOOL_LABELS[tool.toolId]}
                 </span>
-                {tool.skills.length > 0 && (
+                {totalSkills > 0 && (
                   <span
                     className={`
                       min-w-[1.25rem] h-5 px-1.5 rounded-full text-xs font-semibold
@@ -169,16 +197,53 @@ function ToolContent({
 }) {
   const [syncing, setSyncing] = useState(false);
 
-  const nativeSkills = tool.skills.filter((s) => s.source === "native");
-  const crossAgentSkills = tool.skills.filter((s) => s.source === "cross-agent");
-  const outdatedCount = tool.skills.filter((s) => s.status === "outdated").length;
-  const upToDateCount = tool.skills.filter((s) => s.status === "up-to-date").length;
-  const unknownCount = tool.skills.filter((s) => s.status === "unknown").length;
-  const crossCount = crossAgentSkills.length;
+  const {
+    nativeSkills,
+    crossAgentSkills,
+    outdatedCount,
+    upToDateCount,
+    unknownCount,
+    deployedNames,
+  } = useMemo(() => {
+    const nativeSkills = [];
+    const crossAgentSkills = [];
+    let outdatedCount = 0;
+    let upToDateCount = 0;
+    let unknownCount = 0;
+    const deployedNames = new Set<string>();
 
-  const deployedNames = new Set(tool.skills.map((s) => s.name));
-  const undeployedSkills = registrySkills.filter(
-    (s) => !deployedNames.has(s.name)
+    for (const skill of tool.skills) {
+      deployedNames.add(skill.name);
+
+      if (skill.source === "native") {
+        nativeSkills.push(skill);
+      } else if (skill.source === "cross-agent") {
+        crossAgentSkills.push(skill);
+      }
+
+      if (skill.status === "outdated") {
+        outdatedCount++;
+      } else if (skill.status === "up-to-date") {
+        upToDateCount++;
+      } else if (skill.status === "unknown") {
+        unknownCount++;
+      }
+    }
+
+    return {
+      nativeSkills,
+      crossAgentSkills,
+      outdatedCount,
+      upToDateCount,
+      unknownCount,
+      deployedNames,
+    };
+  }, [tool.skills]);
+
+  const crossCount = crossAgentSkills.length;
+  const undeployedSkills = useMemo(
+    () => registrySkills.filter((s) => !deployedNames.has(s.name)),
+    [registrySkills, deployedNames]
   );
 
   async function handleSync() {
