@@ -22,7 +22,7 @@ export default async function ProfilesPage() {
       {invalidProfiles.length > 0 && (
         <div className="border border-amber-500/40 bg-amber-500/10 rounded-xl p-4 text-sm">
           <p className="font-medium text-amber-700 dark:text-amber-200">
-            Some profile files are not valid YAML:
+            Some profile files are invalid or missing required fields:
           </p>
           <ul className="list-disc pl-5 mt-2 text-amber-700 dark:text-amber-200">
             {invalidProfiles.map((profileName) => (
@@ -30,7 +30,7 @@ export default async function ProfilesPage() {
             ))}
           </ul>
           <p className="mt-2 text-amber-700/90 dark:text-amber-200/90">
-            Fix these files so they include valid profile fields.
+            Fix these files so they include valid profile content.
           </p>
         </div>
       )}
