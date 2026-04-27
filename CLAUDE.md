@@ -132,6 +132,7 @@ tools:
 npm install
 npm run dev     # starts at http://localhost:3000 (Turbopack)
 npm run build   # production build
+npm run start   # serves production build
 npm run lint    # lint checks
 npm run test    # unit tests
 ```
