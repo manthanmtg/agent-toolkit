@@ -145,10 +145,13 @@ export function filterSkillsByProfile(
 
   return skills.filter((skill) => {
     const skillPath = `${skill.domain}/${skill.skillName}`;
+    const skillTags = new Set(
+      skill.frontmatter.tags.map((tag) => tag.toLowerCase())
+    );
 
     // Check exclusions first
     for (const pattern of excludePatterns) {
-      if (matchGlob(skillPath, pattern)) return false;
+      if (matchGlob(skillPath, pattern, skillTags)) return false;
     }
 
     // Check inclusions
@@ -157,7 +160,7 @@ export function filterSkillsByProfile(
     }
 
     for (const pattern of includePatterns) {
-      if (matchGlob(skillPath, pattern)) return true;
+      if (matchGlob(skillPath, pattern, skillTags)) return true;
     }
 
     return false;
@@ -168,9 +171,18 @@ function normalizePatterns(patterns: string[]): string[] {
   return [...new Set(patterns.map((pattern) => pattern.trim()).filter(Boolean))];
 }
 
-function matchGlob(skillPath: string, pattern: string): boolean {
+function matchGlob(
+  skillPath: string,
+  pattern: string,
+  skillTags: Set<string>
+): boolean {
   // Simple glob matching: "domain/*" matches all in domain, exact match otherwise
   if (pattern === "*") return true;
+  if (pattern.startsWith("tag:")) {
+    const tag = pattern.slice(4).trim().toLowerCase();
+    if (!tag) return false;
+    return skillTags.has(tag);
+  }
   if (pattern.endsWith("/*")) {
     const prefix = pattern.slice(0, -2);
     return skillPath.startsWith(prefix + "/") || skillPath === prefix;
