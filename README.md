@@ -32,6 +32,7 @@ Agent Toolkit solves this. You write a skill **once** as a Markdown file, and th
 - **Install Wizard** — Guided flow to detect tools, pick a profile, build & link
 - **Safety First** — Atomic writes, backups to `~/.agent-toolkit-backup/`, duplicate detection
 - **Health Diagnostics** — Doctor page checks tool detection, file integrity, and config issues
+- **Autonomous maintenance prompts** — `prompts/random_selector.md` picks safe one-shot improvement prompts for small documentation and workflow updates
 
 ## Quick Start
 
