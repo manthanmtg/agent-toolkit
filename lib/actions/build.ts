@@ -3,6 +3,13 @@
 import { build, cleanDist } from "../builder";
 import type { BuildResult } from "../builder";
 
+function formatError(err: unknown): string {
+  if (err instanceof Error) {
+    return err.message || "Unknown error";
+  }
+  return typeof err === "string" ? err : "Unknown error";
+}
+
 export async function buildAction(
   profileName: string = "default",
   clean: boolean = false
@@ -31,7 +38,7 @@ export async function buildAction(
         totalSkills: 0,
         totalFiles: 0,
         filesByTool: {},
-        errors: [`Failed to clean dist directory: ${String(err)}`],
+        errors: [`Failed to clean dist directory: ${formatError(err)}`],
       };
     }
   }
@@ -44,7 +51,7 @@ export async function buildAction(
       totalSkills: 0,
       totalFiles: 0,
       filesByTool: {},
-      errors: [`Build failed: ${String(err)}`],
+      errors: [`Build failed: ${formatError(err)}`],
     };
   }
 }
