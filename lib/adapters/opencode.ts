@@ -17,9 +17,15 @@ export class OpenCodeAdapter extends BaseAdapter {
       `name: ${skill.frontmatter.name}`,
       `description: |`,
       `  ${skill.frontmatter.description.slice(0, 1024)}`,
-      "---",
-      "",
-    ].join("\n");
+    ];
+
+    if (skill.frontmatter.globs) {
+      frontmatter.push(`globs: "${skill.frontmatter.globs}"`);
+    }
+
+    frontmatter.push("---", "");
+
+    const content = frontmatter.join("\n");
 
     if (shouldTruncateDescription) {
       console.warn(
@@ -30,7 +36,7 @@ export class OpenCodeAdapter extends BaseAdapter {
     return [
       {
         relativePath: `skills/${skill.skillName}/SKILL.md`,
-        content: frontmatter + skill.content + "\n",
+        content: content + skill.content + "\n",
         tool: "opencode",
       },
     ];
