@@ -3,10 +3,15 @@ import path from "path";
 
 import { detectTools, getGlobalPath } from "./detector";
 
-const mockedAccess = vi.fn();
-const mockedExec = vi.fn();
+const { mockedAccess, mockedExec } = vi.hoisted(() => ({
+  mockedAccess: vi.fn(),
+  mockedExec: vi.fn(),
+}));
 
 vi.mock("fs/promises", () => ({
+  default: {
+    access: mockedAccess,
+  },
   access: mockedAccess,
 }));
 
@@ -17,6 +22,20 @@ vi.mock("child_process", () => ({
 describe("detector", () => {
   const home = process.env.HOME || process.env.USERPROFILE || "~";
 
+  const mockExecSuccess = (stdout: string) => {
+    mockedExec.mockImplementation((_command: string, callback?: (...args: unknown[]) => void) => {
+      callback?.(null, { stdout, stderr: "" });
+      return undefined as unknown as Promise<{ stdout: string; stderr: string }>;
+    });
+  };
+
+  const mockExecFailure = () => {
+    mockedExec.mockImplementation((_command: string, callback?: (...args: unknown[]) => void) => {
+      callback?.(new Error("not found"), "", "");
+      return undefined as unknown as Promise<{ stdout: string; stderr: string }>;
+    });
+  };
+
   afterEach(() => {
     mockedAccess.mockReset();
     mockedExec.mockReset();
@@ -24,7 +43,7 @@ describe("detector", () => {
 
   it("returns all tool checks including AGENTS.md", async () => {
     mockedAccess.mockRejectedValue(new Error("missing"));
-    mockedExec.mockRejectedValue(new Error("missing"));
+    mockExecFailure();
 
     const tools = await detectTools();
 
@@ -41,17 +60,18 @@ describe("detector", () => {
       id: "agents-md",
       detected: true,
       reason: "universal cross-tool format (always available)",
-      globalPath: undefined,
     });
   });
 
   it("detects tools by binary presence when available", async () => {
     mockedAccess.mockRejectedValue(new Error("missing"));
-    mockedExec.mockImplementation(async (command: string) => {
+    mockedExec.mockImplementation((command: string, callback?: (...args: unknown[]) => void) => {
       if (command === "which cursor") {
-        return { stdout: "/usr/bin/cursor", stderr: "" };
+        callback?.(null, { stdout: "/usr/bin/cursor", stderr: "" });
+      } else {
+        callback?.(new Error("not found"), "", "");
       }
-      throw new Error("not found");
+      return undefined as unknown as Promise<{ stdout: string; stderr: string }>;
     });
 
     const tools = await detectTools();
@@ -74,7 +94,7 @@ describe("detector", () => {
   it("detects tools by directory path when binary is not available", async () => {
     const foundDir = path.join(home, ".codeium");
 
-    mockedExec.mockRejectedValue(new Error("not found"));
+    mockExecFailure();
     mockedAccess.mockImplementation(async (target: string) => {
       if (target === foundDir) {
         return;
@@ -94,7 +114,7 @@ describe("detector", () => {
 
   it("reports useful reasons when a tool is not detected", async () => {
     mockedAccess.mockRejectedValue(new Error("missing"));
-    mockedExec.mockRejectedValue(new Error("not found"));
+    mockExecFailure();
 
     const tools = await detectTools();
     const codex = tools.find((tool) => tool.id === "codex");
@@ -115,16 +135,16 @@ describe("detector", () => {
   });
 
   it("short-circuits after first successful check within a tool", async () => {
-    mockedExec.mockResolvedValue({ stdout: "/usr/local/bin/codex", stderr: "" });
+    mockExecSuccess("/usr/local/bin/codex");
     mockedAccess.mockResolvedValue(undefined);
 
     await detectTools();
 
     expect(mockedAccess).toHaveBeenNthCalledWith(1, path.join(home, ".claude"));
-    expect(mockedExec).toHaveBeenCalledWith("which claude");
-    expect(mockedExec).toHaveBeenCalledWith("which cursor");
-    expect(mockedExec).toHaveBeenCalledWith("which windsurf");
-    expect(mockedExec).toHaveBeenCalledWith("which opencode");
-    expect(mockedExec).toHaveBeenCalledWith("which codex");
+    expect(mockedExec).toHaveBeenCalledWith(
+      "which cursor",
+      expect.any(Function),
+    );
+    expect(mockedExec).toHaveBeenCalledTimes(1);
   });
 });
