@@ -66,4 +66,6 @@ Include the prompt issue, evidence, proposed fix, and why you held back. Then st
 ### 6. Commit
 
 - Use a lowercase, factual commit message, for example `chore(prompts): narrow stale maintenance prompt`.
-- Include `prompts_optimizer.md` in the commit body for traceability.
+- Include `prompts_optimizer.md` in the commit body for traceability, for example:
+
+  - `git commit -m "chore(prompts): ..." -m "selected-prompt: prompts/prompts_optimizer.md"`
