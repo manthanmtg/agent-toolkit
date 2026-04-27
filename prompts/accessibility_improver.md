@@ -38,7 +38,7 @@ Look for:
 
 ### 4. No-Op Conditions
 
-- If three targets look solid, log `accessibility looks good`.
+- If three targets look solid, create `issues_to_look/YYYY-MM-DD_accessibility-healthy.md` with the files checked and the note `accessibility looks good`.
 - If fixing an issue requires a structural redesign, log it to `issues_to_look/`.
 
 ### 5. Verify
