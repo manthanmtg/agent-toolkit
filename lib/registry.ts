@@ -9,6 +9,16 @@ const SKILLS_DIR = path.join(REPO_ROOT, "skills");
 const PROFILES_DIR = path.join(REPO_ROOT, "profiles");
 const HOME = process.env.HOME || process.env.USERPROFILE || "~";
 const LOCAL_SKILLS_DIR = path.join(HOME, ".agent-toolkit", "local-skills");
+const PROFILE_NAME_RE = /^[^/\\]+$/;
+
+function isValidProfileName(name: string): boolean {
+  if (!PROFILE_NAME_RE.test(name)) return false;
+  const trimmed = name.trim();
+  if (trimmed !== name) return false;
+  if (trimmed.length === 0 || trimmed === "." || trimmed === "..") return false;
+
+  return !path.normalize(name).startsWith("..");
+}
 
 export async function loadSkill(
   skillDir: string,
@@ -87,6 +97,10 @@ export async function loadAllLocalSkills(): Promise<Skill[]> {
 }
 
 export async function loadProfile(name: string): Promise<Profile> {
+  if (!isValidProfileName(name)) {
+    throw new Error(`Invalid profile name: ${name}`);
+  }
+
   const profilePath = path.join(PROFILES_DIR, `${name}.yaml`);
   const raw = await fs.readFile(profilePath, "utf-8");
   const { parse } = await import("yaml");
