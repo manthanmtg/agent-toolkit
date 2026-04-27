@@ -3,7 +3,8 @@ name: pipeline-hardening
 description: >
   CI/CD workflow for reliable pipelines, safe deploys, caching, release checks,
   rollback thinking, and environment parity. Use when the task involves build
-  pipelines, release automation, deployment safety, or flaky CI.
+  pipelines, release automation, deployment safety, or flaky CI across GitHub
+  Actions, GitLab CI, or equivalent systems.
 domain: ci-cd
 version: 1.0.0
 tags: [ci-cd, pipelines, deployment, release, automation, rollback]
@@ -79,3 +80,10 @@ If CI is inconsistent:
 ## Final Standard 🏁
 
 A robust pipeline gives developers fast signal and operators a controlled blast radius.
+
+## Workflow Artifacts 🧩
+
+- Record the current risk, owners, and explicit fallback action for every
+  hardening recommendation.
+- Prefer checklist items that can be validated by automation (status checks,
+  logs, and policy gates) before manual review is deferred.
