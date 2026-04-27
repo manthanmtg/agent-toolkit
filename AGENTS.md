@@ -5,7 +5,7 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 ## Tech Stack
 
 - Next.js 15 (App Router, Server Actions, Turbopack)
-- TypeScript (strict), React 19, TailwindCSS 4, Lucide icons, Zod
+- TypeScript (strict), React 19, TailwindCSS 4, Lucide icons, Zod, sonner (toasts)
 - Run with: `npm install` then one of: `npm run dev` (http://localhost:3000), `npm run build`, `npm run start`, `npm run lint`, `npm run test`
 
 ## Project Structure
