@@ -8,6 +8,9 @@ export class OpenCodeAdapter extends BaseAdapter {
   readonly toolId = "opencode" as const;
 
   translateSkill(skill: Skill, _profile: Profile): OutputFile[] {
+    const shouldTruncateDescription =
+      skill.frontmatter.description.length > 1024;
+
     // OpenCode skills use the same SKILL.md format as Claude Code
     const frontmatter = [
       "---",
@@ -17,6 +20,12 @@ export class OpenCodeAdapter extends BaseAdapter {
       "---",
       "",
     ].join("\n");
+
+    if (shouldTruncateDescription) {
+      console.warn(
+        `OpenCode description for ${skill.skillName} exceeds 1024 chars and was truncated.`
+      );
+    }
 
     return [
       {
