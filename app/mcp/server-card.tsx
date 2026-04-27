@@ -280,6 +280,7 @@ export function ServerCard({
               onClick={handleCopyCmd}
               className="shrink-0 p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               title="Copy command"
+              aria-label={`Copy command for ${server.name}`}
             >
               {copied ? (
                 <Check className="w-3.5 h-3.5 text-green-500" />
