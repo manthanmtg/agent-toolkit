@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import path from "path";
+import type { ExecException } from "node:child_process";
 
 import { detectTools, getGlobalPath } from "./detector";
 
@@ -7,6 +8,8 @@ const { mockedAccess, mockedExec } = vi.hoisted(() => ({
   mockedAccess: vi.fn(),
   mockedExec: vi.fn(),
 }));
+
+type MockExecCallback = (error: ExecException | null, stdout: string, stderr: string) => void;
 
 vi.mock("fs/promises", () => ({
   default: {
@@ -23,16 +26,14 @@ describe("detector", () => {
   const home = process.env.HOME || process.env.USERPROFILE || "~";
 
   const mockExecSuccess = (stdout: string) => {
-    mockedExec.mockImplementation((_command: string, callback?: (...args: unknown[]) => void) => {
-      callback?.(null, { stdout, stderr: "" });
-      return undefined as unknown as Promise<{ stdout: string; stderr: string }>;
+    mockedExec.mockImplementation((_command: string, callback?: MockExecCallback) => {
+      callback?.(null, stdout, "");
     });
   };
 
   const mockExecFailure = () => {
-    mockedExec.mockImplementation((_command: string, callback?: (...args: unknown[]) => void) => {
+    mockedExec.mockImplementation((_command: string, callback?: MockExecCallback) => {
       callback?.(new Error("not found"), "", "");
-      return undefined as unknown as Promise<{ stdout: string; stderr: string }>;
     });
   };
 
@@ -65,13 +66,12 @@ describe("detector", () => {
 
   it("detects tools by binary presence when available", async () => {
     mockedAccess.mockRejectedValue(new Error("missing"));
-    mockedExec.mockImplementation((command: string, callback?: (...args: unknown[]) => void) => {
+    mockedExec.mockImplementation((command: string, callback?: MockExecCallback) => {
       if (command === "which cursor") {
-        callback?.(null, { stdout: "/usr/bin/cursor", stderr: "" });
+        callback?.(null, "/usr/bin/cursor", "");
       } else {
         callback?.(new Error("not found"), "", "");
       }
-      return undefined as unknown as Promise<{ stdout: string; stderr: string }>;
     });
 
     const tools = await detectTools();
