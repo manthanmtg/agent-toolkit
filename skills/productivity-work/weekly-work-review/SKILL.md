@@ -38,7 +38,7 @@ You are generating a **comprehensive weekly work review** for a person. Your job
 
 ## Step 1 — Gather Data from Slack MCP
 
-Use the **Slack MCP server** to retrieve the person's activity. Collect:
+Use the available Slack integration (typically MCP) to retrieve the person's activity. Collect:
 
 ### 1a. Messages Sent
 - Fetch messages authored by the person across all accessible channels in the date range.
@@ -60,7 +60,7 @@ Use the **Slack MCP server** to retrieve the person's activity. Collect:
 
 ## Step 2 — Gather Data from Atlassian MCP (Jira)
 
-Use the **Atlassian MCP server** to retrieve Jira activity. Collect:
+Use the available Atlassian integration (typically MCP/Jira APIs) to retrieve Jira activity. Collect:
 
 ### 2a. Tickets Worked On
 - Fetch all Jira issues where the person is the **assignee** and that had **any status change, comment, or update** in the date range.
@@ -93,7 +93,7 @@ Use the **Atlassian MCP server** to retrieve Jira activity. Collect:
 
 If Confluence access is available:
 
-- Fetch pages **created or edited** by the person in the date range.
+- Fetch pages **created or edited** by the person in the date range, using whatever Confluence/Jira source is available.
 - Record: **space**, **page title**, **action** (created / updated), **timestamp**.
 
 ---
