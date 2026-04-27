@@ -36,7 +36,7 @@ export default function InstallSkillButton({
     try {
       const result = await installSkillAction(domain, skillName, selectedTools);
       if (result.success) {
-        toast.success(`Installed to ${result.installed.map((t) => TOOL_LABELS[t as ToolId]).join(", ")}`);
+        toast.success(`Installed to ${result.installed.map((t) => TOOL_LABELS[t]).join(", ")}`);
       }
       if (result.errors.length > 0) {
         toast.warning("Some targets had errors", {

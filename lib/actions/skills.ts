@@ -113,7 +113,7 @@ export async function installSkillAction(
   domain: string,
   skillName: string,
   toolIds: ToolId[]
-): Promise<{ success: boolean; installed: string[]; errors: string[] }> {
+): Promise<{ success: boolean; installed: ToolId[]; errors: string[] }> {
   const domainError = validateIdentifier("domain", domain);
   if (domainError) {
     return {
@@ -132,7 +132,7 @@ export async function installSkillAction(
     };
   }
 
-  const installed: string[] = [];
+  const installed: ToolId[] = [];
   const errors: string[] = [];
 
   let skill: Skill | null = null;
