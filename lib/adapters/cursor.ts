@@ -62,6 +62,7 @@ export class CursorAdapter extends BaseAdapter {
   getGlobalSymlinkTargets(): Map<string, string> {
     return new Map([
       ["skills", path.join(HOME, ".cursor", "skills")],
+      ["rules", path.join(HOME, ".cursor", "rules")],
     ]);
   }
 
