@@ -1,3 +1,10 @@
+---
+id: adapter-consistency-auditor
+title: Adapter Consistency Auditor Prompt
+category: code-quality
+enabled: true
+autonomousSafe: true
+---
 # Adapter Consistency Auditor Prompt
 
 ## Objective

@@ -1,3 +1,10 @@
+---
+id: profile-workflow-auditor
+title: Profile Workflow Auditor Prompt
+category: feature-quality
+enabled: true
+autonomousSafe: true
+---
 # Profile Workflow Auditor Prompt
 
 ## Objective

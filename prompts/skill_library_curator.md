@@ -1,3 +1,10 @@
+---
+id: skill-library-curator
+title: Skill Library Curator Prompt
+category: code-quality
+enabled: true
+autonomousSafe: true
+---
 # Skill Library Curator Prompt
 
 ## Objective

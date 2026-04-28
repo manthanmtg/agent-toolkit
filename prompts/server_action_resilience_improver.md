@@ -1,3 +1,10 @@
+---
+id: server-action-resilience-improver
+title: Server Action Resilience Improver Prompt
+category: reliability
+enabled: true
+autonomousSafe: true
+---
 # Server Action Resilience Improver Prompt
 
 ## Objective
