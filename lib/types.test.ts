@@ -4,6 +4,7 @@ import {
   ActivationSchema,
   ProfileSchema,
   SkillFrontmatterSchema,
+  TOOL_LABELS,
   TOOL_IDS,
 } from "./types";
 
