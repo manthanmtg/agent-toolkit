@@ -43,6 +43,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isNodeErrnoException(value: unknown): value is NodeJS.ErrnoException {
+  if (!(value instanceof Error)) return false;
+  const maybeCode = (value as { code?: unknown }).code;
+  return maybeCode === "ENOENT" || typeof maybeCode === "string" || typeof maybeCode === "number";
+}
+
 const TOOL_CONFIG_SOURCES: Partial<Record<ToolId, ConfigSource[]>> = {
   "claude-code": [
     {
@@ -177,7 +183,7 @@ async function readJsonFile(filePath: string): Promise<Record<string, unknown> |
   try {
     raw = await fs.readFile(filePath, "utf-8");
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
+    if (isNodeErrnoException(err) && err.code === "ENOENT") return null;
     throw new Error(`Cannot read ${filePath}: ${err}`);
   }
 
@@ -272,18 +278,18 @@ export async function getRawMcpServerAction(
 
   const servers = getServersMap(json, config.key);
   const raw = servers[serverName];
-  if (!raw || typeof raw !== "object") {
+  if (!raw || !isRecord(raw)) {
     return { success: false, error: `Server "${serverName}" not found` };
   }
 
-  const obj = raw as Record<string, unknown>;
+  const obj = raw;
   const data: { command?: string; args?: string[]; url?: string; env?: Record<string, string> } = {};
   if (typeof obj.command === "string") data.command = obj.command;
   if (Array.isArray(obj.args)) data.args = obj.args.map(String);
   if (typeof obj.url === "string") data.url = obj.url;
-  if (obj.env && typeof obj.env === "object") {
+  if (isRecord(obj.env)) {
     data.env = {};
-    for (const [k, v] of Object.entries(obj.env as Record<string, unknown>)) {
+    for (const [k, v] of Object.entries(obj.env)) {
       data.env[k] = String(v);
     }
   }
@@ -460,16 +466,16 @@ export async function healthCheckMcpServerAction(
 
   const servers = getServersMap(json, config.key);
   const raw = servers[serverName];
-  if (!raw || typeof raw !== "object") {
+  if (!raw || !isRecord(raw)) {
     return { success: false, error: `Server "${serverName}" not found` };
   }
 
-  const obj = raw as Record<string, unknown>;
+  const obj = raw;
   const checkedAt = new Date().toISOString();
 
   // HTTP / SSE endpoint check
   if (typeof obj.url === "string") {
-    const url = obj.url as string;
+    const url = obj.url;
     const start = Date.now();
     try {
       const controller = new AbortController();
@@ -512,7 +518,7 @@ export async function healthCheckMcpServerAction(
 
   // stdio command check — verify binary exists on PATH
   if (typeof obj.command === "string") {
-    const cmd = obj.command as string;
+    const cmd = obj.command;
     const { execFile } = await import("child_process");
     const { promisify } = await import("util");
     const execFileAsync = promisify(execFile);
@@ -581,17 +587,17 @@ export async function exportMcpServerAction(
   }
   const servers = getServersMap(json, config.key);
   const raw = servers[serverName];
-  if (!raw || typeof raw !== "object") {
+  if (!raw || !isRecord(raw)) {
     return { success: false, error: `Server "${serverName}" not found` };
   }
 
-  const obj = raw as Record<string, unknown>;
+  const obj = raw;
 
   let transport: "stdio" | "sse" | "streamable-http" = "stdio";
   if (typeof obj.transport === "string") {
     transport = obj.transport as typeof transport;
   } else if (typeof obj.url === "string") {
-    transport = (obj.url as string).includes("/sse") ? "sse" : "streamable-http";
+    transport = obj.url.includes("/sse") ? "sse" : "streamable-http";
   }
 
   const payload: McpExportPayload = {
@@ -606,9 +612,9 @@ export async function exportMcpServerAction(
   if (typeof obj.command === "string") payload.command = obj.command;
   if (Array.isArray(obj.args)) payload.args = obj.args.map(String);
   if (typeof obj.url === "string") payload.url = obj.url;
-  if (obj.env && typeof obj.env === "object") {
+  if (isRecord(obj.env)) {
     payload.env = {};
-    for (const [k, v] of Object.entries(obj.env as Record<string, unknown>)) {
+    for (const [k, v] of Object.entries(obj.env)) {
       payload.env[k] = String(v);
     }
   }
