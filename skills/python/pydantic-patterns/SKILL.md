@@ -1,7 +1,7 @@
 ---
 name: pydantic-patterns
 description: >
-  Best practices for using Pydantic v2 models including validators,
+  Best practices for using Pydantic v2 models with reliable validation,
   serialization, generic models, and discriminated unions.
 domain: python
 version: 1.0.0
@@ -19,9 +19,11 @@ activation:
 
 ## Model Definition
 
-- Always use `model_validator(mode="before")` for pre-processing raw data
+- Prefer `model_validator(mode="before")` for pre-processing raw data only
+  when normalization before validation is required
 - Prefer `Field(...)` with explicit descriptions for API-facing models
-- Use `ConfigDict(strict=True)` when type coercion is undesirable
+- Use `ConfigDict(strict=True)` only when strict coercion behavior is
+  explicitly desired
 
 ## Validators
 
