@@ -1,8 +1,10 @@
 ---
 name: error-handling
 description: >
-  Python error handling patterns including custom exceptions, context managers,
-  structured logging, and retry strategies.
+  Use when designing, reviewing, or hardening Python code that fails in
+  production-like paths. The skill emphasizes explicit exception taxonomies,
+  recoverability boundaries, and observability for resilient behavior across
+  tools.
 domain: python
 version: 1.0.0
 tags: [python, errors, logging, resilience]
