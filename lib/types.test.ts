@@ -163,4 +163,83 @@ describe("tool constants", () => {
       "agents-md",
     ]);
   });
+
+  it("keeps tool labels aligned with tool ids", () => {
+    expect(Object.keys(TOOL_LABELS)).toEqual(TOOL_IDS);
+  });
+
+  it("uses the expected label values for each known tool", () => {
+    expect(TOOL_LABELS["claude-code"]).toBe("Claude Code");
+    expect(TOOL_LABELS["agents-md"]).toBe("AGENTS.md");
+    expect(TOOL_LABELS["opencode"]).toBe("OpenCode");
+  });
+});
+
+describe("schema edge cases", () => {
+  it("strips unknown fields from skill frontmatter when parsing", () => {
+    const parsed = SkillFrontmatterSchema.parse({
+      name: "test-skill",
+      description: "Known fields plus unknown",
+      domain: "testing",
+      "not-in-schema": "ignored",
+    } as Record<string, unknown>);
+
+    expect(parsed).not.toHaveProperty("not-in-schema");
+  });
+
+  it("strips unknown activation keys and keeps defaults", () => {
+    const parsed = SkillFrontmatterSchema.parse({
+      name: "test-skill",
+      description: "Activation with extra field",
+      domain: "testing",
+      activation: {
+        cursor: "always",
+        "not-in-schema": "ignored",
+      } as Record<string, unknown>,
+    });
+
+    expect(parsed.activation).toMatchObject({
+      "claude-code": "model",
+      cursor: "always",
+      windsurf: "model_decision",
+      opencode: "model",
+      codex: "auto",
+    });
+    expect(parsed.activation).not.toHaveProperty("not-in-schema");
+  });
+
+  it("accepts profile names with minimal fields and preserves extends", () => {
+    const parsed = ProfileSchema.parse({
+      name: "team-profile",
+      extends: "base-profile",
+      include: ["domain/*"],
+    });
+
+    expect(parsed.extends).toBe("base-profile");
+    expect(parsed.include).toEqual(["domain/*"]);
+  });
+
+  it("strips extra fields from tool-specific profile config", () => {
+    const parsed = ProfileSchema.parse({
+      name: "tool-config-profile",
+      tools: {
+        "claude-code": {
+          enabled: false,
+          global_skills: true,
+          unknown_tool_field: "ignored",
+        },
+      },
+    });
+
+    expect(parsed.tools["claude-code"]).toEqual({
+      enabled: false,
+      global_skills: true,
+      max_rule_length: undefined,
+      default_trigger: undefined,
+      max_bytes: undefined,
+    });
+    expect((parsed.tools["claude-code"] as Record<string, unknown>)).not.toHaveProperty(
+      "unknown_tool_field"
+    );
+  });
 });
