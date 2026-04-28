@@ -180,6 +180,7 @@ export function ImportServerDialog({ toolId, onImported }: ImportServerDialogPro
             reset();
             setOpen(false);
           }}
+          aria-label={`Close import MCP server dialog for ${TOOL_LABELS[toolId]}`}
           className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground"
         >
           <X className="w-4 h-4" />
