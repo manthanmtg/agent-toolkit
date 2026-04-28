@@ -82,15 +82,16 @@ export function AddSkillDialog({
         <h3 className="text-sm font-semibold">
           Add skill to {TOOL_LABELS[toolId]}
         </h3>
-        <button
-          onClick={() => {
-            setIsOpen(false);
-            setSearch("");
-          }}
-          className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    setSearch("");
+                  }}
+                  aria-label="Close add skill dialog"
+                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
       </div>
 
       {/* Search */}
