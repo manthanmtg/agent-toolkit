@@ -218,6 +218,7 @@ export function ExportAllDialog({ overview }: ExportAllDialogProps) {
                 </div>
                 <button
                   onClick={close}
+                  aria-label="Close export all MCP servers dialog"
                   className="shrink-0 p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <X className="w-4 h-4" />
