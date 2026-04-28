@@ -15,7 +15,7 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 ```
 app/                  → Next.js pages (App Router)
   page.tsx            → Dashboard
-  skills/             → /skills, /skills/[domain]/[name], /skills/new
+  skills/             → /skills, /skills/[domain], /skills/[domain]/[name], /skills/new
   my-skills/          → Deployed skills dashboard
   add-skill/          → Deploy selected skills to tools
   mcp/                → MCP server management, import, export

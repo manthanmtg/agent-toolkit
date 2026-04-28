@@ -10,7 +10,7 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 
 ## Project Structure
 
-- `app/` — Next.js pages (App Router), including skills, my-skills, add-skill, mcp, projects, profiles, doctor, install, settings
+- `app/` — Next.js pages (App Router), including skills, /skills/[domain], /skills/[domain]/[name], /skills/new, my-skills, add-skill, mcp, projects, profiles, doctor, install, settings
 - `lib/` — Core logic: types, registry, builder, linker, detector, doctor, safety, MCP helpers
 - `lib/adapters/` — Tool-specific translators (claude-code, cursor, windsurf, opencode, codex, agents-md)
 - `lib/actions/` — Next.js Server Actions (build, install, sync, doctor, detect, skills, profiles, my-skills, local-skills, mcp)
