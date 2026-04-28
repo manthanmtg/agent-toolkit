@@ -10,11 +10,13 @@ export class CursorAdapter extends BaseAdapter {
   translateSkill(skill: Skill, _profile: Profile): OutputFile[] {
     const activation = skill.frontmatter.activation?.cursor ?? "auto";
     const alwaysApply = activation === "always";
+    const descriptionLines = skill.frontmatter.description.split("\n");
 
     // Rule format (.mdc) for .cursor/rules/
     const ruleFrontmatter = [
       "---",
-      `description: ${skill.frontmatter.description}`,
+      "description: |",
+      ...descriptionLines.map((line) => `  ${line}`),
       `alwaysApply: ${alwaysApply}`,
     ];
 
@@ -30,7 +32,8 @@ export class CursorAdapter extends BaseAdapter {
     const skillFrontmatter = [
       "---",
       `name: ${skill.frontmatter.name}`,
-      `description: ${skill.frontmatter.description}`,
+      "description: |",
+      ...descriptionLines.map((line) => `  ${line}`),
     ];
 
     if (activation === "manual") {
