@@ -94,8 +94,8 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
   }
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:shadow-md hover:border-border/80">
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+    <div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:shadow-md focus-within:border-primary/40">
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 group-hover:opacity-100 group-focus-within:opacity-50 transition-opacity duration-300`} />
 
       <div className="relative p-4">
         {/* Header */}
