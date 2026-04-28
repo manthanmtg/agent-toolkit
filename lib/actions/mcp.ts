@@ -89,6 +89,33 @@ function maskEnvValue(value: string): string {
   return value.slice(0, 4) + "••••" + value.slice(-4);
 }
 
+const MCP_SERVER_NAME_RE = /^[a-zA-Z0-9_-]+$/;
+const FORBIDDEN_SERVER_KEYS = new Set(["__proto__", "prototype", "constructor"]);
+
+function isSafeServerName(name: string): boolean {
+  return MCP_SERVER_NAME_RE.test(name) && !FORBIDDEN_SERVER_KEYS.has(name);
+}
+
+function getServerNameError(name: string): string | null {
+  if (!name) return "Server name is required.";
+  if (!isSafeServerName(name)) {
+    return "Server name must be alphanumeric (with hyphens/underscores), and not a reserved key.";
+  }
+  return null;
+}
+
+function getServersMap(config: Record<string, unknown>, key: string): Record<string, unknown> {
+  const raw = config[key];
+  if (!isRecord(raw)) return Object.create(null);
+
+  const servers = Object.create(null) as Record<string, unknown>;
+  for (const [name, serverConfig] of Object.entries(raw)) {
+    if (!isSafeServerName(name)) continue;
+    servers[name] = serverConfig;
+  }
+  return servers;
+}
+
 function parseServerConfig(name: string, raw: unknown): McpServerConfig {
   const obj = isRecord(raw) ? raw : {};
 
@@ -186,8 +213,9 @@ export async function addMcpServerAction(
   const config = getWritableConfigPath(toolId);
   if (!config) return { success: false, error: `No MCP config path for ${TOOL_LABELS[toolId]}` };
 
-  if (!input.name || !/^[a-zA-Z0-9_-]+$/.test(input.name)) {
-    return { success: false, error: "Server name must be alphanumeric (with hyphens/underscores)" };
+  const nameError = getServerNameError(input.name);
+  if (nameError) {
+    return { success: false, error: nameError };
   }
 
   let json: Record<string, unknown>;
@@ -196,7 +224,7 @@ export async function addMcpServerAction(
   } catch (err) {
     return { success: false, error: String(err) };
   }
-  const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+  const servers = getServersMap(json, config.key);
 
   if (servers[input.name]) {
     return { success: false, error: `Server "${input.name}" already exists in ${TOOL_LABELS[toolId]}` };
@@ -239,7 +267,10 @@ export async function getRawMcpServerAction(
   } catch (err) {
     return { success: false, error: String(err) };
   }
-  const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+  const nameError = getServerNameError(serverName);
+  if (nameError) return { success: false, error: nameError };
+
+  const servers = getServersMap(json, config.key);
   const raw = servers[serverName];
   if (!raw || typeof raw !== "object") {
     return { success: false, error: `Server "${serverName}" not found` };
@@ -274,7 +305,13 @@ export async function editMcpServerAction(
   } catch (err) {
     return { success: false, error: String(err) };
   }
-  const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+  const inputNameError = getServerNameError(input.name);
+  if (inputNameError) return { success: false, error: `Invalid server name: ${inputNameError}` };
+
+  const serverNameError = getServerNameError(serverName);
+  if (serverNameError) return { success: false, error: `Invalid server name: ${serverNameError}` };
+
+  const servers = getServersMap(json, config.key);
 
   if (!servers[serverName]) {
     return { success: false, error: `Server "${serverName}" not found` };
@@ -325,7 +362,10 @@ export async function removeMcpServerAction(
   } catch (err) {
     return { success: false, error: String(err) };
   }
-  const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+  const serverNameError = getServerNameError(serverName);
+  if (serverNameError) return { success: false, error: `Invalid server name: ${serverNameError}` };
+
+  const servers = getServersMap(json, config.key);
 
   if (!servers[serverName]) {
     return { success: false, error: `Server "${serverName}" not found` };
@@ -356,7 +396,10 @@ export async function copyMcpServerAction(
   } catch (err) {
     return { success: false, error: String(err) };
   }
-  const fromServers = (fromJson[fromConfig.key] ?? {}) as Record<string, unknown>;
+  const serverNameError = getServerNameError(serverName);
+  if (serverNameError) return { success: false, error: `Invalid server name: ${serverNameError}` };
+
+  const fromServers = getServersMap(fromJson, fromConfig.key);
   const serverDef = fromServers[serverName];
   if (!serverDef) {
     return { success: false, error: `Server "${serverName}" not found in ${TOOL_LABELS[fromToolId]}` };
@@ -371,7 +414,7 @@ export async function copyMcpServerAction(
   } catch (err) {
     return { success: false, error: String(err) };
   }
-  const toServers = (toJson[toConfig.key] ?? {}) as Record<string, unknown>;
+  const toServers = getServersMap(toJson, toConfig.key);
 
   if (toServers[serverName]) {
     return { success: false, error: `Server "${serverName}" already exists in ${TOOL_LABELS[toToolId]}` };
@@ -412,7 +455,10 @@ export async function healthCheckMcpServerAction(
   } catch (err) {
     return { success: false, error: String(err) };
   }
-  const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+  const serverNameError = getServerNameError(serverName);
+  if (serverNameError) return { success: false, error: `Invalid server name: ${serverNameError}` };
+
+  const servers = getServersMap(json, config.key);
   const raw = servers[serverName];
   if (!raw || typeof raw !== "object") {
     return { success: false, error: `Server "${serverName}" not found` };
@@ -533,7 +579,7 @@ export async function exportMcpServerAction(
   } catch (err) {
     return { success: false, error: String(err) };
   }
-  const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+  const servers = getServersMap(json, config.key);
   const raw = servers[serverName];
   if (!raw || typeof raw !== "object") {
     return { success: false, error: `Server "${serverName}" not found` };
@@ -580,8 +626,9 @@ export async function importMcpServerAction(
   if (payload.version !== 1) {
     return { success: false, error: `Unsupported export version: ${payload.version}` };
   }
-  if (!payload.name || !/^[a-zA-Z0-9_-]+$/.test(payload.name)) {
-    return { success: false, error: "Server name must be alphanumeric (with hyphens/underscores)" };
+  const payloadNameError = getServerNameError(payload.name);
+  if (payloadNameError) {
+    return { success: false, error: payloadNameError };
   }
 
   const input: AddMcpServerInput = {
@@ -648,7 +695,7 @@ export async function exportAllMcpServersAction(
       continue;
     }
 
-    const rawServers = (json[config.key] ?? {}) as Record<string, unknown>;
+    const rawServers = getServersMap(json, config.key);
     for (const [name, rawConfig] of Object.entries(rawServers)) {
       if (!rawConfig || typeof rawConfig !== "object") continue;
       const obj = rawConfig as Record<string, unknown>;
@@ -794,7 +841,7 @@ export async function importAllMcpServersAction(
       continue;
     }
 
-    const servers = (json[config.key] ?? {}) as Record<string, unknown>;
+    const servers = getServersMap(json, config.key);
     const applied: ImportAllResultDetail[] = [];
 
     for (const sel of sels) {
@@ -808,14 +855,14 @@ export async function importAllMcpServersAction(
         continue;
       }
 
-      if (!sel.name || !/^[a-zA-Z0-9_-]+$/.test(sel.name)) {
+      const selectionNameError = getServerNameError(sel.name);
+      if (selectionNameError) {
         applied.push({
           name: sel.name,
           target_tool_id: toolId,
           target_tool_label: toolLabel,
           status: "failed",
-          error:
-            "Server name must be alphanumeric (with hyphens/underscores)",
+          error: selectionNameError,
         });
         continue;
       }
