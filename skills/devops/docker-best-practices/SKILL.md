@@ -2,7 +2,8 @@
 name: docker-best-practices
 description: >
   Docker best practices for building efficient, secure, and reproducible
-  container images, used when reviewing or authoring Dockerfiles.
+  container images, used when reviewing or authoring Dockerfiles and image
+  build pipelines.
 domain: devops
 version: 1.0.0
 tags: [docker, containers, devops, security]
@@ -42,3 +43,11 @@ activation:
 - Prefer `-slim` or `-alpine` base images
 - Remove package manager caches in the same RUN layer
 - Use `--no-install-recommends` for apt-get
+
+## Quick Review Checklist
+
+- [ ] Base images are pinned to a digest or immutable tag.
+- [ ] Security-sensitive values never enter image layers (`ARG`, `COPY`, logs).
+- [ ] Build artifacts are copied without full source tree or dev dependencies.
+- [ ] Runtime image keeps user non-root and minimal dependencies.
+- [ ] Health checks, observability, or startup validation are defined where relevant.
