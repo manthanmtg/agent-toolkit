@@ -2,7 +2,7 @@
 name: docker-best-practices
 description: >
   Docker best practices for building efficient, secure, and reproducible
-  container images including multi-stage builds, layer caching, and security.
+  container images, used when reviewing or authoring Dockerfiles.
 domain: devops
 version: 1.0.0
 tags: [docker, containers, devops, security]
@@ -35,6 +35,7 @@ activation:
 - Use specific image tags, not `latest`
 - Scan images for vulnerabilities with `docker scout` or `trivy`
 - Don't store secrets in images — use build secrets or runtime env vars
+- Avoid secrets in build arguments (`ARG`) because they can persist in image layers
 
 ## Image Size
 
