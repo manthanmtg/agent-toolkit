@@ -10,11 +10,13 @@ export class WindsurfAdapter extends BaseAdapter {
   translateSkill(skill: Skill, _profile: Profile): OutputFile[] {
     const trigger =
       skill.frontmatter.activation?.windsurf ?? "model_decision";
+    const descriptionLines = skill.frontmatter.description.split("\n");
 
     const frontmatter = [
       "---",
       `trigger: ${trigger}`,
-      `description: ${skill.frontmatter.description}`,
+      "description: |",
+      ...descriptionLines.map((line) => `  ${line}`),
     ];
 
     if (skill.frontmatter.globs) {
@@ -37,7 +39,8 @@ export class WindsurfAdapter extends BaseAdapter {
     const skillFrontmatter = [
       "---",
       `name: ${skill.frontmatter.name}`,
-      `description: ${skill.frontmatter.description}`,
+      "description: |",
+      ...descriptionLines.map((line) => `  ${line}`),
       "---",
       "",
     ].join("\n");
