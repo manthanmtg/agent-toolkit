@@ -83,7 +83,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isToolId(value: unknown): value is ToolId {
-  return typeof value === "string" && TOOL_IDS.includes(value);
+	return (
+		typeof value === "string" &&
+		(TOOL_IDS as readonly string[]).includes(value)
+	);
 }
 
 function isTransport(value: unknown): value is Transport {
