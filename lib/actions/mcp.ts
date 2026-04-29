@@ -49,6 +49,17 @@ function isNodeErrnoException(value: unknown): value is NodeJS.ErrnoException {
   return maybeCode === "ENOENT" || typeof maybeCode === "string" || typeof maybeCode === "number";
 }
 
+function formatError(err: unknown): string {
+  if (isNodeErrnoException(err)) {
+    const code = typeof err.code === "string" ? err.code : "";
+    const message = err.message?.trim();
+    return [code, message].filter(Boolean).join(" ") || "Unknown error";
+  }
+  if (err instanceof Error) return err.message || "Unknown error";
+  if (typeof err === "string") return err;
+  return "Unknown error";
+}
+
 const TOOL_CONFIG_SOURCES: Partial<Record<ToolId, ConfigSource[]>> = {
   "claude-code": [
     {
@@ -186,7 +197,7 @@ async function readJsonFile(filePath: string): Promise<Record<string, unknown> |
     raw = await fs.readFile(filePath, "utf-8");
   } catch (err) {
     if (isNodeErrnoException(err) && err.code === "ENOENT") return null;
-    throw new Error(`Cannot read ${filePath}: ${err}`);
+    throw new Error(`Cannot read ${filePath}: ${formatError(err)}`);
   }
 
   if (!raw.trim()) return null;
@@ -197,8 +208,8 @@ async function readJsonFile(filePath: string): Promise<Record<string, unknown> |
       throw new Error("Root config must be a JSON object");
     }
     return parsed;
-  } catch {
-    throw new Error(`${filePath} contains invalid JSON — refusing to modify`);
+  } catch (err) {
+    throw new Error(`${filePath} contains invalid JSON: ${formatError(err)}`);
   }
 }
 
@@ -234,7 +245,7 @@ export async function addMcpServerAction(
   try {
     json = (await readJsonFile(config.filePath)) ?? {};
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
   const servers = getServersMap(json, config.key);
 
@@ -262,7 +273,7 @@ export async function addMcpServerAction(
     await writeJsonFileSafely(config.filePath, json);
     return { success: true };
   } catch (err) {
-    return { success: false, error: `Failed to write config: ${err}` };
+    return { success: false, error: `Failed to write config: ${formatError(err)}` };
   }
 }
 
@@ -277,7 +288,7 @@ export async function getRawMcpServerAction(
   try {
     json = (await readJsonFile(config.filePath)) ?? {};
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
   const nameError = getServerNameError(serverName);
   if (nameError) return { success: false, error: nameError };
@@ -315,7 +326,7 @@ export async function editMcpServerAction(
   try {
     json = (await readJsonFile(config.filePath)) ?? {};
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
   const inputNameError = getServerNameError(input.name);
   if (inputNameError) return { success: false, error: `Invalid server name: ${inputNameError}` };
@@ -357,7 +368,7 @@ export async function editMcpServerAction(
     await writeJsonFileSafely(config.filePath, json);
     return { success: true };
   } catch (err) {
-    return { success: false, error: `Failed to write config: ${err}` };
+    return { success: false, error: `Failed to write config: ${formatError(err)}` };
   }
 }
 
@@ -372,7 +383,7 @@ export async function removeMcpServerAction(
   try {
     json = (await readJsonFile(config.filePath)) ?? {};
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
   const serverNameError = getServerNameError(serverName);
   if (serverNameError) return { success: false, error: `Invalid server name: ${serverNameError}` };
@@ -390,7 +401,7 @@ export async function removeMcpServerAction(
     await writeJsonFileSafely(config.filePath, json);
     return { success: true };
   } catch (err) {
-    return { success: false, error: `Failed to write config: ${err}` };
+    return { success: false, error: `Failed to write config: ${formatError(err)}` };
   }
 }
 
@@ -406,7 +417,7 @@ export async function copyMcpServerAction(
   try {
     fromJson = (await readJsonFile(fromConfig.filePath)) ?? {};
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
   const serverNameError = getServerNameError(serverName);
   if (serverNameError) return { success: false, error: `Invalid server name: ${serverNameError}` };
@@ -424,7 +435,7 @@ export async function copyMcpServerAction(
   try {
     toJson = (await readJsonFile(toConfig.filePath)) ?? {};
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
   const toServers = getServersMap(toJson, toConfig.key);
 
@@ -439,7 +450,7 @@ export async function copyMcpServerAction(
     await writeJsonFileSafely(toConfig.filePath, toJson);
     return { success: true };
   } catch (err) {
-    return { success: false, error: `Failed to write config: ${err}` };
+    return { success: false, error: `Failed to write config: ${formatError(err)}` };
   }
 }
 
@@ -465,7 +476,7 @@ export async function healthCheckMcpServerAction(
   try {
     json = (await readJsonFile(config.filePath)) ?? {};
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
   const serverNameError = getServerNameError(serverName);
   if (serverNameError) return { success: false, error: `Invalid server name: ${serverNameError}` };
@@ -508,7 +519,7 @@ export async function healthCheckMcpServerAction(
       };
     } catch (err) {
       const latencyMs = Date.now() - start;
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = formatError(err);
       const isTimeout = msg.includes("abort");
       return {
         success: true,
@@ -589,7 +600,7 @@ export async function exportMcpServerAction(
   try {
     json = (await readJsonFile(config.filePath)) ?? {};
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
   const servers = getServersMap(json, config.key);
   const raw = servers[serverName];
@@ -836,17 +847,17 @@ export async function importAllMcpServersAction(
     let json: Record<string, unknown>;
     try {
       json = (await readJsonFile(config.filePath)) ?? {};
-    } catch (err) {
-      for (const sel of sels) {
-        details.push({
-          name: sel.name,
-          target_tool_id: toolId,
-          target_tool_label: toolLabel,
-          status: "failed",
-          error: String(err),
-        });
-        failed++;
-      }
+      } catch (err) {
+        for (const sel of sels) {
+          details.push({
+            name: sel.name,
+            target_tool_id: toolId,
+            target_tool_label: toolLabel,
+            status: "failed",
+            error: formatError(err),
+          });
+          failed++;
+        }
       continue;
     }
 
