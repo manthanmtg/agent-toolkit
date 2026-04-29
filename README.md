@@ -49,6 +49,7 @@ Common maintenance commands:
 npm run build   # production build
 npm run lint    # lint checks
 npm run test    # run Vitest
+npm run start   # run the built app
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
