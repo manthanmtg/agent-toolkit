@@ -36,7 +36,7 @@ Pick one prompt at random from safe autonomous prompts. `prompts_optimizer.md` s
 if [ "$((RANDOM % 25))" -eq 0 ]; then
   printf '%s\n' prompts/prompts_optimizer.md
 else
-  node -e 'const fs=require("fs"); const metadata=JSON.parse(fs.readFileSync("prompts/prompts_metadata.json","utf8")); const candidates=Object.values(metadata.prompts).filter((prompt)=>prompt.enabled&&prompt.autonomousSafe&&prompt.file!=="prompts_optimizer.md").map((prompt)=>`prompts/${prompt.file}`).sort(); if(candidates.length===0){console.error("No eligible prompts found in prompts/prompts_metadata.json."); process.exit(1);} console.log(candidates[Math.floor(Math.random()*candidates.length)]);'
+  node -e 'const fs=require("fs"); const metadata=JSON.parse(fs.readFileSync("prompts/prompts_metadata.json","utf8")); const candidates=Object.values(metadata.prompts).filter((prompt)=>prompt.enabled&&prompt.autonomousSafe&&prompt.file!=="prompts_optimizer.md").map((prompt)=>`prompts/${prompt.file}`).filter((promptPath)=>fs.existsSync(promptPath)).sort(); if(candidates.length===0){console.error("No eligible prompts found in prompts/prompts_metadata.json."); process.exit(1);} console.log(candidates[Math.floor(Math.random()*candidates.length)]);'
 fi
 ```
 
