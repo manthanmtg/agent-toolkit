@@ -108,6 +108,17 @@ function maskEnvValue(value: string): string {
 
 const MCP_SERVER_NAME_RE = /^[a-zA-Z0-9_-]+$/;
 const FORBIDDEN_SERVER_KEYS = new Set(["__proto__", "prototype", "constructor"]);
+function getUrlValidationError(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return "MCP URLs must use http or https.";
+    }
+  } catch {
+    return "MCP URL must be a valid URL.";
+  }
+  return null;
+}
 
 function isSafeServerName(name: string): boolean {
   return MCP_SERVER_NAME_RE.test(name) && !FORBIDDEN_SERVER_KEYS.has(name);
@@ -260,6 +271,8 @@ export async function addMcpServerAction(
     if (input.args && input.args.length > 0) serverDef.args = input.args;
   } else {
     if (!input.url) return { success: false, error: "URL is required for remote transport" };
+    const urlError = getUrlValidationError(input.url);
+    if (urlError) return { success: false, error: `Invalid MCP URL: ${urlError}` };
     serverDef.url = input.url;
   }
   if (input.env && Object.keys(input.env).length > 0) {
@@ -347,6 +360,8 @@ export async function editMcpServerAction(
     if (input.args && input.args.length > 0) serverDef.args = input.args;
   } else {
     if (!input.url) return { success: false, error: "URL is required for remote transport" };
+    const urlError = getUrlValidationError(input.url);
+    if (urlError) return { success: false, error: `Invalid MCP URL: ${urlError}` };
     serverDef.url = input.url;
   }
   if (input.env && Object.keys(input.env).length > 0) {
@@ -493,6 +508,19 @@ export async function healthCheckMcpServerAction(
   // HTTP / SSE endpoint check
   if (typeof obj.url === "string") {
     const url = obj.url;
+    const urlError = getUrlValidationError(url);
+    if (urlError) {
+      return {
+        success: true,
+        data: {
+          status: "unhealthy",
+          latencyMs: null,
+          message: `Invalid MCP URL: ${urlError}`,
+          checkedAt,
+        },
+      };
+    }
+
     const start = Date.now();
     try {
       const controller = new AbortController();
