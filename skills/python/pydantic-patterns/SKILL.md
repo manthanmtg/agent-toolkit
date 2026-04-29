@@ -1,8 +1,9 @@
 ---
 name: pydantic-patterns
 description: >
-  Best practices for using Pydantic v2 models with reliable validation,
-  serialization, generic models, and discriminated unions.
+  Use when adding or maintaining Python data models that must validate input
+  safely, serialize consistently, and scale across generic payloads and
+  discriminated union workflows.
 domain: python
 version: 1.0.0
 tags: [python, pydantic, validation, typing]
