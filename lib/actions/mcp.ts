@@ -162,6 +162,8 @@ export interface AddMcpServerInput {
 
 type ActionResult = { success: true } | { success: false; error: string };
 
+type ExportTransport = "stdio" | "sse" | "streamable-http";
+
 function getWritableConfigPath(toolId: ToolId): { filePath: string; key: string } | null {
   const home = process.env.HOME || process.env.USERPROFILE || "~";
   const globalPath = getGlobalPath(toolId);
@@ -190,7 +192,11 @@ async function readJsonFile(filePath: string): Promise<Record<string, unknown> |
   if (!raw.trim()) return null;
 
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!isRecord(parsed)) {
+      throw new Error("Root config must be a JSON object");
+    }
+    return parsed;
   } catch {
     throw new Error(`${filePath} contains invalid JSON — refusing to modify`);
   }
@@ -593,9 +599,9 @@ export async function exportMcpServerAction(
 
   const obj = raw;
 
-  let transport: "stdio" | "sse" | "streamable-http" = "stdio";
-  if (typeof obj.transport === "string") {
-    transport = obj.transport as typeof transport;
+  let transport: ExportTransport = "stdio";
+  if (obj.transport === "stdio" || obj.transport === "sse" || obj.transport === "streamable-http") {
+    transport = obj.transport;
   } else if (typeof obj.url === "string") {
     transport = obj.url.includes("/sse") ? "sse" : "streamable-http";
   }
@@ -706,12 +712,9 @@ export async function exportAllMcpServersAction(
       if (!rawConfig || typeof rawConfig !== "object") continue;
       const obj = rawConfig as Record<string, unknown>;
 
-      let transport: "stdio" | "sse" | "streamable-http" = "stdio";
-      if (
-        typeof obj.transport === "string" &&
-        ["stdio", "sse", "streamable-http"].includes(obj.transport)
-      ) {
-        transport = obj.transport as typeof transport;
+      let transport: ExportTransport = "stdio";
+      if (obj.transport === "stdio" || obj.transport === "sse" || obj.transport === "streamable-http") {
+        transport = obj.transport;
       } else if (typeof obj.url === "string") {
         transport = (obj.url as string).includes("/sse")
           ? "sse"
@@ -727,9 +730,9 @@ export async function exportAllMcpServersAction(
       if (typeof obj.command === "string") entry.command = obj.command;
       if (Array.isArray(obj.args)) entry.args = obj.args.map(String);
       if (typeof obj.url === "string") entry.url = obj.url;
-      if (obj.env && typeof obj.env === "object") {
+      if (isRecord(obj.env)) {
         entry.env = {};
-        for (const [k, v] of Object.entries(obj.env as Record<string, unknown>)) {
+        for (const [k, v] of Object.entries(obj.env)) {
           entry.env[k] = options.maskEnv
             ? maskEnvValue(String(v))
             : String(v);
