@@ -6,12 +6,15 @@ import { ToolDocs } from "./tool-docs";
 export default async function MySkillsPage() {
   const data = await getDeployedSkillsPerTool();
 
-  const totalDeployed = data.tools.reduce((sum, t) => sum + t.skills.length, 0);
-  const totalOutdated = data.tools.reduce(
-    (sum, t) => sum + t.skills.filter((s) => s.status === "outdated").length,
-    0
+  const { totalDeployed, totalOutdated, detectedCount } = data.tools.reduce(
+    (acc, t) => ({
+      totalDeployed: acc.totalDeployed + t.skills.length,
+      totalOutdated:
+        acc.totalOutdated + t.skills.filter((s) => s.status === "outdated").length,
+      detectedCount: acc.detectedCount + (t.detected ? 1 : 0),
+    }),
+    { totalDeployed: 0, totalOutdated: 0, detectedCount: 0 }
   );
-  const detectedCount = data.tools.filter((t) => t.detected).length;
 
   return (
     <div className="space-y-10">
