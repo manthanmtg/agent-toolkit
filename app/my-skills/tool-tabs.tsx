@@ -292,31 +292,33 @@ function ToolContent({
 
       {/* Mini stats for this tool */}
       {tool.skills.length > 0 && (
-        <div className="flex items-center gap-4 text-sm">
-          {upToDateCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 text-green-600">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              {upToDateCount} current
-            </span>
-          )}
-          {outdatedCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 text-amber-600">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              {outdatedCount} outdated
-            </span>
-          )}
-          {unknownCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-              <Info className="w-3.5 h-3.5" />
-              {unknownCount} untracked
-            </span>
-          )}
-          {crossCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 text-blue-500">
-              <Share2 className="w-3.5 h-3.5" />
-              {crossCount} shared
-            </span>
-          )}
+        <div className="rounded-lg border bg-card/60 px-3 py-2.5">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            {upToDateCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-success/30 bg-success/10 text-success">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {upToDateCount} current
+              </span>
+            )}
+            {outdatedCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-warning/35 bg-warning/10 text-warning">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                {outdatedCount} outdated
+              </span>
+            )}
+            {unknownCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-muted/40 text-muted-foreground">
+                <Info className="w-3.5 h-3.5" />
+                {unknownCount} untracked
+              </span>
+            )}
+            {crossCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-blue-500/25 bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                <Share2 className="w-3.5 h-3.5" />
+                {crossCount} shared
+              </span>
+            )}
+          </div>
         </div>
       )}
 
