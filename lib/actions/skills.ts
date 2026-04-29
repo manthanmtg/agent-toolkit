@@ -10,6 +10,16 @@ import type { Skill, ToolId } from "../types";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+function formatError(err: unknown): string {
+  if (err instanceof Error) {
+    return err.message || "Unknown error";
+  }
+  if (typeof err === "string") {
+    return err;
+  }
+  return "Unknown error";
+}
+
 function validateIdentifier(type: string, value: string): string | null {
   if (!IDENTIFIER_RE.test(value)) {
     return `${type} must be lowercase letters, numbers, and hyphens (e.g. my-skill-name).`;
@@ -105,7 +115,7 @@ export async function createSkillAction(
     await atomicWrite(path.join(skillDir, "SKILL.md"), frontmatter);
     return { success: true };
   } catch (err) {
-    return { success: false, error: `Failed to create skill: ${err}` };
+    return { success: false, error: `Failed to create skill: ${formatError(err)}` };
   }
 }
 
@@ -145,7 +155,7 @@ export async function installSkillAction(
     try {
       skill = await loadSkill(localDir, "local");
     } catch (err) {
-      return { success: false, installed, errors: [`Skill not found: ${err}`] };
+      return { success: false, installed, errors: [`Skill not found: ${formatError(err)}`] };
     }
   }
 
@@ -184,7 +194,7 @@ export async function installSkillAction(
 
       installed.push(toolId);
     } catch (err) {
-      errors.push(`${toolId}: ${err}`);
+      errors.push(`${toolId}: ${formatError(err)}`);
     }
   }
 
