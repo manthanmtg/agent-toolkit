@@ -1,8 +1,8 @@
 ---
 name: nextjs-patterns
 description: >
-  Next.js 15 App Router patterns including Server Components, Server Actions,
-  data fetching, caching, and layout composition.
+  Use this skill when building or reviewing Next.js 15 App Router work:
+  Server Components, Server Actions, data fetching, caching, and layout composition.
 domain: typescript
 version: 1.0.0
 tags: [typescript, nextjs, react, web]
