@@ -87,7 +87,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | **Claude Code** | Per-skill | `~/.claude/skills/` | `.claude/skills/` | `SKILL.md` |
 | **Cursor** | Per-skill | `~/.cursor/skills/` | `.cursor/rules/` | `SKILL.md` + `.mdc` |
 | **Windsurf** | Per-skill + global rules | `~/.codeium/windsurf/memories/global_rules.md`, `~/.codeium/windsurf/skills/` | `.windsurf/rules/` | `SKILL.md` + `.md` rules |
-| **OpenCode** | Per-skill | `~/.config/opencode/skills/` | `.opencode/skills/` | `SKILL.md` |
+| **OpenCode** | Per-skill + global AGENTS | `~/.config/opencode/AGENTS.md`, `~/.config/opencode/skills/` | `.opencode/skills/` | `SKILL.md` |
 | **Codex** | Bundled | `~/.codex/` | Project root | `AGENTS.md` (merged) |
 
 > **Cross-agent compatibility:** Cursor and Windsurf automatically discover skills in `~/.claude/skills/`. Deploy once to Claude Code, use everywhere.
