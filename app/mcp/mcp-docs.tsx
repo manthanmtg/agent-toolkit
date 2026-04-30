@@ -259,6 +259,10 @@ export function McpDocs() {
         {DOCS.map((doc) => (
           <div key={doc.id} className="rounded-xl border bg-card overflow-hidden">
             <button
+              type="button"
+              id={`mcp-doc-toggle-${doc.id}`}
+              aria-expanded={openSection === doc.id}
+              aria-controls={`mcp-doc-section-${doc.id}`}
               onClick={() =>
                 setOpenSection(openSection === doc.id ? null : doc.id)
               }
@@ -276,7 +280,12 @@ export function McpDocs() {
             </button>
 
             {openSection === doc.id && (
-              <div className="px-5 pb-5 space-y-5 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div
+                id={`mcp-doc-section-${doc.id}`}
+                role="region"
+                aria-labelledby={`mcp-doc-toggle-${doc.id}`}
+                className="px-5 pb-5 space-y-5 animate-in fade-in slide-in-from-top-1 duration-200"
+              >
                 {doc.sections.map((section) => (
                   <div key={section.title}>
                     <h4 className="text-sm font-semibold mb-2 text-foreground/80">
