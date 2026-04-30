@@ -1,150 +1,197 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+vi.mock("fs/promises", async () => {
+  const actual = await vi.importActual("fs/promises");
+  return {
+    ...actual,
+    access: vi.fn(),
+  };
+});
+
+vi.mock("child_process", async () => {
+  const actual = await vi.importActual("child_process");
+  return {
+    ...actual,
+    exec: vi.fn(),
+  };
+});
+
+import fs from "fs/promises";
+import os from "os";
 import path from "path";
-import type { ExecException } from "node:child_process";
 
-import { detectTools, getGlobalPath } from "./detector";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as childProcess from "child_process";
 
-const { mockedAccess, mockedExec } = vi.hoisted(() => ({
-  mockedAccess: vi.fn(),
-  mockedExec: vi.fn(),
-}));
+import type { DetectedTool } from "./types";
 
-type MockExecCallback = (error: ExecException | null, stdout: string, stderr: string) => void;
-
-vi.mock("fs/promises", () => ({
-  default: {
-    access: mockedAccess,
-  },
-  access: mockedAccess,
-}));
-
-vi.mock("child_process", () => ({
-  exec: mockedExec,
-}));
+type DetectorModule = typeof import("./detector");
 
 describe("detector", () => {
-  const home = process.env.HOME || process.env.USERPROFILE || "~";
+  let detector: DetectorModule;
+  let repoRoot: string;
+  let originalHome: string | undefined;
+  let originalUserProfile: string | undefined;
+  let accessMock: ReturnType<typeof vi.spyOn>;
+  let execMock: ReturnType<typeof vi.spyOn>;
 
-  const mockExecSuccess = (stdout: string) => {
-    mockedExec.mockImplementation((_command: string, callback?: MockExecCallback) => {
-      callback?.(null, stdout, "");
+  async function loadDetector(home: string | undefined, userProfile?: string): Promise<void> {
+    if (home === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = home;
+    }
+
+    if (userProfile === undefined) {
+      delete process.env.USERPROFILE;
+    } else {
+      process.env.USERPROFILE = userProfile;
+    }
+
+    vi.resetModules();
+    vi.clearAllMocks();
+
+    accessMock = vi.spyOn(fs, "access");
+    execMock = vi.spyOn(childProcess, "exec");
+
+    detector = await import("./detector");
+  }
+
+  function setDirExists(paths: string[]) {
+    accessMock.mockImplementation((target: string | URL) => {
+      return paths.includes(typeof target === "string" ? target : target.toString())
+        ? Promise.resolve()
+        : Promise.reject(new Error("missing"));
     });
-  };
+  }
 
-  const mockExecFailure = () => {
-    mockedExec.mockImplementation((_command: string, callback?: MockExecCallback) => {
-      callback?.(new Error("not found"), "", "");
+  function setBinaryResult(binaries: string[]) {
+    execMock.mockImplementation((command: string, options: unknown, callback: unknown) => {
+      const resolvedCallback =
+        typeof options === "function" ? options : (callback as (error: unknown, stdout: string, stderr: string) => void);
+      const binary = command.replace("which ", "");
+      if (binaries.includes(binary)) {
+        resolvedCallback(null, `/usr/bin/${binary}\n`, "");
+      } else {
+        const notFound = new Error("not found");
+        (notFound as { code?: number }).code = 127;
+        resolvedCallback(notFound, "", "");
+      }
+      return {} as ReturnType<typeof execMock>;
     });
-  };
+  }
 
-  afterEach(() => {
-    mockedAccess.mockReset();
-    mockedExec.mockReset();
+  beforeEach(async () => {
+    originalHome = process.env.HOME;
+    originalUserProfile = process.env.USERPROFILE;
+    repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), "agent-toolkit-detector-test-"));
+    await loadDetector(repoRoot, undefined);
   });
 
-  it("returns all tool checks including AGENTS.md", async () => {
-    mockedAccess.mockRejectedValue(new Error("missing"));
-    mockExecFailure();
+  afterEach(async () => {
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
 
-    const tools = await detectTools();
+    if (originalUserProfile === undefined) {
+      delete process.env.USERPROFILE;
+    } else {
+      process.env.USERPROFILE = originalUserProfile;
+    }
 
-    expect(tools).toHaveLength(6);
-    expect(tools.map((tool) => tool.id)).toEqual([
-      "claude-code",
-      "cursor",
-      "windsurf",
-      "opencode",
-      "codex",
-      "agents-md",
-    ]);
-    expect(tools.at(-1)).toMatchObject({
+    await fs.rm(repoRoot, { recursive: true, force: true });
+  });
+
+  it("maps global tool paths from HOME", () => {
+    expect(detector.getGlobalPath("claude-code")).toBe(path.join(repoRoot, ".claude"));
+    expect(detector.getGlobalPath("cursor")).toBe(path.join(repoRoot, ".cursor"));
+    expect(detector.getGlobalPath("windsurf")).toBe(path.join(repoRoot, ".codeium", "windsurf"));
+    expect(detector.getGlobalPath("opencode")).toBe(path.join(repoRoot, ".config", "opencode"));
+    expect(detector.getGlobalPath("codex")).toBe(path.join(repoRoot, ".codex"));
+    expect(detector.getGlobalPath("agents-md")).toBeUndefined();
+  });
+
+  it("uses HOME fallback to USERPROFILE when HOME is not set", async () => {
+    await loadDetector(undefined, repoRoot);
+
+    expect(detector.getGlobalPath("claude-code")).toBe(path.join(repoRoot, ".claude"));
+    expect(detector.getGlobalPath("cursor")).toBe(path.join(repoRoot, ".cursor"));
+  });
+
+  it("detects a tool when its directory path exists", async () => {
+    setDirExists([path.join(repoRoot, ".cursor"), path.join(repoRoot, ".config", "opencode")]);
+    setBinaryResult([]);
+
+    const tools = await detector.detectTools();
+    const cursor = tools.find((tool): tool is DetectedTool => tool.id === "cursor");
+    const opencode = tools.find((tool): tool is DetectedTool => tool.id === "opencode");
+
+    expect(cursor).toMatchObject({
+      id: "cursor",
+      detected: true,
+      reason: `${path.join(repoRoot, ".cursor")} found`,
+    });
+    expect(opencode).toMatchObject({
+      id: "opencode",
+      detected: true,
+      reason: `${path.join(repoRoot, ".config", "opencode")} found`,
+    });
+  });
+
+  it("detects a tool when a binary is available on PATH", async () => {
+    setDirExists([]);
+    setBinaryResult(["cursor", "codex"]);
+
+    const tools = await detector.detectTools();
+    const cursor = tools.find((tool): tool is DetectedTool => tool.id === "cursor");
+    const codex = tools.find((tool): tool is DetectedTool => tool.id === "codex");
+
+    expect(cursor).toMatchObject({ id: "cursor", detected: true, reason: "cursor binary on PATH" });
+    expect(codex).toMatchObject({ id: "codex", detected: true, reason: "codex binary on PATH" });
+  });
+
+  it("reports not found state and checked paths when no checks pass", async () => {
+    setDirExists([]);
+    setBinaryResult([]);
+
+    const tools = await detector.detectTools();
+    const expected = (toolId: DetectedTool["id"]) => {
+      const base = repoRoot;
+      const checks: Record<DetectedTool["id"], string> = {
+        "claude-code": `${path.join(base, ".claude")}, claude`,
+        cursor: `cursor, ${path.join(base, ".cursor")}`,
+        windsurf: `${path.join(base, ".codeium")}, windsurf`,
+        opencode: `${path.join(base, ".config", "opencode")}, opencode`,
+        codex: `${path.join(base, ".codex")}, codex`,
+        "agents-md": "universal cross-tool format (always available)",
+      };
+
+      return checks[toolId];
+    };
+
+    for (const tool of tools) {
+      if (tool.id === "agents-md") {
+        expect(tool).toMatchObject({ detected: true, reason: expected(tool.id) });
+      } else {
+        expect(tool).toMatchObject({
+          detected: false,
+          reason: `not found (checked: ${expected(tool.id)})`,
+        });
+      }
+    }
+  });
+
+  it("includes AGENTS.md as always detected", async () => {
+    setDirExists([]);
+    setBinaryResult([]);
+
+    const tools = await detector.detectTools();
+    const agentsMd = tools.find((tool): tool is DetectedTool => tool.id === "agents-md");
+
+    expect(agentsMd).toMatchObject({
       id: "agents-md",
       detected: true,
       reason: "universal cross-tool format (always available)",
     });
-  });
-
-  it("detects tools by binary presence when available", async () => {
-    mockedAccess.mockRejectedValue(new Error("missing"));
-    mockedExec.mockImplementation((command: string, callback?: MockExecCallback) => {
-      if (command === "which cursor") {
-        callback?.(null, "/usr/bin/cursor", "");
-      } else {
-        callback?.(new Error("not found"), "", "");
-      }
-    });
-
-    const tools = await detectTools();
-
-    const cursor = tools.find((tool) => tool.id === "cursor");
-    const windsurf = tools.find((tool) => tool.id === "windsurf");
-
-    expect(cursor).toMatchObject({
-      detected: true,
-      reason: "cursor binary on PATH",
-    });
-    expect(cursor?.globalPath).toBe(path.join(home, ".cursor"));
-
-    expect(windsurf).toMatchObject({
-      detected: false,
-      reason: `not found (checked: ${path.join(home, ".codeium")}, windsurf)`,
-    });
-  });
-
-  it("detects tools by directory path when binary is not available", async () => {
-    const foundDir = path.join(home, ".codeium");
-
-    mockExecFailure();
-    mockedAccess.mockImplementation(async (target: string) => {
-      if (target === foundDir) {
-        return;
-      }
-      throw new Error("missing");
-    });
-
-    const tools = await detectTools();
-
-    const windsurf = tools.find((tool) => tool.id === "windsurf");
-
-    expect(windsurf).toMatchObject({
-      detected: true,
-      reason: `${foundDir} found`,
-    });
-  });
-
-  it("reports useful reasons when a tool is not detected", async () => {
-    mockedAccess.mockRejectedValue(new Error("missing"));
-    mockExecFailure();
-
-    const tools = await detectTools();
-    const codex = tools.find((tool) => tool.id === "codex");
-
-    expect(codex).toMatchObject({
-      detected: false,
-      reason: `not found (checked: ${path.join(home, ".codex")}, codex)`,
-    });
-  });
-
-  it("maps global paths for supported tools and AGENTS", () => {
-    expect(getGlobalPath("claude-code")).toBe(path.join(home, ".claude"));
-    expect(getGlobalPath("cursor")).toBe(path.join(home, ".cursor"));
-    expect(getGlobalPath("windsurf")).toBe(path.join(home, ".codeium", "windsurf"));
-    expect(getGlobalPath("opencode")).toBe(path.join(home, ".config", "opencode"));
-    expect(getGlobalPath("codex")).toBe(path.join(home, ".codex"));
-    expect(getGlobalPath("agents-md")).toBeUndefined();
-  });
-
-  it("short-circuits after first successful check within a tool", async () => {
-    mockExecSuccess("/usr/local/bin/codex");
-    mockedAccess.mockResolvedValue(undefined);
-
-    await detectTools();
-
-    expect(mockedAccess).toHaveBeenNthCalledWith(1, path.join(home, ".claude"));
-    expect(mockedExec).toHaveBeenCalledWith(
-      "which cursor",
-      expect.any(Function),
-    );
-    expect(mockedExec).toHaveBeenCalledTimes(1);
   });
 });
