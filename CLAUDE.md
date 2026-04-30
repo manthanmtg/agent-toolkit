@@ -47,7 +47,7 @@ skills/               → Source of truth — skill markdown files
     <skill-name>/
       SKILL.md        → Skill definition (YAML frontmatter + markdown body)
 profiles/             → YAML profile definitions
-prompts/              → Autonomous maintenance prompts for small safe improvements
+prompts/              → Autonomous maintenance prompts; `prompts/prompts_metadata.json` is the source-of-truth for safe prompt selection and run metadata.
 issues_to_look/       → Deferred investigation notes; resolved notes live in issues_to_look/resolved/
 dist/                 → Built output (gitignored)
 ```
