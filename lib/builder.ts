@@ -7,6 +7,25 @@ import type { OutputFile, Manifest } from "./types";
 
 const DIST_DIR = path.join(getRepoRoot(), "dist");
 
+function resolveSafeDistPath(relativePath: string): string | null {
+  if (!relativePath || relativePath === "." || path.isAbsolute(relativePath)) {
+    return null;
+  }
+
+  const fullPath = path.resolve(DIST_DIR, relativePath);
+  const relativeToDist = path.relative(DIST_DIR, fullPath);
+
+  if (
+    !relativeToDist ||
+    relativeToDist.startsWith("..") ||
+    path.isAbsolute(relativeToDist)
+  ) {
+    return null;
+  }
+
+  return fullPath;
+}
+
 export interface BuildResult {
   profile: string;
   totalSkills: number;
@@ -62,7 +81,12 @@ export async function build(profileName: string = "default"): Promise<BuildResul
   const manifest = await loadManifest(DIST_DIR);
 
   for (const output of allOutputs) {
-    const fullPath = path.join(DIST_DIR, output.tool, output.relativePath);
+    const outputPath = path.join(output.tool, output.relativePath);
+    const fullPath = resolveSafeDistPath(outputPath);
+    if (!fullPath) {
+      result.errors.push(`Skipped unsafe output path: ${output.tool}/${output.relativePath}`);
+      continue;
+    }
     try {
       await atomicWrite(fullPath, output.content);
       addManifestEntry(manifest, {
