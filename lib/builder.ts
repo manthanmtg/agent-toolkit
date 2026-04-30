@@ -85,10 +85,6 @@ export async function build(profileName: string = "default"): Promise<BuildResul
   return result;
 }
 
-export async function getDistDir(): Promise<string> {
-  return DIST_DIR;
-}
-
 export async function cleanDist(): Promise<void> {
   try {
     await fs.rm(DIST_DIR, { recursive: true, force: true });
