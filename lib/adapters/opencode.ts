@@ -10,13 +10,14 @@ export class OpenCodeAdapter extends BaseAdapter {
   translateSkill(skill: Skill, _profile: Profile): OutputFile[] {
     const shouldTruncateDescription =
       skill.frontmatter.description.length > 1024;
+    const descriptionLines = skill.frontmatter.description.slice(0, 1024).split("\n");
 
     // OpenCode skills use the same SKILL.md format as Claude Code
     const frontmatter = [
       "---",
       `name: ${skill.frontmatter.name}`,
       `description: |`,
-      `  ${skill.frontmatter.description.slice(0, 1024)}`,
+      ...descriptionLines.map((line) => `  ${line}`),
     ];
 
     if (skill.frontmatter.globs) {
