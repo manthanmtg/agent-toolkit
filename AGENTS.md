@@ -17,6 +17,7 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 - `skills/<domain>/<skill-name>/SKILL.md` — Source of truth for skills
 - `profiles/*.yaml` — Profile definitions (skill compositions)
 - `prompts/` — Autonomous maintenance prompts; `random_selector.md` chooses a safe prompt for small improvement runs
+- `prompts/prompts_metadata.json` — Source-of-truth metadata for prompt eligibility, run counters, and terminal outcome tracking used by the random selector workflow.
 - `issues_to_look/` — Investigation notes for deferred or unsafe autonomous fixes; resolved notes move to `issues_to_look/resolved/`
 - `dist/` — Built output (gitignored)
 
