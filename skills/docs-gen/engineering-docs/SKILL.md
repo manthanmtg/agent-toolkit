@@ -54,6 +54,14 @@ Write documentation that reduces future questions.
 4. Key architecture notes
 5. Troubleshooting
 
+### Architecture Summary
+
+1. Purpose and Scope
+2. System Overview (high-level flow)
+3. Key Components and Responsibilities
+4. Data Flow and State Management
+5. Trade-offs and Constraints
+
 ### API docs
 
 - Endpoint or function signature
@@ -77,11 +85,15 @@ Write documentation that reduces future questions.
 Run:
 
 ~~~bash
+# Build for all adapters
 npm run build
+
+# Build for specific adapter
+npm run build -- --adapter=cursor
 ~~~
 
-This compiles selected skills into `dist/<tool>/` and validates frontmatter before
-writing output files.
+This compiles selected skills from `skills/` into `dist/<tool>/` and validates
+frontmatter against `lib/types.ts` before writing output files.
 ```
 
 ## Quality Bar 🎯
