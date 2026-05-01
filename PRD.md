@@ -319,134 +319,87 @@ A Next.js fullstack app (`localhost:3000`) is the primary interface. Server Acti
 │   │   ├── page.tsx                # Skill browser: grid/list, filter by domain/tag, search
 │   │   ├── [domain]/
 │   │   │   └── [name]/
-│   │   │       └── page.tsx        # Skill detail: markdown preview, frontmatter editor,
-│   │   │                           #   per-tool activation toggles, install targets
+│   │   │       ├── page.tsx        # Skill detail: preview, frontmatter, activation
+│   │   │       └── edit/
+│   │   │           └── page.tsx    # Edit skill content and metadata
 │   │   └── new/
 │   │       └── page.tsx            # New skill form: domain, name, description, template
 │   │
+│   ├── my-skills/
+│   │   └── page.tsx                # Deployed skills per tool — drift detection, update
+│   │
 │   ├── add-skill/
 │   │   └── page.tsx                # Add skill flow: pick skill → pick tools → pick scope
-│   │                               #   → safety checks → confirm → link
 │   │
 │   ├── profiles/
-│   │   ├── page.tsx                # Profile list + editor
-│   │   └── [name]/
-│   │       └── page.tsx            # Profile detail: included skills, tool toggles, diff preview
+│   │   └── page.tsx                # Profile management
 │   │
 │   ├── projects/
-│   │   ├── page.tsx                # Linked projects list
-│   │   └── link/
-│   │       └── page.tsx            # Link project: pick path → pick profile → preview → link
+│   │   └── page.tsx                # Linked projects list
 │   │
 │   ├── doctor/
-│   │   └── page.tsx                # Live health dashboard: symlinks, tools, MCP, schema
+│   │   └── page.tsx                # Live health dashboard: symlinks, tools, manifest
 │   │
 │   ├── mcp/
-│   │   └── page.tsx                # MCP server manager: install, status, config viewer
+│   │   └── page.tsx                # MCP server manager: status, add, import/export
 │   │
 │   └── settings/
-│       └── page.tsx                # API keys, env vars, backup management
+│       └── page.tsx                # Toolkit configuration and info
 │
 ├── components/                     # Shared React components
 │   ├── ui/                         # shadcn/ui components
-│   ├── skill-card.tsx              # Skill card (grid view)
-│   ├── tool-target-picker.tsx      # Multi-select: tool × scope (global/project)
-│   ├── safety-check-panel.tsx      # Real-time safety check results
-│   ├── markdown-preview.tsx        # Live SKILL.md preview
-│   ├── diff-viewer.tsx             # Side-by-side diff for skill changes
-│   ├── install-wizard.tsx          # Multi-step install wizard
-│   └── terminal-output.tsx         # Streaming terminal-style output for build/install
+│   ├── markdown-editor.tsx         # Content editor with preview
+│   └── ...                         # Feature-specific components
 │
 ├── lib/                            # Core logic (server-side TypeScript)
-│   ├── types.ts                    # Zod schemas + TypeScript types: Skill, Profile, OutputFile
+│   ├── types.ts                    # Zod schemas + TypeScript types
 │   ├── registry.ts                 # Discovers and loads skills from skills/
 │   ├── builder.ts                  # Reads profile + skills → runs adapters → dist/
-│   ├── linker.ts                   # Symlink management (create, verify, remove, backup)
+│   ├── linker.ts                   # Symlink management (create, verify, remove)
 │   ├── detector.ts                 # Detects installed AI tools on the system
-│   ├── doctor.ts                   # Diagnostic checks (symlinks, MCP, schema)
-│   ├── mcp.ts                      # MCP server install + config generation
-│   ├── safety.ts                   # JSON merge safety, duplicate detection, backup/rollback
+│   ├── doctor.ts                   # Diagnostic checks (symlinks, build, schema)
+│   ├── safety.ts                   # Atomic writes, backups, JSON merge safety
+│   ├── utils.ts                    # Shared helpers and formatting
 │   │
 │   ├── adapters/                   # Tool-specific translation logic
-│   │   ├── index.ts                # Adapter registry + BaseAdapter interface
+│   │   ├── base.ts                 # BaseAdapter abstract class
+│   │   ├── index.ts                # Adapter registry
 │   │   ├── claude-code.ts          # → SKILL.md dirs + CLAUDE.md
 │   │   ├── cursor.ts               # → .cursor/rules/*.mdc
 │   │   ├── windsurf.ts             # → .windsurf/rules/*.md + skills/
 │   │   ├── opencode.ts             # → .opencode/skills/ + AGENTS.md
-│   │   ├── codex.ts                # → ~/.codex/AGENTS.md
+│   │   ├── codex.ts                # → AGENTS.md
 │   │   └── agents-md.ts            # → AGENTS.md (universal)
 │   │
 │   └── actions/                    # Next.js Server Actions
-│       ├── install.ts              # Guided install flow
-│       ├── add-skill.ts            # Add skill to tools
 │       ├── build.ts                # Build dist/ from profile
-│       ├── link.ts                 # Link/unlink projects
-│       ├── sync.ts                 # Build + refresh links
+│       ├── detect.ts               # Trigger tool detection
 │       ├── doctor.ts               # Run diagnostics
-│       ├── mcp.ts                  # MCP server management
-│       ├── new-skill.ts            # Scaffold new skill
-│       └── uninstall.ts            # Clean teardown
+│       ├── install.ts              # Guided install flow
+│       ├── local-skills.ts         # Load skills from local filesystem
+│       ├── mcp.ts                  # MCP server management and health
+│       ├── my-skills.ts            # Manage deployed skills
+│       ├── profiles.ts             # Profile CRUD actions
+│       ├── skills.ts               # Skill CRUD actions
+│       └── sync.ts                 # Build + refresh links
 │
 ├── skills/                         # === SOURCE OF TRUTH ===
-│   ├── _schema.json                # JSON Schema for SKILL.md frontmatter
-│   ├── data-engineering/
-│   │   ├── spark-optimization/
-│   │   │   ├── SKILL.md
-│   │   │   └── examples/
-│   │   ├── iceberg-table-maintenance/
-│   │   │   └── SKILL.md
-│   │   ├── delta-lake-patterns/
-│   │   │   └── SKILL.md
-│   │   └── dbt-conventions/
-│   │       └── SKILL.md
-│   ├── python/
-│   │   ├── pydantic-patterns/
-│   │   │   └── SKILL.md
-│   │   ├── fastapi-scaffolding/
-│   │   │   └── SKILL.md
-│   │   ├── python-testing/
-│   │   │   └── SKILL.md
-│   │   └── python-docstrings/
-│   │       └── SKILL.md
-│   ├── devops/
-│   │   ├── digitalocean-infra/
-│   │   │   └── SKILL.md
-│   │   ├── harness-pipelines/
-│   │   │   └── SKILL.md
-│   │   ├── docker-best-practices/
-│   │   │   └── SKILL.md
-│   │   └── atlan-workflows/
-│   │       └── SKILL.md
-│   └── general/
-│       ├── code-review/
-│       │   ├── SKILL.md
-│       │   └── scripts/
-│       ├── git-conventions/
-│       │   └── SKILL.md
-│       ├── multi-agent-review/
-│       │   └── SKILL.md
-│       └── security-audit/
-│           └── SKILL.md
+│   ├── ci-cd/
+│   ├── code-review/
+│   ├── debugging/
+│   └── ...                         # Domain-grouped skills
 │
 ├── profiles/                       # Skill composition profiles
 │   ├── default.yaml
-│   ├── work.yaml
-│   ├── personal.yaml
-│   └── review.yaml
+│   └── python-only.yaml
 │
-├── mcp/                            # MCP server configurations
-│   ├── servers.yaml
-│   ├── claude-code-mcp.json
-│   ├── windsurf-mcp.json
-│   └── cursor-mcp.json
+├── prompts/                        # Autonomous agent prompts
+│   ├── random_selector.md
+│   ├── prompts_metadata.json
+│   └── ...
 │
 ├── dist/                           # Generated output (gitignored)
-│   ├── claude-code/
-│   ├── cursor/
-│   ├── windsurf/
-│   ├── opencode/
-│   ├── codex/
-│   └── agents-md/
+└── overrides/                      # User-local overrides (gitignored)
 │
 ├── overrides/                      # User-local overrides (gitignored)
 │   └── .gitkeep
