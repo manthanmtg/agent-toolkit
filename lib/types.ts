@@ -142,3 +142,21 @@ export interface Manifest {
   updatedAt: string;
   entries: ManifestEntry[];
 }
+
+// ── MCP schema ────────────────────────────────────────────────────
+export const RawMcpServerConfigSchema = z.object({
+  command: z.string().optional(),
+  args: z.array(z.union([z.string(), z.number(), z.boolean()]).transform(String)).optional(),
+  url: z.string().optional(),
+  env: z.record(z.union([z.string(), z.number(), z.boolean()]).transform(String)).optional(),
+  transport: z.enum(["stdio", "sse", "streamable-http", "unknown"]).optional(),
+}).passthrough();
+
+export interface McpServerConfig {
+  name: string;
+  command?: string;
+  args?: string[];
+  url?: string;
+  env?: Record<string, string>;
+  transport?: "stdio" | "sse" | "streamable-http" | "unknown";
+}
