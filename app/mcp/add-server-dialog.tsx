@@ -99,6 +99,7 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
     return (
       <button
         onClick={() => setOpen(true)}
+        aria-expanded="false"
         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed
           text-sm font-medium text-muted-foreground
           hover:border-primary/50 hover:text-foreground hover:bg-primary/5
@@ -121,6 +122,7 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
             reset();
             setOpen(false);
           }}
+          aria-label="Close"
           className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground"
         >
           <X className="w-4 h-4" />
@@ -130,21 +132,23 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
       <form onSubmit={handleSubmit} className="p-5 space-y-5">
         {/* Server Name */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+          <label htmlFor="server-name" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
             Server Name
           </label>
           <input
+            id="server-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="my-server"
             required
             pattern="^[a-zA-Z0-9_-]+$"
+            aria-describedby="name-hint"
             className="w-full px-3 py-2 rounded-lg border bg-background text-sm font-mono
               focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
               placeholder:text-muted-foreground/40"
           />
-          <p className="text-[11px] text-muted-foreground mt-1">
+          <p id="name-hint" className="text-[11px] text-muted-foreground mt-1">
             Alphanumeric with hyphens and underscores
           </p>
         </div>
@@ -166,6 +170,7 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
                 key={t.value}
                 type="button"
                 onClick={() => setTransport(t.value)}
+                aria-pressed={transport === t.value}
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-all
                   ${
                     transport === t.value
@@ -184,10 +189,11 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
         {transport === "stdio" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+              <label htmlFor="command" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                 Command
               </label>
               <input
+                id="command"
                 type="text"
                 value={command}
                 onChange={(e) => setCommand(e.target.value)}
@@ -199,19 +205,21 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+              <label htmlFor="args" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                 Arguments
               </label>
               <input
+                id="args"
                 type="text"
                 value={args}
                 onChange={(e) => setArgs(e.target.value)}
                 placeholder="-y my-mcp-server"
+                aria-describedby="args-hint"
                 className="w-full px-3 py-2 rounded-lg border bg-background text-sm font-mono
                   focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
                   placeholder:text-muted-foreground/40"
               />
-              <p className="text-[11px] text-muted-foreground mt-1">
+              <p id="args-hint" className="text-[11px] text-muted-foreground mt-1">
                 Space-separated
               </p>
             </div>
@@ -221,10 +229,11 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
         {/* URL (SSE / HTTP) */}
         {transport !== "stdio" && (
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+            <label htmlFor="url" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
               Server URL
             </label>
             <input
+              id="url"
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -265,16 +274,18 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
                     value={pair.key}
                     onChange={(e) => updateEnvPair(i, "key", e.target.value)}
                     placeholder="KEY"
+                    aria-label={`Variable key ${i + 1}`}
                     className="flex-1 px-3 py-1.5 rounded-lg border bg-background text-xs font-mono
                       focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
                       placeholder:text-muted-foreground/40"
                   />
-                  <span className="text-muted-foreground text-xs">=</span>
+                  <span className="text-muted-foreground text-xs" aria-hidden="true">=</span>
                   <input
                     type="text"
                     value={pair.value}
                     onChange={(e) => updateEnvPair(i, "value", e.target.value)}
                     placeholder="value"
+                    aria-label={`Variable value ${i + 1}`}
                     className="flex-[2] px-3 py-1.5 rounded-lg border bg-background text-xs font-mono
                       focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
                       placeholder:text-muted-foreground/40"
@@ -282,6 +293,7 @@ export function AddServerDialog({ toolId, onAdded }: AddServerDialogProps) {
                   <button
                     type="button"
                     onClick={() => removeEnvPair(i)}
+                    aria-label={`Remove variable ${i + 1}`}
                     className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
