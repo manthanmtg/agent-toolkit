@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { SyncButton } from "./sync-button";
