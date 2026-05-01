@@ -2,20 +2,12 @@
 
 import fs from "fs/promises";
 import path from "path";
+import { z } from "zod";
 import { detectTools, getGlobalPath } from "@/lib/detector";
-import { TOOL_LABELS, type ToolId } from "@/lib/types";
+import { TOOL_LABELS, type ToolId, RawMcpServerConfigSchema, type McpServerConfig } from "@/lib/types";
 import { atomicWrite, backupFile } from "@/lib/safety";
 
-// ── Types ────────────────────────────────────────────────────────
-
-export interface McpServerConfig {
-  name: string;
-  command?: string;
-  args?: string[];
-  url?: string;
-  env?: Record<string, string>;
-  transport?: "stdio" | "sse" | "streamable-http" | "unknown";
-}
+// ── Types & Schemas ──────────────────────────────────────────────
 
 export interface McpToolEntry {
   toolId: ToolId;
@@ -145,17 +137,16 @@ function getServersMap(config: Record<string, unknown>, key: string): Record<str
 }
 
 function parseServerConfig(name: string, raw: unknown): McpServerConfig {
-  const obj = isRecord(raw) ? raw : ({} as Record<string, unknown>);
+  const parseResult = RawMcpServerConfigSchema.safeParse(raw);
+  const obj = parseResult.success ? parseResult.data : {};
 
-  const command = typeof obj.command === "string" ? obj.command : undefined;
-  const args = Array.isArray(obj.args) ? obj.args.map(String) : undefined;
-  const url = typeof obj.url === "string" ? obj.url : undefined;
+  const command = obj.command;
+  const args = obj.args;
+  const url = obj.url;
 
   let transport: McpServerConfig["transport"] = "unknown";
-  if (typeof obj.transport === "string") {
-    if (obj.transport === "stdio" || obj.transport === "sse" || obj.transport === "streamable-http" || obj.transport === "unknown") {
-      transport = obj.transport;
-    }
+  if (obj.transport) {
+    transport = obj.transport;
   } else if (command) {
     transport = "stdio";
   } else if (url) {
@@ -163,11 +154,10 @@ function parseServerConfig(name: string, raw: unknown): McpServerConfig {
   }
 
   let env: Record<string, string> | undefined;
-  const rawEnv = obj.env;
-  if (isRecord(rawEnv)) {
+  if (obj.env) {
     env = {};
-    for (const [k, v] of Object.entries(rawEnv)) {
-      env[k] = maskEnvValue(String(v));
+    for (const [k, v] of Object.entries(obj.env)) {
+      env[k] = maskEnvValue(v);
     }
   }
 
@@ -215,7 +205,7 @@ async function readJsonFile(filePath: string): Promise<Record<string, unknown> |
   if (!raw.trim()) return null;
 
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(raw) as unknown;
     if (!isRecord(parsed)) {
       throw new Error("Root config must be a JSON object");
     }
@@ -234,7 +224,7 @@ async function writeJsonFileSafely(
   const content = JSON.stringify(data, null, 2) + "\n";
 
   // Sanity check: verify the output is valid JSON before writing
-  JSON.parse(content);
+  const _ = JSON.parse(content) as unknown;
 
   await atomicWrite(filePath, content);
 }
@@ -1039,7 +1029,7 @@ export async function getMcpOverview(): Promise<McpOverviewResult> {
 
       try {
         const raw = await fs.readFile(filePath, "utf-8");
-        const parsed = JSON.parse(raw);
+        const parsed = JSON.parse(raw) as unknown;
         exists = true;
 
         const mcpServers = source.extract(parsed);

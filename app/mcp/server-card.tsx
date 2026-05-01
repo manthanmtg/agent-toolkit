@@ -18,7 +18,7 @@ import {
   Share2,
   HeartPulse,
 } from "lucide-react";
-import { TOOL_LABELS, type ToolId } from "@/lib/types";
+import { TOOL_LABELS, type ToolId, type McpServerConfig } from "@/lib/types";
 import {
   removeMcpServerAction,
   copyMcpServerAction,
@@ -26,7 +26,6 @@ import {
   editMcpServerAction,
   exportMcpServerAction,
   healthCheckMcpServerAction,
-  type McpServerConfig,
   type AddMcpServerInput,
   type HealthCheckResult,
 } from "@/lib/actions/mcp";
