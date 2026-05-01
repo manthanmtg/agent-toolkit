@@ -85,7 +85,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Tool | Deployment | Global Path | Project Path | Format |
 |------|-----------|-------------|--------------|--------|
 | **Claude Code** | Per-skill | `~/.claude/skills/` | `.claude/skills/` | `SKILL.md` |
-| **Cursor** | Per-skill | `~/.cursor/skills/` | `.cursor/rules/` | `SKILL.md` + `.mdc` |
+| **Cursor** | Per-skill + rules | `~/.cursor/skills/`, `~/.cursor/rules/` | `.cursor/skills/`, `.cursor/rules/` | `SKILL.md` + `.mdc` |
 | **Windsurf** | Per-skill + global rules | `~/.codeium/windsurf/memories/global_rules.md`, `~/.codeium/windsurf/skills/` | `.windsurf/rules/` | `SKILL.md` + `.md` rules |
 | **OpenCode** | Per-skill + global AGENTS | `~/.config/opencode/AGENTS.md`, `~/.config/opencode/skills/` | `.opencode/skills/` | `SKILL.md` |
 | **Codex** | Bundled | `~/.codex/` | Project root | `AGENTS.md` (merged) |
