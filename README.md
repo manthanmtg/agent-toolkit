@@ -114,10 +114,10 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 ┌─────────────────────────────────────────────────┐
 │                   Next.js App                    │
-│  Dashboard · Skills · My Skills · Install · ...  │
+│  Dashboard · Skills · My Skills · MCP · Doctor   │
 ├─────────────────────────────────────────────────┤
 │                 Server Actions                   │
-│  build · sync · detect · my-skills · doctor      │
+│  build · install · sync · mcp · doctor · detect  │
 ├─────────────────────────────────────────────────┤
 │                  Core Library                    │
 │  registry · builder · linker · safety · detector │
@@ -125,6 +125,7 @@ Open [http://localhost:3000](http://localhost:3000).
 │Claude│Cursor│Winds.│Open  │Codex │ AGENTS.md    │
 │ Code │      │      │ Code │      │  (cross)     │
 └──────┴──────┴──────┴──────┴──────┴──────────────┘
+```
          ▼          ▼         ▼         ▼
     ~/.claude/  ~/.cursor/ ~/.codeium/  ~/.codex/
 ```
