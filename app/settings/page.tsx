@@ -1,5 +1,3 @@
-import { Settings } from "lucide-react";
-
 export default function SettingsPage() {
   return (
     <div className="space-y-8">

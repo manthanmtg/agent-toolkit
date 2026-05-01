@@ -56,7 +56,6 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
   const [removing, setRemoving] = useState(false);
 
   const config = STATUS_CONFIG[skill.status];
-  const StatusIcon = config.icon;
 
   async function handleUpdate() {
     if (!skill.domain) return;

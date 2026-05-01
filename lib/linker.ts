@@ -1,8 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
-import { getRepoRoot } from "./registry";
 import { atomicWrite, backupFile, writeToolkitMarker, checkDuplicate } from "./safety";
-import type { SymlinkTarget, ToolId } from "./types";
+import type { SymlinkTarget } from "./types";
 
 export interface LinkResult {
   created: SymlinkTarget[];

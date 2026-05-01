@@ -9,7 +9,6 @@ import {
   Wind,
   Bot,
 } from "lucide-react";
-import type { ToolId } from "@/lib/types";
 
 interface DocSection {
   id: string;
