@@ -1,6 +1,5 @@
 {
-  "schemaVersion": 1,
-  "updatedAt": "2026-05-01T10:05:00.000Z",
+  "updatedAt": "2026-05-01T12:00:00.000Z",
   "description": "Prompt-suite observability metadata. Keep static identity here aligned with prompt frontmatter and update counters during random_selector runs.",
   "outcomeDefinitions": {
     "selected": "The prompt has been selected and the run has not recorded a terminal outcome yet.",
@@ -9,19 +8,20 @@
     "failed": "The selected prompt could not complete because verification or execution failed."
   },
   "prompts": {
-    "accessibility_improver.md": {
-      "id": "accessibility-improver",
-      "file": "accessibility_improver.md",
-      "title": "Accessibility Improver",
-      "category": "ui-quality",
+  ...
+    "type_safety_enforcer.md": {
+      "id": "type-safety-enforcer",
+      "file": "type_safety_enforcer.md",
+      "title": "Type Safety Enforcer",
+      "category": "verification",
       "enabled": true,
       "autonomousSafe": true,
-      "totalSelected": 2,
-      "totalCompleted": 2,
+      "totalSelected": 3,
+      "totalCompleted": 3,
       "totalNoop": 0,
       "totalFailed": 0,
-      "lastSelectedAt": "2026-04-30T16:00:38.765Z",
-      "lastCompletedAt": "2026-04-30T16:01:10.555Z",
+      "lastSelectedAt": "2026-05-01T12:00:00.000Z",
+      "lastCompletedAt": "2026-05-01T12:00:00.000Z",
       "lastOutcome": "completed"
     },
     "adapter_consistency_auditor.md": {

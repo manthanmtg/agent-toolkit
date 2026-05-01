@@ -45,7 +45,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isNodeErrnoException(value: unknown): value is NodeJS.ErrnoException {
   if (!(value instanceof Error)) return false;
-  const maybeCode = (value as { code?: unknown }).code;
+  const maybeCode = "code" in value ? value.code : undefined;
   return maybeCode === "ENOENT" || typeof maybeCode === "string" || typeof maybeCode === "number";
 }
 
@@ -145,7 +145,7 @@ function getServersMap(config: Record<string, unknown>, key: string): Record<str
 }
 
 function parseServerConfig(name: string, raw: unknown): McpServerConfig {
-  const obj = isRecord(raw) ? raw : {};
+  const obj = isRecord(raw) ? raw : ({} as Record<string, unknown>);
 
   const command = typeof obj.command === "string" ? obj.command : undefined;
   const args = Array.isArray(obj.args) ? obj.args.map(String) : undefined;
@@ -163,9 +163,10 @@ function parseServerConfig(name: string, raw: unknown): McpServerConfig {
   }
 
   let env: Record<string, string> | undefined;
-  if (isRecord(obj.env)) {
+  const rawEnv = obj.env;
+  if (isRecord(rawEnv)) {
     env = {};
-    for (const [k, v] of Object.entries(obj.env)) {
+    for (const [k, v] of Object.entries(rawEnv)) {
       env[k] = maskEnvValue(String(v));
     }
   }
@@ -748,16 +749,17 @@ export async function exportAllMcpServersAction(
 
     const rawServers = getServersMap(json, config.key);
     for (const [name, rawConfig] of Object.entries(rawServers)) {
-      if (!rawConfig || typeof rawConfig !== "object") continue;
-      const obj = rawConfig as Record<string, unknown>;
+      if (!isRecord(rawConfig)) continue;
+      const obj = rawConfig;
 
       let transport: ExportTransport = "stdio";
       if (obj.transport === "stdio" || obj.transport === "sse" || obj.transport === "streamable-http") {
-        transport = obj.transport;
-      } else if (typeof obj.url === "string") {
-        transport = (obj.url as string).includes("/sse")
-          ? "sse"
-          : "streamable-http";
+        transport = obj.transport as ExportTransport;
+      } else {
+        const url = obj.url;
+        if (typeof url === "string") {
+          transport = url.includes("/sse") ? "sse" : "streamable-http";
+        }
       }
 
       const entry: McpBulkServerEntry = {
