@@ -233,27 +233,27 @@ export function ServerCard({
   }
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:shadow-md hover:border-border/80">
+    <div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-border/80">
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${accentClass} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+        className={`absolute inset-0 bg-gradient-to-br ${accentClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
       />
 
       <div className="relative p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border shadow-sm flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                 <span className="text-sm font-bold text-primary">
                   {server.name.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold text-sm truncate">
+                <h3 className="font-semibold text-sm truncate tracking-tight">
                   {server.name}
                 </h3>
                 {server.url && (
-                  <p className="text-xs text-muted-foreground truncate mt-0.5 font-mono">
+                  <p className="text-[11px] text-muted-foreground truncate mt-0.5 font-mono opacity-80">
                     {server.url}
                   </p>
                 )}
@@ -262,7 +262,7 @@ export function ServerCard({
           </div>
 
           <span
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${transport.color}`}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${transport.color}`}
           >
             {transport.icon}
             {transport.label}
@@ -271,14 +271,14 @@ export function ServerCard({
 
         {/* Command line */}
         {server.command && (
-          <div className="mt-3 flex items-center gap-2">
-            <div className="flex-1 min-w-0 bg-muted/70 rounded-lg px-3 py-2 font-mono text-xs text-muted-foreground truncate">
-              <span className="text-foreground/70 select-none">$ </span>
+          <div className="mt-4 flex items-center gap-2 group/cmd">
+            <div className="flex-1 min-w-0 bg-muted/50 dark:bg-muted/30 rounded-lg px-3 py-2.5 font-mono text-[11px] text-muted-foreground truncate border border-transparent group-hover/cmd:border-border/50 transition-colors">
+              <span className="text-primary/50 select-none font-bold">$ </span>
               {commandStr}
             </div>
             <button
               onClick={handleCopyCmd}
-              className="shrink-0 p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              className="shrink-0 p-2 rounded-lg hover:bg-secondary transition-all text-muted-foreground hover:text-foreground border border-transparent hover:border-border shadow-sm active:scale-95"
               title="Copy command"
               aria-label={`Copy command for ${server.name}`}
             >
@@ -292,15 +292,15 @@ export function ServerCard({
         )}
 
         {/* Quick info chips */}
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center gap-3 mt-4">
           {envCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Key className="w-3 h-3" />
-              {envCount} env var{envCount !== 1 ? "s" : ""}
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground/80">
+              <Key className="w-3.5 h-3.5" />
+              {envCount} variable{envCount !== 1 ? "s" : ""}
             </span>
           )}
           {server.args && server.args.length > 0 && (
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-[11px] font-medium text-muted-foreground/80">
               {server.args.length} arg{server.args.length !== 1 ? "s" : ""}
             </span>
           )}
@@ -309,18 +309,18 @@ export function ServerCard({
         {/* Health check result */}
         {healthResult && (
           <div
-            className={`mt-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium animate-in fade-in slide-in-from-top-1 duration-200 ${
+            className={`mt-4 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-300 ${
               healthResult.status === "healthy"
-                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800"
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/50"
                 : healthResult.status === "unhealthy"
-                ? "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
-                : "bg-muted text-muted-foreground border"
+                ? "bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50"
+                : "bg-muted/50 text-muted-foreground border border-border/50"
             }`}
           >
             <span
-              className={`w-2 h-2 rounded-full shrink-0 ${
+              className={`w-2 h-2 rounded-full shrink-0 shadow-sm ${
                 healthResult.status === "healthy"
-                  ? "bg-emerald-500"
+                  ? "bg-emerald-500 animate-pulse"
                   : healthResult.status === "unhealthy"
                   ? "bg-red-500"
                   : "bg-gray-400"
@@ -328,7 +328,7 @@ export function ServerCard({
             />
             <span className="truncate">{healthResult.message}</span>
             {healthResult.latencyMs != null && (
-              <span className="ml-auto shrink-0 text-[10px] opacity-70">
+              <span className="ml-auto shrink-0 text-[10px] font-bold opacity-60">
                 {healthResult.latencyMs}ms
               </span>
             )}
@@ -340,7 +340,7 @@ export function ServerCard({
           <>
             <button
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 mt-4 text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider"
             >
               {expanded ? (
                 <ChevronUp className="w-3.5 h-3.5" />
@@ -351,17 +351,17 @@ export function ServerCard({
             </button>
 
             {expanded && (
-              <div className="mt-3 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 {server.args && server.args.length > 0 && (
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold mb-2">
                       Arguments
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {server.args.map((arg, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 rounded-md bg-muted text-xs font-mono"
+                          className="px-2.5 py-1 rounded-md bg-muted/50 border border-border/40 text-[11px] font-mono text-foreground/80 shadow-sm"
                         >
                           {arg}
                         </span>
@@ -372,19 +372,19 @@ export function ServerCard({
 
                 {server.env && Object.keys(server.env).length > 0 && (
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold mb-2">
                       Environment Variables
                     </p>
-                    <div className="space-y-1">
+                    <div className="space-y-1.5 bg-muted/30 rounded-lg p-2.5 border border-border/30">
                       {Object.entries(server.env).map(([key, val]) => (
                         <div
                           key={key}
-                          className="flex items-center gap-2 text-xs font-mono"
+                          className="flex items-center gap-2 text-[11px] font-mono"
                         >
-                          <span className="text-amber-600 dark:text-amber-400 shrink-0">
+                          <span className="text-amber-600 dark:text-amber-400 font-bold shrink-0">
                             {key}
                           </span>
-                          <span className="text-muted-foreground">=</span>
+                          <span className="text-muted-foreground/40">=</span>
                           <span className="text-muted-foreground truncate">
                             {val}
                           </span>
@@ -400,18 +400,18 @@ export function ServerCard({
 
         {/* Edit form */}
         {editing && (
-          <form onSubmit={handleSaveEdit} className="mt-4 pt-3 border-t border-border/50 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+          <form onSubmit={handleSaveEdit} className="mt-5 pt-4 border-t border-border/50 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Edit Server
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Edit Server Configuration
               </p>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="p-1 rounded-md hover:bg-muted text-muted-foreground"
+                className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
                 aria-label="Close edit form"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -422,20 +422,20 @@ export function ServerCard({
               placeholder="Server name"
               required
               pattern="^[a-zA-Z0-9_-]+$"
-              className="w-full px-3 py-1.5 rounded-lg border bg-background text-xs font-mono
-                focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              className="w-full px-3 py-2 rounded-lg border bg-background text-xs font-mono
+                focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
 
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               {(["stdio", "sse", "streamable-http"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setEditTransport(t)}
-                  className={`flex-1 px-2 py-1.5 rounded-lg border text-[11px] font-medium transition-all
+                  className={`flex-1 px-2 py-2 rounded-lg border text-[11px] font-bold transition-all
                     ${editTransport === t
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:text-foreground"
+                      ? "border-primary bg-primary/5 text-primary shadow-sm"
+                      : "border-border bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                 >
                   {t === "stdio" ? "stdio" : t === "sse" ? "SSE" : "HTTP"}
@@ -444,104 +444,115 @@ export function ServerCard({
             </div>
 
             {editTransport === "stdio" ? (
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  value={editCommand}
-                  onChange={(e) => setEditCommand(e.target.value)}
-                  placeholder="command"
-                  required
-                  className="px-3 py-1.5 rounded-lg border bg-background text-xs font-mono
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                />
-                <input
-                  type="text"
-                  value={editArgs}
-                  onChange={(e) => setEditArgs(e.target.value)}
-                  placeholder="args (space-separated)"
-                  className="px-3 py-1.5 rounded-lg border bg-background text-xs font-mono
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <p className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Command</p>
+                  <input
+                    type="text"
+                    value={editCommand}
+                    onChange={(e) => setEditCommand(e.target.value)}
+                    placeholder="command"
+                    required
+                    className="w-full px-3 py-2 rounded-lg border bg-background text-xs font-mono
+                      focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Args</p>
+                  <input
+                    type="text"
+                    value={editArgs}
+                    onChange={(e) => setEditArgs(e.target.value)}
+                    placeholder="args"
+                    className="w-full px-3 py-2 rounded-lg border bg-background text-xs font-mono
+                      focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
               </div>
             ) : (
-              <input
-                type="url"
-                value={editUrl}
-                onChange={(e) => setEditUrl(e.target.value)}
-                placeholder="https://..."
-                required
-                className="w-full px-3 py-1.5 rounded-lg border bg-background text-xs font-mono
-                  focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-              />
+              <div className="space-y-1">
+                <p className="text-[9px] uppercase font-bold text-muted-foreground ml-1">URL</p>
+                <input
+                  type="url"
+                  value={editUrl}
+                  onChange={(e) => setEditUrl(e.target.value)}
+                  placeholder="https://..."
+                  required
+                  className="w-full px-3 py-2 rounded-lg border bg-background text-xs font-mono
+                    focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+              </div>
             )}
 
             {/* Env vars */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold">
                   Env Variables
                 </span>
                 <button
                   type="button"
                   onClick={() => setEditEnv([...editEnv, { key: "", value: "" }])}
-                  className="text-[11px] text-primary hover:text-primary/80 font-medium"
+                  className="text-[10px] text-primary hover:underline font-bold uppercase tracking-wide"
                 >
-                  + Add
+                  + Add Pair
                 </button>
               </div>
-              {editEnv.map((pair, i) => (
-                <div key={i} className="flex items-center gap-1.5 mb-1.5">
-                  <input
-                    type="text"
-                    value={pair.key}
-                    onChange={(e) => {
-                      const u = [...editEnv];
-                      u[i] = { ...u[i], key: e.target.value };
-                      setEditEnv(u);
-                    }}
-                    placeholder="KEY"
-                    className="flex-1 px-2 py-1 rounded-md border bg-background text-[11px] font-mono
-                      focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  />
-                  <span className="text-muted-foreground text-[11px]">=</span>
-                  <input
-                    type="text"
-                    value={pair.value}
-                    onChange={(e) => {
-                      const u = [...editEnv];
-                      u[i] = { ...u[i], value: e.target.value };
-                      setEditEnv(u);
-                    }}
-                    placeholder="value"
-                    className="flex-[2] px-2 py-1 rounded-md border bg-background text-[11px] font-mono
-                      focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setEditEnv(editEnv.filter((_, j) => j !== i))}
-                    aria-label={`Remove env variable ${i + 1}`}
-                    className="p-1 rounded-md text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
+              <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                {editEnv.map((pair, i) => (
+                  <div key={i} className="flex items-center gap-2 group/env">
+                    <input
+                      type="text"
+                      value={pair.key}
+                      onChange={(e) => {
+                        const u = [...editEnv];
+                        u[i] = { ...u[i], key: e.target.value };
+                        setEditEnv(u);
+                      }}
+                      placeholder="KEY"
+                      className="flex-1 px-2.5 py-1.5 rounded-md border bg-background text-[11px] font-mono
+                        focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                    <span className="text-muted-foreground/40 text-[11px]">=</span>
+                    <input
+                      type="text"
+                      value={pair.value}
+                      onChange={(e) => {
+                        const u = [...editEnv];
+                        u[i] = { ...u[i], value: e.target.value };
+                        setEditEnv(u);
+                      }}
+                      placeholder="value"
+                      className="flex-[2] px-2.5 py-1.5 rounded-md border bg-background text-[11px] font-mono
+                        focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditEnv(editEnv.filter((_, j) => j !== i))}
+                      aria-label={`Remove env variable ${i + 1}`}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
                 disabled={editSaving}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                  bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide
+                  bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all shadow-sm active:scale-95"
               >
-                {editSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                {editSaving ? "Saving..." : "Save"}
+                {editSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                {editSaving ? "Saving..." : "Save Changes"}
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
               >
                 Cancel
               </button>
@@ -551,16 +562,16 @@ export function ServerCard({
 
         {/* Action bar */}
         {!editing && (
-          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/50">
+          <div className="flex items-center gap-2 mt-5 pt-4 border-t border-border/50">
             {/* Edit */}
             <button
               onClick={handleStartEdit}
               disabled={editLoading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                border text-muted-foreground hover:text-foreground hover:bg-muted/50
-                disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
+                border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
+                disabled:opacity-50 transition-all active:scale-95"
             >
-              {editLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Pencil className="w-3 h-3" />}
+              {editLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Pencil className="w-3.5 h-3.5" />}
               Edit
             </button>
 
@@ -568,11 +579,11 @@ export function ServerCard({
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                border text-muted-foreground hover:text-foreground hover:bg-muted/50
-                disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
+                border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
+                disabled:opacity-50 transition-all active:scale-95"
             >
-              {exporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Share2 className="w-3 h-3" />}
+              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-3.5 h-3.5" />}
               Share
             </button>
 
@@ -580,11 +591,11 @@ export function ServerCard({
             <button
               onClick={handleHealthCheck}
               disabled={checking}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                border text-muted-foreground hover:text-foreground hover:bg-muted/50
-                disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
+                border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
+                disabled:opacity-50 transition-all active:scale-95"
             >
-              {checking ? <Loader2 className="w-3 h-3 animate-spin" /> : <HeartPulse className="w-3 h-3" />}
+              {checking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HeartPulse className="w-3.5 h-3.5" />}
               Ping
             </button>
 
@@ -593,27 +604,30 @@ export function ServerCard({
               <div className="relative">
                 <button
                   onClick={() => setShowCopyMenu(!showCopyMenu)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                    border text-muted-foreground hover:text-foreground hover:bg-muted/50
-                    transition-colors"
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
+                    border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
+                    transition-all active:scale-95 ${showCopyMenu ? "bg-secondary border-border text-foreground" : ""}`}
                 >
-                  <Send className="w-3 h-3" />
-                  Copy to...
+                  <Send className="w-3.5 h-3.5" />
+                  Copy to
                 </button>
 
                 {showCopyMenu && (
-                  <div className="absolute bottom-full left-0 mb-1 w-44 rounded-lg border bg-card shadow-lg z-10 py-1 animate-in fade-in slide-in-from-bottom-1 duration-150">
+                  <div className="absolute bottom-full left-0 mb-2 w-48 rounded-xl border bg-card shadow-xl z-20 py-1.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <p className="px-3 py-1 text-[9px] font-bold text-muted-foreground uppercase tracking-widest border-b border-border/50 mb-1">
+                      Target Tool
+                    </p>
                     {copyTargets.map((target) => (
                       <button
                         key={target}
                         onClick={() => handleCopyTo(target)}
                         disabled={copying !== null}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted transition-colors disabled:opacity-50"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-medium hover:bg-secondary transition-colors disabled:opacity-50"
                       >
                         {copying === target ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         ) : (
-                          <Send className="w-3 h-3" />
+                          <Send className="w-3.5 h-3.5 text-primary" />
                         )}
                         {TOOL_LABELS[target]}
                       </button>
@@ -627,16 +641,16 @@ export function ServerCard({
             <button
               onClick={handleRemove}
               disabled={removing}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                border text-muted-foreground hover:text-destructive hover:border-destructive/50 hover:bg-destructive/5
-                disabled:opacity-50 transition-colors ml-auto"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
+                border bg-background shadow-sm text-muted-foreground hover:text-destructive hover:border-destructive/50 hover:bg-destructive/5
+                disabled:opacity-50 transition-all active:scale-95 ml-auto"
             >
               {removing ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Trash2 className="w-3 h-3" />
+                <Trash2 className="w-3.5 h-3.5" />
               )}
-              {removing ? "Removing..." : "Remove"}
+              {removing ? "Wait..." : "Remove"}
             </button>
           </div>
         )}
