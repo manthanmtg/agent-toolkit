@@ -155,9 +155,8 @@ describe("safety utilities", () => {
     const mutableManifest = JSON.parse(JSON.stringify(manifest));
 
     addManifestEntry(mutableManifest, {
-      source: "/new/source.txt",
+      sourcePath: "/new/source.txt",
       destPath: "/dst/path.txt",
-      relativePath: "new/path.txt",
       tool: "cursor",
       scope: "global",
       checksum: "new",
@@ -165,9 +164,8 @@ describe("safety utilities", () => {
 
     expect(mutableManifest.entries).toHaveLength(1);
     expect(mutableManifest.entries[0]).toMatchObject({
-      source: "/new/source.txt",
+      sourcePath: "/new/source.txt",
       destPath: "/dst/path.txt",
-      relativePath: "new/path.txt",
       checksum: "new",
       tool: "cursor",
       scope: "global",
