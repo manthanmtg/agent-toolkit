@@ -11,7 +11,7 @@ import type { Profile, Skill } from "../types";
 
 export interface ProfileListing {
   profiles: Profile[];
-  invalidProfiles: string[];
+  invalidProfiles: Array<{ file: string; error: string }>;
 }
 
 export async function listProfilesAction(): Promise<Profile[]> {

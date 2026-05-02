@@ -24,9 +24,11 @@ export default async function ProfilesPage() {
           <p className="font-medium text-amber-700 dark:text-amber-200">
             Some profile files are invalid or missing required fields:
           </p>
-          <ul className="list-disc pl-5 mt-2 text-amber-700 dark:text-amber-200">
-            {invalidProfiles.map((profileName) => (
-              <li key={profileName}>{profileName}</li>
+          <ul className="list-disc pl-5 mt-2 text-amber-700 dark:text-amber-200 space-y-1">
+            {invalidProfiles.map((p) => (
+              <li key={p.file}>
+                <span className="font-semibold">{p.file}</span>: {p.error}
+              </li>
             ))}
           </ul>
           <p className="mt-2 text-amber-700/90 dark:text-amber-200/90">

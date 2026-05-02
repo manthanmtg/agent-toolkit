@@ -98,19 +98,41 @@ export async function loadAllLocalSkills(): Promise<Skill[]> {
 
 export async function loadProfile(name: string): Promise<Profile> {
   if (!isValidProfileName(name)) {
-    throw new Error(`Invalid profile name: ${name}`);
+    throw new Error(`Invalid profile name: "${name}". Profile names must not contain slashes or leading/trailing spaces.`);
   }
 
   const profilePath = path.join(PROFILES_DIR, `${name}.yaml`);
-  const raw = await fs.readFile(profilePath, "utf-8");
+  let raw: string;
+  try {
+    raw = await fs.readFile(profilePath, "utf-8");
+  } catch (err) {
+    throw new Error(`Could not read profile file at ${profilePath}`);
+  }
+
   const { parse } = await import("yaml");
-  const data = parse(raw);
-  return ProfileSchema.parse(data);
+  let data: any;
+  try {
+    data = parse(raw);
+  } catch (err: any) {
+    throw new Error(`YAML parse error in ${name}.yaml: ${err.message}`);
+  }
+
+  try {
+    return ProfileSchema.parse(data);
+  } catch (err: any) {
+    if (err.errors) {
+      const details = err.errors
+        .map((e: any) => `${e.path.join(".")}: ${e.message}`)
+        .join(", ");
+      throw new Error(`Validation error in ${name}.yaml: ${details}`);
+    }
+    throw err;
+  }
 }
 
 export interface ProfileLoadResult {
   profiles: Profile[];
-  invalidFiles: string[];
+  invalidFiles: Array<{ file: string; error: string }>;
 }
 
 export async function loadAllProfiles(): Promise<Profile[]> {
@@ -120,16 +142,16 @@ export async function loadAllProfiles(): Promise<Profile[]> {
 export async function loadAllProfilesWithDiagnostics(): Promise<ProfileLoadResult> {
   const files = await glob("*.yaml", { cwd: PROFILES_DIR });
   const profiles: Profile[] = [];
-  const invalidFiles: string[] = [];
+  const invalidFiles: Array<{ file: string; error: string }> = [];
 
   for (const file of files) {
     try {
       const name = path.basename(file, ".yaml");
       const profile = await loadProfile(name);
       profiles.push(profile);
-    } catch (err) {
-      invalidFiles.push(file);
-      console.warn(`Failed to load profile ${file}:`, err);
+    } catch (err: any) {
+      invalidFiles.push({ file, error: err.message });
+      console.warn(`Failed to load profile ${file}:`, err.message);
     }
   }
 
@@ -176,17 +198,29 @@ function matchGlob(
   pattern: string,
   skillTags: Set<string>
 ): boolean {
-  // Simple glob matching: "domain/*" matches all in domain, exact match otherwise
+  // Simple glob matching
   if (pattern === "*") return true;
+
+  // tag:pattern
   if (pattern.startsWith("tag:")) {
     const tag = pattern.slice(4).trim().toLowerCase();
     if (!tag) return false;
+    if (tag === "*") return skillTags.size > 0;
     return skillTags.has(tag);
   }
+
+  // domain/*
   if (pattern.endsWith("/*")) {
     const prefix = pattern.slice(0, -2);
     return skillPath.startsWith(prefix + "/") || skillPath === prefix;
   }
+
+  // */skill-name
+  if (pattern.startsWith("*/")) {
+    const suffix = pattern.slice(2);
+    return skillPath.endsWith("/" + suffix);
+  }
+
   return skillPath === pattern;
 }
 
