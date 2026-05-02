@@ -9,15 +9,10 @@ const SKILLS_DIR = path.join(REPO_ROOT, "skills");
 const PROFILES_DIR = path.join(REPO_ROOT, "profiles");
 const HOME = process.env.HOME || process.env.USERPROFILE || "~";
 const LOCAL_SKILLS_DIR = path.join(HOME, ".agent-toolkit", "local-skills");
-const PROFILE_NAME_RE = /^[^/\\]+$/;
+const PROFILE_NAME_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 function isValidProfileName(name: string): boolean {
-  if (!PROFILE_NAME_RE.test(name)) return false;
-  const trimmed = name.trim();
-  if (trimmed !== name) return false;
-  if (trimmed.length === 0 || trimmed === "." || trimmed === "..") return false;
-
-  return !path.normalize(name).startsWith("..");
+  return PROFILE_NAME_RE.test(name);
 }
 
 export async function loadSkill(
@@ -98,7 +93,7 @@ export async function loadAllLocalSkills(): Promise<Skill[]> {
 
 export async function loadProfile(name: string): Promise<Profile> {
   if (!isValidProfileName(name)) {
-    throw new Error(`Invalid profile name: "${name}". Profile names must not contain slashes or leading/trailing spaces.`);
+    throw new Error(`Invalid profile name: "${name}". Profile names must be kebab-case (e.g., "my-profile").`);
   }
 
   const profilePath = path.join(PROFILES_DIR, `${name}.yaml`);
@@ -117,8 +112,9 @@ export async function loadProfile(name: string): Promise<Profile> {
     throw new Error(`YAML parse error in ${name}.yaml: ${err.message}`);
   }
 
+  let profile: Profile;
   try {
-    return ProfileSchema.parse(data);
+    profile = ProfileSchema.parse(data);
   } catch (err: any) {
     if (err.errors) {
       const details = err.errors
@@ -128,6 +124,14 @@ export async function loadProfile(name: string): Promise<Profile> {
     }
     throw err;
   }
+
+  if (profile.name !== name) {
+    throw new Error(
+      `Profile name mismatch in ${name}.yaml: internal name is "${profile.name}" but filename implies "${name}". These must match.`
+    );
+  }
+
+  return profile;
 }
 
 export interface ProfileLoadResult {
