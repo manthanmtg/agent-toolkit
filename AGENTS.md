@@ -5,7 +5,7 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 ## Tech Stack
 
 - Next.js 15 (App Router, Server Actions, Turbopack)
-- TypeScript (strict), React 19, TailwindCSS 4, Lucide icons, Zod, sonner (toasts)
+- TypeScript (strict), React 19, TailwindCSS 4, Lucide icons, Zod, Vitest, sonner (toasts)
 - Run with: `npm install` then one of: `npm run dev` (http://localhost:3000), `npm run build`, `npm run start`, `npm run lint`, `npm run test`
 
 ## Project Structure
@@ -75,6 +75,10 @@ tools:
 2. Import `BaseAdapter` from `./base` (**not** `./index` — circular dep)
 3. Implement: `translateSkill`, `translateGlobal`, `getGlobalSymlinkTargets`, `getProjectSymlinkTargets`, `getCharacterLimit`
 4. Register in `lib/adapters/index.ts` and add tool ID to `lib/types.ts`
+
+## MCP Server Management
+
+Supports Claude Code, Cursor, Windsurf, and Codex. Manage (add/edit/remove/copy) stdio, SSE, and HTTP servers with health checks and bulk export/import.
 
 ## Key Conventions
 
