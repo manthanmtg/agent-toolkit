@@ -62,7 +62,7 @@ describe("registry", () => {
           domain: "devops",
           tags: ["security", "automation"],
           version: "1.0.0",
-        },
+        } as any,
         content: "secure shell",
         rawContent: "---",
         path: "skills/devops/secure-shell",
@@ -78,7 +78,7 @@ describe("registry", () => {
           domain: "python",
           tags: ["quality"],
           version: "1.0.0",
-        },
+        } as any,
         content: "typing",
         rawContent: "---",
         path: "skills/python/typing-rules",
@@ -94,7 +94,7 @@ describe("registry", () => {
           domain: "python",
           tags: ["legacy", "cleanup"],
           version: "1.0.0",
-        },
+        } as any,
         content: "legacy",
         rawContent: "---",
         path: "skills/python/stale-guide",
@@ -113,7 +113,7 @@ describe("registry", () => {
       tools: {},
     };
 
-    const filtered = registry.filterSkillsByProfile(skills, profile);
+    const filtered = registry.filterSkillsByProfile(skills as any, profile);
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].skillName).toBe("typing-rules");
@@ -128,7 +128,7 @@ describe("registry", () => {
           domain: "docs",
           tags: [],
           version: "1.0.0",
-        },
+        } as any,
         content: "docs readme",
         rawContent: "---",
         path: "skills/docs/readme",
@@ -144,7 +144,7 @@ describe("registry", () => {
           domain: "other",
           tags: [],
           version: "1.0.0",
-        },
+        } as any,
         content: "other readme",
         rawContent: "---",
         path: "skills/other/readme",
@@ -160,7 +160,7 @@ describe("registry", () => {
           domain: "docs",
           tags: [],
           version: "1.0.0",
-        },
+        } as any,
         content: "not readme",
         rawContent: "---",
         path: "skills/docs/not-readme",
@@ -179,7 +179,7 @@ describe("registry", () => {
       tools: {},
     };
 
-    const filtered = registry.filterSkillsByProfile(skills, profile);
+    const filtered = registry.filterSkillsByProfile(skills as any, profile);
 
     expect(filtered).toHaveLength(2);
     expect(filtered.map((s) => s.domain)).toContain("docs");
@@ -195,7 +195,7 @@ describe("registry", () => {
           domain: "devops",
           tags: ["quality"],
           version: "1.0.0",
-        },
+        } as any,
         content: "lint",
         rawContent: "---",
         path: "skills/devops/lint",
@@ -211,7 +211,7 @@ describe("registry", () => {
           domain: "tools",
           tags: ["utility"],
           version: "1.0.0",
-        },
+        } as any,
         content: "cli",
         rawContent: "---",
         path: "skills/tools/cli",
@@ -230,7 +230,7 @@ describe("registry", () => {
       tools: {},
     };
 
-    const filtered = registry.filterSkillsByProfile(skills, allProfile);
+    const filtered = registry.filterSkillsByProfile(skills as any, allProfile);
 
     expect(filtered).toHaveLength(2);
     expect(filtered).toEqual(skills);

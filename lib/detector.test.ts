@@ -30,8 +30,8 @@ describe("detector", () => {
   let repoRoot: string;
   let originalHome: string | undefined;
   let originalUserProfile: string | undefined;
-  let accessMock: ReturnType<typeof vi.spyOn>;
-  let execMock: ReturnType<typeof vi.spyOn>;
+  let accessMock: any;
+  let execMock: any;
 
   async function loadDetector(home: string | undefined, userProfile?: string): Promise<void> {
     if (home === undefined) {

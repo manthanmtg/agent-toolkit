@@ -122,7 +122,7 @@ describe("linker", () => {
         { source: "/s2", destination: "/d2" },
       ];
 
-      const result = await linkGlobal(targets);
+      const result = await linkGlobal(targets as any);
 
       expect(result.created).toHaveLength(2);
       expect(writeToolkitMarker).toHaveBeenCalledTimes(2);
@@ -135,7 +135,7 @@ describe("linker", () => {
       vi.mocked(fs.lstat).mockRejectedValue(new Error("ENOENT"));
 
       const targets = [{ source: "/s1", destination: "/d1" }];
-      const result = await linkGlobal(targets);
+      const result = await linkGlobal(targets as any);
 
       expect(backupFile).toHaveBeenCalledWith("/d1");
       expect(result.backedUp).toContain("/backup/d1");
@@ -151,7 +151,7 @@ describe("linker", () => {
       vi.mocked(fs.lstat).mockRejectedValue(new Error("ENOENT"));
       vi.mocked(fs.readFile).mockResolvedValue("node_modules\n");
 
-      const result = await linkProject(projectPath, targets);
+      const result = await linkProject(projectPath, targets as any);
 
       expect(result.created).toHaveLength(1);
       expect(result.created[0].destination).toBe(path.resolve(projectPath, "skills/link"));
@@ -162,7 +162,7 @@ describe("linker", () => {
       const projectPath = "/projects/my-app";
       const targets = [{ source: "/src/skill", destination: "../../outside/link" }];
 
-      const result = await linkProject(projectPath, targets);
+      const result = await linkProject(projectPath, targets as any);
 
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0]).toContain("Refusing to link outside project");
