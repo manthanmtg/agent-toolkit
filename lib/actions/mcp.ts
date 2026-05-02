@@ -94,8 +94,8 @@ function getNestedObject(data: unknown, key: string): Record<string, unknown> | 
 }
 
 function maskEnvValue(value: string): string {
-  if (value.length <= 8) return "••••••••";
-  return value.slice(0, 4) + "••••" + value.slice(-4);
+  if (value.length <= 4) return "••••";
+  return "••••••••" + value.slice(-4);
 }
 
 const MCP_SERVER_NAME_RE = /^[a-zA-Z0-9_-]+$/;
@@ -561,8 +561,9 @@ export async function healthCheckMcpServerAction(
 
     const start = Date.now();
     try {
-      // Use `which` (macOS/Linux) to check if command is resolvable
-      await execFileAsync("which", [cmd], { timeout: 3000 });
+      // Use `which` (macOS/Linux) to check if command is resolvable.
+      // Use -- to prevent cmd from being interpreted as an option.
+      await execFileAsync("which", ["--", cmd], { timeout: 3000 });
       const latencyMs = Date.now() - start;
       return {
         success: true,
