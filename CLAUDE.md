@@ -16,6 +16,7 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 ```
 app/                  → Next.js pages (App Router)
   page.tsx            → Dashboard
+  components/         → Reusable components (markdown-editor.tsx, etc.)
   skills/             → /skills, /skills/[domain], /skills/[domain]/[name], /skills/new
   my-skills/          → Deployed skills dashboard
   add-skill/          → Deploy selected skills to tools
@@ -48,9 +49,12 @@ skills/               → Source of truth — skill markdown files
     <skill-name>/
       SKILL.md        → Skill definition (YAML frontmatter + markdown body)
 profiles/             → YAML profile definitions
-prompts/              → Autonomous maintenance prompts; `prompts/prompts_metadata.json` is the source-of-truth for safe prompt selection and run metadata.
-issues_to_look/       → Deferred investigation notes; resolved notes live in issues_to_look/resolved/
+prompts/              → Autonomous maintenance prompts; `random_selector.md` chooses a safe prompt for small improvement runs
+prompts/prompts_metadata.json → Source-of-truth metadata for prompt eligibility, run counters, and terminal outcome tracking.
+issues_to_look/       → Deferred investigation notes; use `YYYY-MM-DD_<short-slug>.md` naming; resolved notes live in issues_to_look/resolved/
 dist/                 → Built output (gitignored)
+PRD.md                → Product Requirements Document
+README.md             → Project overview and architecture diagram
 ```
 
 ## How to Add a Skill
