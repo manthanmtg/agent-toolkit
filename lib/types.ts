@@ -82,7 +82,10 @@ export const ToolConfigSchema = z.object({
 });
 
 export const ProfileSchema = z.object({
-  name: z.string().min(1),
+  name: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
   description: z.string().optional().default(""),
   extends: z.string().optional(),
   include: z.array(z.string()).optional().default(["*"]),
