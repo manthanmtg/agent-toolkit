@@ -9,6 +9,7 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 - **UI**: React 19, TailwindCSS 4, Lucide icons, sonner (toasts)
 - **Validation**: Zod
 - **Build tool**: Turbopack (via `npm run dev`)
+- **Testing**: Vitest
 
 ## Project Structure
 
@@ -115,6 +116,18 @@ tools:
 3. Implement all abstract methods: `translateSkill`, `translateGlobal`, `getGlobalSymlinkTargets`, `getProjectSymlinkTargets`, `getCharacterLimit`
 4. Register it in `lib/adapters/index.ts` (import + add to `getAllAdapters()`)
 5. Add the tool ID to `TOOL_IDS` and `TOOL_LABELS` in `lib/types.ts`
+
+## MCP Server Management
+
+The toolkit supports managing Model Context Protocol (MCP) servers for Claude Code, Cursor, Windsurf, and Codex.
+
+- **Storage**: MCP configs are read from/written to tool-specific global paths (e.g., `~/.claude.json`, `mcp.json`).
+- **Functionality**:
+  - Add/Edit/Remove servers (stdio, SSE, HTTP).
+  - Health checks for servers (HEAD/GET for URLs, `which` for commands).
+  - Copy servers between tools.
+  - Bulk export/import of configurations.
+- **Safety**: Uses `atomicWrite` and creates backups before modification.
 
 ## Key Conventions
 
