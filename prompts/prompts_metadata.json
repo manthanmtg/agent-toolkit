@@ -76,12 +76,12 @@
       "category": "documentation",
       "enabled": true,
       "autonomousSafe": true,
-      "totalSelected": 4,
-      "totalCompleted": 4,
+      "totalSelected": 5,
+      "totalCompleted": 5,
       "totalNoop": 0,
       "totalFailed": 0,
-      "lastSelectedAt": "2026-05-01T16:00:00Z",
-      "lastCompletedAt": "2026-05-01T16:10:00Z",
+      "lastSelectedAt": "2026-05-02T16:40:00Z",
+      "lastCompletedAt": "2026-05-02T16:55:00Z",
       "lastOutcome": "completed"
     },
     "performance_tuner.md": {
