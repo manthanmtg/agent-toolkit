@@ -51,7 +51,8 @@ export class CodexAdapter extends BaseAdapter {
     return new Map(); // Codex reads AGENTS.md from any directory — use agents-md adapter for project
   }
 
-  getCharacterLimit(_scope: "global" | "workspace"): number | null {
-    return 32768; // 32 KiB byte limit
+  getCharacterLimit(scope: "global" | "workspace"): number | null {
+    // Codex enforces a 32 KiB byte limit on the global AGENTS.md file.
+    return scope === "global" ? 32768 : null;
   }
 }
