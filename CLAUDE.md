@@ -109,6 +109,11 @@ tools:
     enabled: false   # disable specific tools
 ```
 
+**Naming rules:**
+- Profile name: lowercase alphanumeric with hyphens (`[a-z0-9]+(-[a-z0-9]+)*`)
+- Filename must be `<profile-name>.yaml` (e.g., `profiles/my-profile.yaml`)
+- The internal `name` field must exactly match the filename (excluding extension)
+
 ## How to Add an Adapter
 
 1. Create `lib/adapters/<tool-name>.ts`

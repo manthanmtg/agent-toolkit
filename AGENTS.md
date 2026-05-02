@@ -69,6 +69,10 @@ tools:
     enabled: true
 ```
 
+**Rules:**
+- Profile name: `[a-z0-9]+(-[a-z0-9]+)*`
+- Filename must be `<profile-name>.yaml` and match internal `name`
+
 ## How to Add an Adapter
 
 1. Create `lib/adapters/<tool>.ts`
