@@ -8,7 +8,10 @@ import type { Profile, Skill } from "./types";
 
 interface RegistryModule {
   filterSkillsByProfile: (skills: Skill[], profile: Profile) => Skill[];
-  loadAllProfilesWithDiagnostics: () => Promise<{ profiles: Profile[]; invalidFiles: string[] }>;
+  loadAllProfilesWithDiagnostics: () => Promise<{
+    profiles: Profile[];
+    invalidFiles: Array<{ file: string; error: string }>;
+  }>;
   loadProfile: (name: string) => Promise<Profile>;
   getProfilesDir: () => string;
 }
@@ -116,6 +119,73 @@ describe("registry", () => {
     expect(filtered[0].skillName).toBe("typing-rules");
   });
 
+  it("filters skills by suffix glob pattern (*/name)", () => {
+    const skills: Skill[] = [
+      {
+        frontmatter: {
+          name: "readme",
+          description: "desc",
+          domain: "docs",
+          tags: [],
+          version: "1.0.0",
+        },
+        content: "docs readme",
+        rawContent: "---",
+        path: "skills/docs/readme",
+        domain: "docs",
+        skillName: "readme",
+        supportingFiles: [],
+        source: "toolkit",
+      },
+      {
+        frontmatter: {
+          name: "readme",
+          description: "desc",
+          domain: "other",
+          tags: [],
+          version: "1.0.0",
+        },
+        content: "other readme",
+        rawContent: "---",
+        path: "skills/other/readme",
+        domain: "other",
+        skillName: "readme",
+        supportingFiles: [],
+        source: "toolkit",
+      },
+      {
+        frontmatter: {
+          name: "not-readme",
+          description: "desc",
+          domain: "docs",
+          tags: [],
+          version: "1.0.0",
+        },
+        content: "not readme",
+        rawContent: "---",
+        path: "skills/docs/not-readme",
+        domain: "docs",
+        skillName: "not-readme",
+        supportingFiles: [],
+        source: "toolkit",
+      },
+    ];
+
+    const profile: Profile = {
+      name: "all-readmes",
+      description: "matches readme in any domain",
+      include: ["*/readme"],
+      exclude: [],
+      tools: {},
+    };
+
+    const filtered = registry.filterSkillsByProfile(skills, profile);
+
+    expect(filtered).toHaveLength(2);
+    expect(filtered.map((s) => s.domain)).toContain("docs");
+    expect(filtered.map((s) => s.domain)).toContain("other");
+  });
+
   it("includes all skills when include pattern is wildcard", async () => {
     const skills: Skill[] = [
       {
@@ -212,7 +282,9 @@ describe("registry", () => {
 
     expect(profiles).toHaveLength(1);
     expect(profiles[0]).toMatchObject({ name: "valid", description: "valid profile" });
-    expect(invalidFiles).toContain("invalid.yaml");
+    expect(invalidFiles).toHaveLength(1);
+    expect(invalidFiles[0].file).toBe("invalid.yaml");
+    expect(invalidFiles[0].error).toContain("Validation error");
   });
 
   it("returns the active profiles directory path", () => {
