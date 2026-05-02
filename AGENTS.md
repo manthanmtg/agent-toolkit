@@ -23,6 +23,12 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 - `PRD.md` — Product Requirements Document
 - `README.md` — Project overview and architecture diagram
 
+## Autonomous Maintenance
+
+- **Prompts**: `prompts/` contains instructions for autonomous agents. `random_selector.md` picks a safe task.
+- **Metadata**: `prompts/prompts_metadata.json` tracks prompt usage and outcomes.
+- **Issue Management**: Use `issues_to_look/` for deferred investigations. Use `YYYY-MM-DD_<short-slug>.md` naming.
+
 ## How to Add a Skill
 
 1. Create `skills/<domain>/<skill-name>/SKILL.md`
@@ -92,5 +98,6 @@ Supports Claude Code, Cursor, Windsurf, and Codex. Manage (add/edit/remove/copy)
 - Client Components: `"use client"` — keep as leaf nodes
 - All file writes use `atomicWrite()` from `lib/safety.ts` (temp + rename)
 - Backups go to `~/.agent-toolkit-backup/`
+- Character Limits: Validate output size with `checkCharacterLimit()` (e.g., Windsurf 12K, Codex 32KB)
 - Adapter imports: always `BaseAdapter` from `./base`, never `./index`
 - No bare `fs.writeFile` — use `atomicWrite` for safety

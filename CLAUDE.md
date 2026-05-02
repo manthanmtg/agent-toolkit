@@ -57,6 +57,12 @@ PRD.md                → Product Requirements Document
 README.md             → Project overview and architecture diagram
 ```
 
+## Autonomous Maintenance
+
+- **Prompts**: `prompts/` contains instructions for autonomous agents. `random_selector.md` is the entry point for selecting a safe task.
+- **Metadata**: `prompts/prompts_metadata.json` tracks prompt usage and outcomes. Update it at the start and end of every autonomous run.
+- **Issue Management**: Use `issues_to_look/` for deferred investigations or when a "no-op" is triggered. Use `YYYY-MM-DD_<short-slug>.md` naming. Resolved issues move to `issues_to_look/resolved/`.
+
 ## How to Add a Skill
 
 1. Create a directory: `skills/<domain>/<skill-name>/`
@@ -146,6 +152,7 @@ The toolkit supports managing Model Context Protocol (MCP) servers for Claude Co
 - **No bare fs.writeFile**: Use `atomicWrite` (temp file + rename) for safety
 - **Backups**: Files are backed up to `~/.agent-toolkit-backup/` before modification
 - **Duplicate detection**: Check for existing content before writing with `checkDuplicate()`
+- **Character Limits**: Validate output size with `checkCharacterLimit()` (e.g., Windsurf 12K, Codex 32KB)
 - **Imports in adapters**: Always import `BaseAdapter` from `./base`, never from `./index`
 
 ## Running
