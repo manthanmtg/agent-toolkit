@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo } from "react";
 import Link from "next/link";
 import { Puzzle, Plus } from "lucide-react";
 import type { Skill, SkillSource } from "@/lib/types";
-
-function SourceBadge({ source }: { source: SkillSource }) {
+const SourceBadge = memo(function SourceBadge({ source }: { source: SkillSource }) {
   if (source === "local") {
     return (
       <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium">
@@ -18,7 +17,7 @@ function SourceBadge({ source }: { source: SkillSource }) {
       Toolkit
     </span>
   );
-}
+});
 
 type FilterValue = "all" | "toolkit" | "local";
 
