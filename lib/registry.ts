@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import matter from "gray-matter";
 import { glob } from "glob";
+import { ZodError } from "zod";
 import { SkillFrontmatterSchema, type Skill, type SkillSource, type Profile, ProfileSchema } from "./types";
 
 const REPO_ROOT = path.resolve(process.cwd());
@@ -105,20 +106,21 @@ export async function loadProfile(name: string): Promise<Profile> {
   }
 
   const { parse } = await import("yaml");
-  let data: any;
+  let data: unknown;
   try {
     data = parse(raw);
-  } catch (err: any) {
-    throw new Error(`YAML parse error in ${name}.yaml: ${err.message}`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`YAML parse error in ${name}.yaml: ${message}`);
   }
 
   let profile: Profile;
   try {
     profile = ProfileSchema.parse(data);
-  } catch (err: any) {
-    if (err.errors) {
+  } catch (err) {
+    if (err instanceof ZodError) {
       const details = err.errors
-        .map((e: any) => `${e.path.join(".")}: ${e.message}`)
+        .map((e) => `${e.path.join(".")}: ${e.message}`)
         .join(", ");
       throw new Error(`Validation error in ${name}.yaml: ${details}`);
     }
@@ -153,9 +155,10 @@ export async function loadAllProfilesWithDiagnostics(): Promise<ProfileLoadResul
       const name = path.basename(file, ".yaml");
       const profile = await loadProfile(name);
       profiles.push(profile);
-    } catch (err: any) {
-      invalidFiles.push({ file, error: err.message });
-      console.warn(`Failed to load profile ${file}:`, err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      invalidFiles.push({ file, error: message });
+      console.warn(`Failed to load profile ${file}:`, message);
     }
   }
 
