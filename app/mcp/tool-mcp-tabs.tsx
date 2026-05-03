@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
@@ -44,8 +44,14 @@ interface ToolMcpTabsProps {
 
 export function ToolMcpTabs({ data }: ToolMcpTabsProps) {
   const router = useRouter();
-  const detectedTools = data.tools.filter((t) => t.detected);
-  const allDetectedToolIds = detectedTools.map((t) => t.toolId);
+  const detectedTools = useMemo(
+    () => data.tools.filter((t) => t.detected),
+    [data.tools]
+  );
+  const allDetectedToolIds = useMemo(
+    () => detectedTools.map((t) => t.toolId),
+    [detectedTools]
+  );
   const [activeTab, setActiveTab] = useState<ToolId>(
     detectedTools.find((t) => t.servers.length > 0)?.toolId
       ?? detectedTools[0]?.toolId
@@ -123,7 +129,7 @@ export function ToolMcpTabs({ data }: ToolMcpTabsProps) {
   );
 }
 
-function ToolMcpContent({
+const ToolMcpContent = memo(function ToolMcpContent({
   tool,
   allToolIds,
   onRefresh,
@@ -197,7 +203,7 @@ function ToolMcpContent({
       </div>
     </div>
   );
-}
+});
 
 function McpConfigHint({ toolId }: { toolId: ToolId }) {
   const hints: Partial<Record<ToolId, string>> = {

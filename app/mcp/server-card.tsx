@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useState, useId, useMemo, memo } from "react";
 import {
   Terminal,
   Globe,
@@ -67,7 +67,7 @@ interface ServerCardProps {
   onAction: () => void;
 }
 
-export function ServerCard({
+export const ServerCard = memo(function ServerCard({
   server,
   toolId,
   accentClass,
@@ -96,16 +96,26 @@ export function ServerCard({
   const [editUrl, setEditUrl] = useState(server.url ?? "");
   const [editEnv, setEditEnv] = useState<Array<{ key: string; value: string }>>([]);
 
-  const transport =
-    TRANSPORT_CONFIG[server.transport ?? "unknown"] ?? TRANSPORT_CONFIG.unknown;
-  const envCount = server.env ? Object.keys(server.env).length : 0;
-  const hasDetails = envCount > 0 || (server.args && server.args.length > 0);
-  const commandStr = [server.command, ...(server.args ?? [])]
-    .filter(Boolean)
-    .join(" ");
+  const transport = useMemo(
+    () => TRANSPORT_CONFIG[server.transport ?? "unknown"] ?? TRANSPORT_CONFIG.unknown,
+    [server.transport]
+  );
+  const envCount = useMemo(
+    () => (server.env ? Object.keys(server.env).length : 0),
+    [server.env]
+  );
+  const hasDetails = useMemo(
+    () => envCount > 0 || (server.args && server.args.length > 0),
+    [envCount, server.args]
+  );
+  const commandStr = useMemo(
+    () => [server.command, ...(server.args ?? [])].filter(Boolean).join(" "),
+    [server.command, server.args]
+  );
 
-  const copyTargets = COPYABLE_TOOLS.filter(
-    (id) => id !== toolId && allToolIds.includes(id)
+  const copyTargets = useMemo(
+    () => COPYABLE_TOOLS.filter((id) => id !== toolId && allToolIds.includes(id)),
+    [toolId, allToolIds]
   );
 
   function handleCopyCmd() {
@@ -680,4 +690,4 @@ export function ServerCard({
       </div>
     </div>
   );
-}
+});
