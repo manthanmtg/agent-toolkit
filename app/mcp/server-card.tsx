@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import {
   Terminal,
   Globe,
@@ -74,6 +74,7 @@ export function ServerCard({
   allToolIds,
   onAction,
 }: ServerCardProps) {
+  const formId = useId();
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -339,6 +340,7 @@ export function ServerCard({
           <>
             <button
               onClick={() => setExpanded(!expanded)}
+              aria-expanded={expanded}
               className="flex items-center gap-1.5 mt-4 text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider"
             >
               {expanded ? (
@@ -401,9 +403,9 @@ export function ServerCard({
         {editing && (
           <form onSubmit={handleSaveEdit} className="mt-5 pt-4 border-t border-border/50 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Edit Server Configuration
-              </p>
+              </h4>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
@@ -414,39 +416,53 @@ export function ServerCard({
               </button>
             </div>
 
-            <input
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              placeholder="Server name"
-              required
-              pattern="^[a-zA-Z0-9_-]+$"
-              className="w-full px-3 py-2 rounded-lg border bg-background text-xs font-mono
-                focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
+            <div className="space-y-1">
+              <label htmlFor={`${formId}-name`} className="text-[9px] uppercase font-bold text-muted-foreground ml-1">
+                Server Name
+              </label>
+              <input
+                id={`${formId}-name`}
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Server name"
+                required
+                pattern="^[a-zA-Z0-9_-]+$"
+                className="w-full px-3 py-2 rounded-lg border bg-background text-xs font-mono
+                  focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+            </div>
 
-            <div className="flex gap-2">
-              {(["stdio", "sse", "streamable-http"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setEditTransport(t)}
-                  className={`flex-1 px-2 py-2 rounded-lg border text-[11px] font-bold transition-all
-                    ${editTransport === t
-                      ? "border-primary bg-primary/5 text-primary shadow-sm"
-                      : "border-border bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
-                >
-                  {t === "stdio" ? "stdio" : t === "sse" ? "SSE" : "HTTP"}
-                </button>
-              ))}
+            <div className="space-y-1">
+              <span className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Transport</span>
+              <div className="flex gap-2" role="radiogroup" aria-label="Transport type">
+                {(["stdio", "sse", "streamable-http"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    role="radio"
+                    aria-checked={editTransport === t}
+                    onClick={() => setEditTransport(t)}
+                    className={`flex-1 px-2 py-2 rounded-lg border text-[11px] font-bold transition-all
+                      ${editTransport === t
+                        ? "border-primary bg-primary/5 text-primary shadow-sm"
+                        : "border-border bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                  >
+                    {t === "stdio" ? "stdio" : t === "sse" ? "SSE" : "HTTP"}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {editTransport === "stdio" ? (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <p className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Command</p>
+                  <label htmlFor={`${formId}-command`} className="text-[9px] uppercase font-bold text-muted-foreground ml-1">
+                    Command
+                  </label>
                   <input
+                    id={`${formId}-command`}
                     type="text"
                     value={editCommand}
                     onChange={(e) => setEditCommand(e.target.value)}
@@ -457,8 +473,11 @@ export function ServerCard({
                   />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Args</p>
+                  <label htmlFor={`${formId}-args`} className="text-[9px] uppercase font-bold text-muted-foreground ml-1">
+                    Args
+                  </label>
                   <input
+                    id={`${formId}-args`}
                     type="text"
                     value={editArgs}
                     onChange={(e) => setEditArgs(e.target.value)}
@@ -470,8 +489,11 @@ export function ServerCard({
               </div>
             ) : (
               <div className="space-y-1">
-                <p className="text-[9px] uppercase font-bold text-muted-foreground ml-1">URL</p>
+                <label htmlFor={`${formId}-url`} className="text-[9px] uppercase font-bold text-muted-foreground ml-1">
+                  URL
+                </label>
                 <input
+                  id={`${formId}-url`}
                   type="url"
                   value={editUrl}
                   onChange={(e) => setEditUrl(e.target.value)}
@@ -603,6 +625,8 @@ export function ServerCard({
               <div className="relative">
                 <button
                   onClick={() => setShowCopyMenu(!showCopyMenu)}
+                  aria-expanded={showCopyMenu}
+                  aria-haspopup="true"
                   className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
                     border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
                     transition-all active:scale-95 ${showCopyMenu ? "bg-secondary border-border text-foreground" : ""}`}
