@@ -86,11 +86,12 @@ Open [http://localhost:3000](http://localhost:3000).
 |------|-----------|-------------|--------------|--------|
 | **Claude Code** | Per-skill | `~/.claude/skills/` | `.claude/skills/` | `SKILL.md` |
 | **Cursor** | Per-skill + rules | `~/.cursor/skills/`, `~/.cursor/rules/` | `.cursor/skills/`, `.cursor/rules/` | `SKILL.md` + `.mdc` |
-| **Windsurf** | Per-skill + global rules | `~/.codeium/windsurf/memories/global_rules.md`, `~/.codeium/windsurf/skills/` | `.windsurf/rules/` | `SKILL.md` + `.md` rules |
+| **Windsurf** | Per-skill + global rules | `~/.codeium/windsurf/memories/global_rules.md`, `~/.codeium/windsurf/skills/` | `.windsurf/rules/`, `.windsurf/skills/` | `SKILL.md` + `.md` rules |
 | **OpenCode** | Per-skill + global AGENTS | `~/.config/opencode/AGENTS.md`, `~/.config/opencode/skills/` | `.opencode/skills/` | `SKILL.md` |
 | **Codex** | Bundled | `~/.codex/` | Project root | `AGENTS.md` (merged) |
 
 > **Cross-agent compatibility:** Cursor and Windsurf automatically discover skills in `~/.claude/skills/`. Deploy once to Claude Code, use everywhere.
+
 
 ## Pages
 
@@ -233,6 +234,7 @@ lib/                  Core logic
   actions/            Next.js Server Actions
 skills/               Source of truth — skill Markdown files
 profiles/             Profile YAML definitions
+prompts/              Autonomous maintenance prompts (random_selector.md, prompts_metadata.json)
 dist/                 Built output (gitignored)
 ```
 
