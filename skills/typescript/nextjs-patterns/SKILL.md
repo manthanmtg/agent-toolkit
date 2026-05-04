@@ -1,11 +1,12 @@
 ---
 name: nextjs-patterns
 description: >
-  Use this skill when building or reviewing Next.js 15 App Router work:
-  Server Components, Server Actions, data fetching, caching, and layout composition.
+  Next.js 15 (App Router) workflow for Server Components, Server Actions,
+  data fetching, caching, and layout composition. Use when building or
+  reviewing fullstack React applications with high-performance defaults.
 domain: typescript
-version: 1.0.0
-tags: [typescript, nextjs, react, web]
+version: 1.1.0
+tags: [typescript, nextjs, react, server-actions, server-components, web]
 author: agent-toolkit
 activation:
   claude-code: model
@@ -15,34 +16,102 @@ activation:
   codex: auto
 ---
 
-# Next.js Patterns
+# Next.js 15: App Router Patterns
 
-## Server Components (default)
+Build fast, secure, and maintainable web applications using Next.js 15 and React 19.
 
-- Components are Server Components by default — no "use client" needed
-- Fetch data directly in components using async/await
-- Use `loading.tsx` and `error.tsx` for Suspense boundaries
+## Core Pillars 🏛️
 
-## Client Components
+- **Server Components (RSC)**: Default for performance and security.
+- **Server Actions**: Unified data mutation with type safety.
+- **Client Components**: Interactivity only where needed.
+- **Streaming**: Incremental UI delivery with Suspense.
 
-- Add "use client" only when needed (interactivity, hooks, browser APIs)
-- Keep client components as leaf nodes in the component tree
-- Pass server data as props to client components
+## Component Strategy 🏗️
 
-## Server Actions
+### Server Components (Default)
 
-- Use "use server" for mutations (form submissions, data writes)
-- Always validate input with Zod before processing
-- Return structured results, not thrown errors
+- Use for data fetching, sensitive logic, and large dependencies.
+- Render Server Components directly in `page.tsx` or `layout.tsx`.
+- Keep the bundle size small by moving non-interactive code to the server.
 
-## Data Fetching
+### Client Components
 
-- Use `fetch` with built-in caching: `{ next: { revalidate: 60 } }`
-- For dynamic data: `{ cache: "no-store" }`
-- Parallel fetch with `Promise.all` when requests are independent
+- Use `"use client"` at the top of the file for interactivity (hooks, event listeners).
+- Keep client components as leaf nodes to maximize server-side rendering.
+- Pass serializable data (no functions/classes) from server to client.
 
-## Layouts
+## Data Fetching & Caching 📥
 
-- Use `layout.tsx` for shared UI (sidebar, navigation)
-- Use `template.tsx` when re-mounting is needed on navigation
-- Metadata is defined with `export const metadata` or `generateMetadata`
+- Fetch data directly in async Server Components.
+- Use `fetch` with Next.js extensions for fine-grained caching.
+- Prefer `revalidatePath` or `revalidateTag` for on-demand cache clearing.
+
+```typescript
+// app/blog/page.tsx
+async function BlogPage() {
+  const data = await fetch('https://api.example.com/posts', {
+    next: { tags: ['posts'] }
+  });
+  const posts = await data.json();
+
+  return (
+    <ul>
+      {posts.map(post => <li key={post.id}>{post.title}</li>)}
+    </ul>
+  );
+}
+```
+
+## Server Actions ⚡
+
+- Use `"use server"` at the top of a file or function.
+- Always validate input using Zod or a similar schema validator.
+- Handle errors gracefully and return structured results instead of throwing.
+- Use `useActionState` (React 19) for form state and feedback.
+
+```typescript
+// lib/actions.ts
+"use server";
+import { z } from "zod";
+import { revalidatePath } from "next/cache";
+
+const Schema = z.object({ email: z.string().email() });
+
+export async function subscribe(prevState: any, formData: FormData) {
+  const validated = Schema.safeParse({ email: formData.get("email") });
+  if (!validated.success) return { error: "Invalid email" };
+
+  await db.subscribe(validated.data.email);
+  revalidatePath("/");
+  return { success: true };
+}
+```
+
+## Layouts & Navigation 🗺️
+
+- Use `layout.tsx` for persistent UI (navigation, sidebars) that doesn't re-render.
+- Use `loading.tsx` for automatic Suspense boundaries during data fetching.
+- Use `error.tsx` for granular error handling.
+- Metadata should be exported from `page.tsx` or `layout.tsx`.
+
+## Workflow Checklist ✅
+
+- [ ] Fetch data in Server Components where possible
+- [ ] Minimize "use client" usage
+- [ ] Validate Server Action inputs with Zod
+- [ ] Use `Suspense` and `loading.tsx` for a responsive UI
+- [ ] Set appropriate caching headers (`force-dynamic`, `revalidate`)
+- [ ] Use `revalidatePath` after successful mutations
+
+## Red Flags 🚨
+
+- Overusing `"use client"` when server components would suffice
+- Throwing errors from Server Actions instead of returning them
+- Passing non-serializable data across the server-client boundary
+- Neglecting `loading.tsx` for slow data fetches
+- Hardcoding URLs instead of using environment variables
+
+## Final Standard 🏁
+
+A high-quality Next.js application leverages the server for logic and the client for interactivity, ensuring speed, security, and a great developer experience.
