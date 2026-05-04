@@ -282,18 +282,18 @@ export const ServerCard = memo(function ServerCard({
         {/* Command line */}
         {server.command && (
           <div className="mt-4 flex items-center gap-2 group/cmd">
-            <div className="flex-1 min-w-0 bg-muted/50 dark:bg-muted/30 rounded-lg px-3 py-2.5 font-mono text-[11px] text-muted-foreground truncate border border-transparent group-hover/cmd:border-border/50 transition-colors">
+            <div className="flex-1 min-w-0 bg-muted/40 dark:bg-muted/20 rounded-lg px-3 py-2.5 font-mono text-[11px] text-muted-foreground truncate border border-transparent group-hover/cmd:border-border/50 group-hover/cmd:bg-muted/60 dark:group-hover/cmd:bg-muted/30 transition-all duration-200">
               <span className="text-primary/50 select-none font-bold">$ </span>
               {commandStr}
             </div>
             <button
               onClick={handleCopyCmd}
-              className="shrink-0 p-2 rounded-lg hover:bg-secondary transition-all text-muted-foreground hover:text-foreground border border-transparent hover:border-border shadow-sm active:scale-95"
+              className="shrink-0 p-2 rounded-lg hover:bg-secondary transition-all text-muted-foreground hover:text-foreground border border-transparent hover:border-border shadow-sm active:scale-95 group-hover/cmd:border-border/50"
               title="Copy command"
               aria-label={`Copy command for ${server.name}`}
             >
               {copied ? (
-                <Check className="w-3.5 h-3.5 text-green-500" />
+                <Check className="w-3.5 h-3.5 text-success" />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
@@ -302,15 +302,15 @@ export const ServerCard = memo(function ServerCard({
         )}
 
         {/* Quick info chips */}
-        <div className="flex items-center gap-3 mt-4">
+        <div className="flex items-center gap-4 mt-4">
           {envCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground/80">
-              <Key className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground/70 hover:text-foreground transition-colors cursor-default">
+              <Key className="w-3.5 h-3.5 opacity-70" />
               {envCount} variable{envCount !== 1 ? "s" : ""}
             </span>
           )}
           {server.args && server.args.length > 0 && (
-            <span className="text-[11px] font-medium text-muted-foreground/80">
+            <span className="text-[11px] font-medium text-muted-foreground/70 hover:text-foreground transition-colors cursor-default">
               {server.args.length} arg{server.args.length !== 1 ? "s" : ""}
             </span>
           )}
