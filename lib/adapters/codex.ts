@@ -37,6 +37,7 @@ export class CodexAdapter extends BaseAdapter {
         relativePath: "AGENTS.md",
         content,
         tool: "codex",
+        scope: "global",
       },
     ];
   }

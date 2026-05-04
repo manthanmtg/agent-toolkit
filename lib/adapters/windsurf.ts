@@ -32,6 +32,7 @@ export class WindsurfAdapter extends BaseAdapter {
         relativePath: `rules/${skill.skillName}.md`,
         content: ruleContent,
         tool: "windsurf",
+        scope: "workspace",
       },
     ];
 
@@ -49,6 +50,7 @@ export class WindsurfAdapter extends BaseAdapter {
       relativePath: `skills/${skill.skillName}/SKILL.md`,
       content: skillFrontmatter + skill.content + "\n",
       tool: "windsurf",
+      scope: "workspace",
     });
 
     return outputs;
@@ -76,6 +78,7 @@ export class WindsurfAdapter extends BaseAdapter {
         relativePath: "global_rules.md",
         content: globalContent,
         tool: "windsurf",
+        scope: "global",
       },
     ];
   }

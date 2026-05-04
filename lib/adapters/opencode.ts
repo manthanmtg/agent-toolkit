@@ -47,6 +47,7 @@ export class OpenCodeAdapter extends BaseAdapter {
         relativePath: `skills/${skill.skillName}/SKILL.md`,
         content: content + skill.content + "\n",
         tool: "opencode",
+        scope: "workspace",
       },
     ];
   }
@@ -65,6 +66,7 @@ export class OpenCodeAdapter extends BaseAdapter {
           sections.join("\n\n---\n\n") +
           "\n",
         tool: "opencode",
+        scope: "global",
       },
     ];
   }

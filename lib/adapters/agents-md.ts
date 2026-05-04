@@ -23,6 +23,7 @@ export class AgentsMdAdapter extends BaseAdapter {
           sections.join("\n\n---\n\n") +
           "\n",
         tool: "agents-md",
+        scope: "workspace",
       },
     ];
   }

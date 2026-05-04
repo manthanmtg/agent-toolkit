@@ -2,7 +2,14 @@ import fs from "fs/promises";
 import path from "path";
 import { loadAllSkills, loadProfile, filterSkillsByProfile, getRepoRoot } from "./registry";
 import { getAllAdapters } from "./adapters";
-import { atomicWrite, computeChecksum, loadManifest, saveManifest, addManifestEntry } from "./safety";
+import {
+  atomicWrite,
+  computeChecksum,
+  loadManifest,
+  saveManifest,
+  addManifestEntry,
+  checkCharacterLimit,
+} from "./safety";
 import type { OutputFile, Manifest } from "./types";
 
 const DIST_DIR = path.join(getRepoRoot(), "dist");
@@ -88,6 +95,19 @@ export async function build(profileName: string = "default"): Promise<BuildResul
       continue;
     }
     try {
+      if (output.scope) {
+        const limitCheck = checkCharacterLimit(
+          output.content,
+          output.tool,
+          output.scope
+        );
+        if (!limitCheck.withinLimit) {
+          result.errors.push(
+            `Output ${output.tool}/${output.relativePath} exceeds ${output.scope} limit: ${limitCheck.currentSize} > ${limitCheck.maxSize} characters.`
+          );
+        }
+      }
+
       await atomicWrite(fullPath, output.content);
       addManifestEntry(manifest, {
         sourcePath: output.relativePath,

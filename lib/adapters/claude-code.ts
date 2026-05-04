@@ -36,6 +36,7 @@ export class ClaudeCodeAdapter extends BaseAdapter {
         relativePath: `skills/${skill.skillName}/SKILL.md`,
         content,
         tool: "claude-code",
+        scope: "workspace",
       },
     ];
   }
@@ -53,6 +54,7 @@ export class ClaudeCodeAdapter extends BaseAdapter {
           sections.join("\n\n---\n\n") +
           "\n",
         tool: "claude-code",
+        scope: "global",
       },
     ];
   }
