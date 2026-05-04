@@ -100,6 +100,7 @@ export interface OutputFile {
   relativePath: string; // relative to dist/<tool>/
   content: string;
   tool: ToolId;
+  scope?: "global" | "workspace";
 }
 
 // ── Symlink target ────────────────────────────────────────────────

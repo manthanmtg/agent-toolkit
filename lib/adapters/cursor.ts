@@ -49,11 +49,13 @@ export class CursorAdapter extends BaseAdapter {
         relativePath: `rules/${skill.skillName}.mdc`,
         content: ruleContent,
         tool: "cursor",
+        scope: "workspace",
       },
       {
         relativePath: `skills/${skill.skillName}/SKILL.md`,
         content: skillContent,
         tool: "cursor",
+        scope: "workspace",
       },
     ];
   }

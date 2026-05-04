@@ -5,7 +5,7 @@ import path from "path";
 import { loadAllSkills, loadSkill, loadProfile, getSkillsDir, getLocalSkillsDir } from "../registry";
 import { getAdapter } from "../adapters";
 import { getGlobalPath } from "../detector";
-import { atomicWrite } from "../safety";
+import { atomicWrite, checkCharacterLimit } from "../safety";
 import type { Skill, ToolId } from "../types";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -186,6 +186,19 @@ export async function installSkillAction(
         } else {
           errors.push(`${toolId}: no global path configured`);
           continue;
+        }
+
+        if (output.scope) {
+          const limitCheck = checkCharacterLimit(
+            output.content,
+            output.tool,
+            output.scope
+          );
+          if (!limitCheck.withinLimit) {
+            errors.push(
+              `${toolId}: ${output.relativePath} exceeds ${output.scope} limit (${limitCheck.currentSize} > ${limitCheck.maxSize} chars)`
+            );
+          }
         }
 
         await fs.mkdir(path.dirname(destPath), { recursive: true });
