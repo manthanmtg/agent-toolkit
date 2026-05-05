@@ -9,7 +9,7 @@ autonomousSafe: true
 
 ## Objective
 
-Improve the visual quality of one Agent Toolkit page or component while preserving the established Next.js, Tailwind, and app styling conventions.
+Improve the visual quality of one Agent Toolkit page or component while preserving the established Next.js 15, Tailwind CSS 4, and React 19 styling conventions.
 
 ## Scope
 
@@ -19,10 +19,11 @@ Improve the visual quality of one Agent Toolkit page or component while preservi
 
 ## Aesthetic Checklist
 
-- Use existing CSS variables and Tailwind patterns from `app/globals.css`.
+- Use **Tailwind CSS 4** patterns and the `@theme` variables from `app/globals.css`.
+- Prefer **OKLCH** for any new color definitions to match the existing theme.
 - Improve hierarchy with spacing, borders, background contrast, or typography already used nearby.
 - Preserve dense, operational UI: this app is for managing skills, profiles, and tool configurations.
-- Use lucide icons when adding iconography.
+- Use **Lucide** icons when adding iconography.
 - Ensure hover, focus, disabled, and active states are visible for interactive controls.
 - Keep mobile and desktop layouts free of overflow and overlap.
 - Avoid one-off hardcoded colors unless the surrounding file already uses the same pattern.
