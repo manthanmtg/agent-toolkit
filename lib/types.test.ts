@@ -69,6 +69,24 @@ describe("SkillFrontmatterSchema", () => {
     ).toThrow();
   });
 
+  it("rejects invalid domain identifiers", () => {
+    expect(() =>
+      SkillFrontmatterSchema.parse({
+        name: "good-skill",
+        description: "good",
+        domain: "Bad_Domain",
+      })
+    ).toThrow();
+
+    expect(() =>
+      SkillFrontmatterSchema.parse({
+        name: "good-skill",
+        description: "good",
+        domain: "domain with spaces",
+      })
+    ).toThrow();
+  });
+
   it("rejects an empty description", () => {
     expect(() =>
       SkillFrontmatterSchema.parse({
@@ -166,6 +184,26 @@ describe("ProfileSchema", () => {
         exclude: ["domain/*/skill-*"],
       })
     ).toThrow("Invalid pattern. Supported:");
+  });
+
+  it("rejects empty tag patterns", () => {
+    expect(() =>
+      ProfileSchema.parse({
+        name: "bad-profile",
+        include: ["tag:"],
+      })
+    ).toThrow("Invalid pattern. Supported:");
+  });
+
+  it("rejects invalid tool keys in profile", () => {
+    expect(() =>
+      ProfileSchema.parse({
+        name: "bad-profile",
+        tools: {
+          "not-a-tool": { enabled: true },
+        },
+      })
+    ).toThrow();
   });
 });
 

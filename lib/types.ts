@@ -48,7 +48,10 @@ export const SkillFrontmatterSchema = z.object({
     .min(1)
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
   description: z.string().min(1).max(2000),
-  domain: z.string().min(1),
+  domain: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
   version: z.string().optional().default("1.0.0"),
   tags: z.array(z.string()).optional().default([]),
   author: z.string().optional().default(""),
@@ -84,7 +87,7 @@ export const ToolConfigSchema = z.object({
 export const GlobPatternSchema = z.string().refine((val) => {
   const t = val.trim();
   if (t === "*") return true;
-  if (t.startsWith("tag:")) return true;
+  if (t.startsWith("tag:")) return t.length > 4;
 
   const starCount = (t.match(/\*/g) || []).length;
   if (starCount === 0) return true;
@@ -108,7 +111,7 @@ export const ProfileSchema = z.object({
   extends: z.string().optional(),
   include: z.array(GlobPatternSchema).optional().default(["*"]),
   exclude: z.array(GlobPatternSchema).optional().default([]),
-  tools: z.record(z.string(), ToolConfigSchema).optional().default({}),
+  tools: z.record(z.enum(TOOL_IDS), ToolConfigSchema).optional().default({}),
 });
 
 export type Profile = z.infer<typeof ProfileSchema>;
