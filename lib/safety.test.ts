@@ -10,19 +10,8 @@ import {
   checkCharacterLimit,
   computeChecksum,
   loadManifest,
-  mergeAgentsMd,
   saveManifest,
 } from "./safety";
-
-function markerForToolkitSection(content: string) {
-  const markerStart = "<!-- agent-toolkit:start -->";
-  const markerEnd = "<!-- agent-toolkit:end -->";
-
-  return {
-    hasStart: content.includes(markerStart),
-    hasEnd: content.includes(markerEnd),
-  };
-}
 
 describe("safety utilities", () => {
   const baseTmpDir: string[] = [];
@@ -46,28 +35,6 @@ describe("safety utilities", () => {
     await atomicWrite(filePath, "ready");
 
     await expect(fs.readFile(filePath, "utf-8")).resolves.toBe("ready");
-  });
-
-  it("mergeAgentsMd appends a new toolkit section when none exists", () => {
-    const merged = mergeAgentsMd("# Existing docs", "my toolkit rules");
-
-    expect(merged).toContain("<!-- agent-toolkit:start -->");
-    expect(merged).toContain("my toolkit rules");
-    expect(merged).toContain("<!-- agent-toolkit:end -->");
-  });
-
-  it("mergeAgentsMd replaces an existing toolkit section", () => {
-    const before =
-      "# Header\n" +
-      "<!-- agent-toolkit:start -->\nOld content\n<!-- agent-toolkit:end -->\n\nBody";
-
-    const merged = mergeAgentsMd(before, "new toolkit content");
-    const markers = markerForToolkitSection(merged);
-
-    expect(markers.hasStart).toBe(true);
-    expect(markers.hasEnd).toBe(true);
-    expect(merged).toContain("new toolkit content");
-    expect(merged).not.toContain("Old content");
   });
 
   it("computeChecksum is deterministic and format stable", () => {

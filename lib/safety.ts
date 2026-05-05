@@ -35,36 +35,6 @@ export async function backupFile(filePath: string): Promise<string | null> {
   return backupPath;
 }
 
-// ── JSON merge ────────────────────────────────────────────────────
-export async function mergeJsonFile(
-  filePath: string,
-  toolkitKey: string,
-  toolkitData: Record<string, unknown>
-): Promise<{ merged: Record<string, unknown>; backedUp: boolean }> {
-  let existing: Record<string, unknown> = {};
-  let backedUp = false;
-
-  try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    existing = JSON.parse(raw);
-    await backupFile(filePath);
-    backedUp = true;
-  } catch {
-    // File doesn't exist or isn't valid JSON — start fresh
-  }
-
-  const merged = {
-    ...existing,
-    [toolkitKey]: {
-      ...((existing[toolkitKey] as Record<string, unknown>) || {}),
-      ...toolkitData,
-    },
-  };
-
-  await atomicWrite(filePath, JSON.stringify(merged, null, 2) + "\n");
-  return { merged, backedUp };
-}
-
 // ── Duplicate detection ───────────────────────────────────────────
 const TOOLKIT_MARKER = ".agent-toolkit";
 
@@ -96,33 +66,6 @@ export async function writeToolkitMarker(dirPath: string): Promise<void> {
     markerPath,
     JSON.stringify({ managedBy: "agent-toolkit", createdAt: new Date().toISOString() })
   );
-}
-
-// ── AGENTS.md merge ───────────────────────────────────────────────
-const MARKER_START = "<!-- agent-toolkit:start -->";
-const MARKER_END = "<!-- agent-toolkit:end -->";
-
-export function mergeAgentsMd(
-  existingContent: string,
-  toolkitContent: string
-): string {
-  const newSection = `${MARKER_START}\n${toolkitContent}\n${MARKER_END}`;
-
-  const startIdx = existingContent.indexOf(MARKER_START);
-  const endIdx = existingContent.indexOf(MARKER_END);
-
-  if (startIdx !== -1 && endIdx !== -1) {
-    // Replace existing toolkit section
-    return (
-      existingContent.slice(0, startIdx) +
-      newSection +
-      existingContent.slice(endIdx + MARKER_END.length)
-    );
-  }
-
-  // Append new section
-  const separator = existingContent.trim() ? "\n\n" : "";
-  return existingContent.trimEnd() + separator + newSection + "\n";
 }
 
 // ── Checksum ──────────────────────────────────────────────────────

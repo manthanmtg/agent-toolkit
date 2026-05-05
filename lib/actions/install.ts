@@ -13,13 +13,6 @@ function formatError(err: unknown): string {
   return typeof err === "string" ? err : "Unknown error";
 }
 
-export interface InstallStep {
-  id: string;
-  label: string;
-  status: "pending" | "running" | "done" | "error";
-  message?: string;
-}
-
 export interface InstallResult {
   tools: DetectedTool[];
   buildResult: {

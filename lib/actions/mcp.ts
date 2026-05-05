@@ -2,7 +2,6 @@
 
 import fs from "fs/promises";
 import path from "path";
-import { z } from "zod";
 import { detectTools, getGlobalPath } from "@/lib/detector";
 import { TOOL_LABELS, type ToolId, RawMcpServerConfigSchema, type McpServerConfig } from "@/lib/types";
 import { atomicWrite, backupFile } from "@/lib/safety";
