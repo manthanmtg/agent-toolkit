@@ -40,9 +40,10 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Link
           href="/skills"
-          className="border rounded-xl p-5 hover:bg-accent transition-colors"
+          className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200 hover:border-blue-500/30 hover:shadow-sm"
         >
-          <div className="flex items-center gap-3">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/8 to-transparent" />
+          <div className="relative flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/10">
               <Puzzle className="w-5 h-5 text-blue-500" />
             </div>
@@ -55,9 +56,10 @@ export default async function DashboardPage() {
 
         <Link
           href="/profiles"
-          className="border rounded-xl p-5 hover:bg-accent transition-colors"
+          className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200 hover:border-purple-500/30 hover:shadow-sm"
         >
-          <div className="flex items-center gap-3">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/8 to-transparent" />
+          <div className="relative flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-500/10">
               <Layers className="w-5 h-5 text-purple-500" />
             </div>
@@ -68,8 +70,9 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        <div className="border rounded-xl p-5">
-          <div className="flex items-center gap-3">
+        <div className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200 hover:border-green-500/30 hover:shadow-sm">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/8 to-transparent" />
+          <div className="relative flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-500/10">
               <CheckCircle2 className="w-5 h-5 text-green-500" />
             </div>
@@ -82,9 +85,24 @@ export default async function DashboardPage() {
 
         <Link
           href="/doctor"
-          className="border rounded-xl p-5 hover:bg-accent transition-colors"
+          className={`relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200 hover:shadow-sm ${
+            failCount > 0
+              ? "hover:border-red-500/30"
+              : warnCount > 0
+              ? "hover:border-yellow-500/30"
+              : "hover:border-green-500/30"
+          }`}
         >
-          <div className="flex items-center gap-3">
+          <div
+            className={`absolute inset-0 bg-gradient-to-br to-transparent ${
+              failCount > 0
+                ? "from-red-500/8"
+                : warnCount > 0
+                ? "from-yellow-500/8"
+                : "from-green-500/8"
+            }`}
+          />
+          <div className="relative flex items-center gap-3">
             <div
               className={`p-2 rounded-lg ${
                 failCount > 0
