@@ -32,6 +32,7 @@ Agent Toolkit solves this. You write a skill **once** as a Markdown file, and th
 - **Install Wizard** — Guided flow to detect tools, pick a profile, build & link
 - **Safety First** — Atomic writes, backups to `~/.agent-toolkit-backup/`, duplicate detection
 - **Health Diagnostics** — Doctor page checks tool detection, file integrity, and config issues
+- **MCP Management** — Unified interface to manage stdio, SSE, and HTTP MCP servers across all tools
 - **Autonomous maintenance prompts** — `prompts/random_selector.md` picks safe one-shot improvement prompts for small documentation and workflow updates
 
 ## Quick Start
@@ -104,7 +105,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `/my-skills` | Deployed skills per tool — drift detection, update, add, cross-agent view |
 | `/add-skill` | Deploy selected skills to chosen tools |
 | `/install` | Guided wizard — detect tools, pick profile, build & link |
-| `/mcp` | Configure MCP server manifests, sync, and export skill/tool mappings |
+| `/mcp` | Manage MCP servers (stdio, SSE, HTTP) across AI tools with health checks and bulk export/import |
 | `/doctor` | Health diagnostics and tool detection |
 | `/profiles` | Create and manage skill profiles |
 | `/projects` | Link skills to specific project directories |
