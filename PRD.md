@@ -59,11 +59,11 @@ This is the ground truth for how each tool consumes instructions. The toolkit mu
 
 | Scope | Path | Format |
 |-------|------|--------|
-| Global skills | `~/.claude/skills/<skill-name>/SKILL.md` | Markdown + YAML frontmatter (`name`, `description`, `disable-model-invocation`, `allowed-tools`, `context`, `user-invocable`) |
+| Global skills | `~/.claude/skills/<skill-name>/SKILL.md` | Markdown + YAML frontmatter (`name`, `description`, `disable-model-invocation`, `globs`) |
 | Project skills | `.claude/skills/<skill-name>/SKILL.md` | Same as above |
 | Global instructions | `~/.claude/CLAUDE.md` | Plain markdown |
 | Project instructions | `CLAUDE.md` in repo root | Plain markdown |
-| MCP config | `~/.claude/mcp.json` or `.claude/mcp.json` | JSON |
+| MCP config | `~/.claude.json` | JSON |
 
 **Key details**:
 - Each skill is a **directory** containing `SKILL.md` (required) plus optional supporting files (`template.md`, `examples/`, `scripts/`).
@@ -109,7 +109,7 @@ This is the ground truth for how each tool consumes instructions. The toolkit mu
 |-------|------|--------|
 | Global rules | `~/.config/opencode/AGENTS.md` | Plain markdown |
 | Project rules | `AGENTS.md` in repo root | Plain markdown (fallback: `CLAUDE.md`) |
-| Global skills | `~/.config/opencode/skills/<name>/SKILL.md` | Markdown + YAML frontmatter (`name`, `description`, `license`, `compatibility`, `metadata`) |
+| Global skills | `~/.config/opencode/skills/<name>/SKILL.md` | Markdown + YAML frontmatter (`name`, `description`, `globs`) |
 | Project skills | `.opencode/skills/<name>/SKILL.md` | Same as above |
 | Claude-compat skills | `~/.claude/skills/<name>/SKILL.md` or `.claude/skills/<name>/SKILL.md` | Claude Code SKILL.md format (auto-detected) |
 | Agent-compat skills | `~/.agents/skills/<name>/SKILL.md` or `.agents/skills/<name>/SKILL.md` | Same SKILL.md format |
