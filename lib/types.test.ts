@@ -151,6 +151,22 @@ describe("ProfileSchema", () => {
       })
     ).toThrow();
   });
+
+  it("rejects unsupported glob patterns in include/exclude", () => {
+    expect(() =>
+      ProfileSchema.parse({
+        name: "bad-profile",
+        include: ["**/*"],
+      })
+    ).toThrow("Invalid pattern. Supported:");
+
+    expect(() =>
+      ProfileSchema.parse({
+        name: "bad-profile",
+        exclude: ["domain/*/skill-*"],
+      })
+    ).toThrow("Invalid pattern. Supported:");
+  });
 });
 
 describe("tool constants", () => {

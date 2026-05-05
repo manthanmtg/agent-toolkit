@@ -81,6 +81,24 @@ export const ToolConfigSchema = z.object({
   max_bytes: z.number().optional(),
 });
 
+export const GlobPatternSchema = z.string().refine((val) => {
+  const t = val.trim();
+  if (t === "*") return true;
+  if (t.startsWith("tag:")) return true;
+
+  const starCount = (t.match(/\*/g) || []).length;
+  if (starCount === 0) return true;
+
+  if (starCount === 1) {
+    if (t.endsWith("/*") && t.length > 2) return true;
+    if (t.startsWith("*/") && t.length > 2) return true;
+  }
+
+  return false;
+}, {
+  message: "Invalid pattern. Supported: '*', 'tag:name', 'domain/*', '*/skill', or exact 'domain/skill'."
+});
+
 export const ProfileSchema = z.object({
   name: z
     .string()
@@ -88,8 +106,8 @@ export const ProfileSchema = z.object({
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
   description: z.string().optional().default(""),
   extends: z.string().optional(),
-  include: z.array(z.string()).optional().default(["*"]),
-  exclude: z.array(z.string()).optional().default([]),
+  include: z.array(GlobPatternSchema).optional().default(["*"]),
+  exclude: z.array(GlobPatternSchema).optional().default([]),
   tools: z.record(z.string(), ToolConfigSchema).optional().default({}),
 });
 
