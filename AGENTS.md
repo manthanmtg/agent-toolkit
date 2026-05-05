@@ -49,6 +49,8 @@ activation:
   windsurf: model_decision
   opencode: model
   codex: auto
+globs: "src/**/*.ts"
+depends_on: [other-skill]
 ---
 
 # Skill content here (markdown)
@@ -66,9 +68,12 @@ Create `profiles/<name>.yaml`:
 ```yaml
 name: my-profile
 description: What this profile is for
+extends: base-profile
 include:
+  - "*"
   - "python/*"
-  - "devops/*"
+  - "*/lint"
+  - "tag:security"
 exclude: []
 tools:
   claude-code:
@@ -85,7 +90,7 @@ tools:
 
 1. Create `lib/adapters/<tool>.ts`
 2. Import `BaseAdapter` from `./base` (**not** `./index` — circular dep)
-3. Implement: `translateSkill`, `translateGlobal`, `getGlobalSymlinkTargets`, `getProjectSymlinkTargets`, `getCharacterLimit`
+3. Implement: `translateSkill`, `translateGlobal`, `getGlobalSymlinkTargets`, `getProjectSymlinkTargets`, `getCharacterLimit(scope)`
 4. Register in `lib/adapters/index.ts` and add tool ID to `lib/types.ts`
 
 ## MCP Server Management
@@ -98,6 +103,6 @@ Supports Claude Code, Cursor, Windsurf, and Codex. Manage (add/edit/remove/copy)
 - Client Components: `"use client"` — keep as leaf nodes
 - All file writes use `atomicWrite()` from `lib/safety.ts` (temp + rename)
 - Backups go to `~/.agent-toolkit-backup/`
-- Character Limits: Validate output size with `checkCharacterLimit()` (e.g., Windsurf 12K, Codex 32KB)
+- Character Limits: Validate size with `checkCharacterLimit()`. Windsurf: 6K (global) / 12K (workspace); Codex: 32 KiB (global).
 - Adapter imports: always `BaseAdapter` from `./base`, never `./index`
 - No bare `fs.writeFile` — use `atomicWrite` for safety
