@@ -116,6 +116,23 @@ function isSafeServerName(name: string): boolean {
   return MCP_SERVER_NAME_RE.test(name) && !FORBIDDEN_SERVER_KEYS.has(name);
 }
 
+function isSafeEnvKey(key: string): boolean {
+  return !FORBIDDEN_SERVER_KEYS.has(key);
+}
+
+function getSafeEnv(env: Record<string, string> | undefined): Record<string, string> | undefined {
+  if (!env) return undefined;
+  const safeEnv: Record<string, string> = {};
+  let hasEntries = false;
+  for (const [k, v] of Object.entries(env)) {
+    if (isSafeEnvKey(k)) {
+      safeEnv[k] = String(v);
+      hasEntries = true;
+    }
+  }
+  return hasEntries ? safeEnv : undefined;
+}
+
 function getServerNameError(name: string): string | null {
   if (!name) return "Server name is required.";
   if (!isSafeServerName(name)) {
@@ -157,8 +174,11 @@ function parseServerConfig(name: string, raw: unknown): McpServerConfig {
   if (obj.env) {
     env = {};
     for (const [k, v] of Object.entries(obj.env)) {
-      env[k] = maskEnvValue(v);
+      if (isSafeEnvKey(k)) {
+        env[k] = maskEnvValue(v);
+      }
     }
+    if (Object.keys(env).length === 0) env = undefined;
   }
 
   return { name, command, args, url, env, transport };
@@ -266,8 +286,10 @@ export async function addMcpServerAction(
     if (urlError) return { success: false, error: `Invalid MCP URL: ${urlError}` };
     serverDef.url = input.url;
   }
-  if (input.env && Object.keys(input.env).length > 0) {
-    serverDef.env = input.env;
+  
+  const safeEnv = getSafeEnv(input.env);
+  if (safeEnv) {
+    serverDef.env = safeEnv;
   }
 
   servers[input.name] = serverDef;
@@ -355,8 +377,10 @@ export async function editMcpServerAction(
     if (urlError) return { success: false, error: `Invalid MCP URL: ${urlError}` };
     serverDef.url = input.url;
   }
-  if (input.env && Object.keys(input.env).length > 0) {
-    serverDef.env = input.env;
+  
+  const safeEnv = getSafeEnv(input.env);
+  if (safeEnv) {
+    serverDef.env = safeEnv;
   }
 
   // If renamed, remove old key
@@ -946,10 +970,23 @@ export async function importAllMcpServersAction(
           });
           continue;
         }
+        const urlError = getUrlValidationError(sel.url);
+        if (urlError) {
+          applied.push({
+            name: sel.name,
+            target_tool_id: toolId,
+            target_tool_label: toolLabel,
+            status: "failed",
+            error: `Invalid MCP URL: ${urlError}`,
+          });
+          continue;
+        }
         serverDef.url = sel.url;
       }
-      if (sel.env && Object.keys(sel.env).length > 0) {
-        serverDef.env = sel.env;
+      
+      const safeEnv = getSafeEnv(sel.env);
+      if (safeEnv) {
+        serverDef.env = safeEnv;
       }
 
       servers[sel.name] = serverDef;
