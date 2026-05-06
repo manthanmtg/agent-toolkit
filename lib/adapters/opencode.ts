@@ -85,7 +85,8 @@ export class OpenCodeAdapter extends BaseAdapter {
   }
 
   getCharacterLimit(scope: "global" | "workspace"): number | null {
-    // Description limit is 1024 chars per skill
-    return scope === "workspace" ? 1024 : null;
+    // Description limit is 1024 chars per skill, handled in translateSkill.
+    // There is no documented limit for the global AGENTS.md file in OpenCode.
+    return null;
   }
 }

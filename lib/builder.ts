@@ -1,14 +1,13 @@
 import fs from "fs/promises";
 import path from "path";
 import { loadAllSkills, loadProfile, filterSkillsByProfile, getRepoRoot } from "./registry";
-import { getAllAdapters } from "./adapters";
+import { getAllAdapters, checkCharacterLimit } from "./adapters";
 import {
   atomicWrite,
   computeChecksum,
   loadManifest,
   saveManifest,
   addManifestEntry,
-  checkCharacterLimit,
 } from "./safety";
 import type { OutputFile, Manifest } from "./types";
 
