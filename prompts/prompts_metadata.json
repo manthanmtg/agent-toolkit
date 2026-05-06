@@ -106,12 +106,12 @@
       "category": "feature-quality",
       "enabled": true,
       "autonomousSafe": true,
-      "totalSelected": 4,
-      "totalCompleted": 4,
+      "totalSelected": 5,
+      "totalCompleted": 5,
       "totalNoop": 0,
       "totalFailed": 0,
-      "lastSelectedAt": "2026-05-05T04:01:51.932Z",
-      "lastCompletedAt": "2026-05-05T04:09:00.222Z",
+      "lastSelectedAt": "2026-05-06T09:00:00.000Z",
+      "lastCompletedAt": "2026-05-06T09:10:00.000Z",
       "lastOutcome": "completed"
     },
     "project_guidelines_sync.md": {
