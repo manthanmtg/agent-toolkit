@@ -186,6 +186,31 @@ describe("registry", () => {
     expect(filtered.map((s) => s.domain)).toContain("other");
   });
 
+  it("matches patterns case-insensitively", () => {
+    const skills: Skill[] = [
+      {
+        frontmatter: {
+          name: "Security-Check",
+          domain: "Security",
+          tags: ["Security", "Audit"],
+          version: "1.0.0",
+        } as any,
+        skillName: "Security-Check",
+        domain: "Security",
+      } as any,
+    ];
+
+    const profile: Profile = {
+      name: "case-test",
+      include: ["SECURITY/*", "TAG:AUDIT"],
+      exclude: [],
+      tools: {},
+    };
+
+    const filtered = registry.filterSkillsByProfile(skills as any, profile);
+    expect(filtered).toHaveLength(1);
+  });
+
   it("includes all skills when include pattern is wildcard", async () => {
     const skills: Skill[] = [
       {

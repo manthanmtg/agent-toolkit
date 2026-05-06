@@ -173,7 +173,7 @@ export function filterSkillsByProfile(
   const excludePatterns = normalizePatterns(profile.exclude);
 
   return skills.filter((skill) => {
-    const skillPath = `${skill.domain}/${skill.skillName}`;
+    const skillPath = `${skill.domain}/${skill.skillName}`.toLowerCase();
     const skillTags = new Set(
       skill.frontmatter.tags.map((tag) => tag.toLowerCase())
     );
@@ -197,7 +197,13 @@ export function filterSkillsByProfile(
 }
 
 function normalizePatterns(patterns: string[]): string[] {
-  return [...new Set(patterns.map((pattern) => pattern.trim()).filter(Boolean))];
+  return [
+    ...new Set(
+      patterns
+        .map((pattern) => pattern.trim().toLowerCase())
+        .filter(Boolean)
+    ),
+  ];
 }
 
 function matchGlob(
@@ -205,12 +211,12 @@ function matchGlob(
   pattern: string,
   skillTags: Set<string>
 ): boolean {
-  // Simple glob matching
+  // All inputs are assumed to be lowercase
   if (pattern === "*") return true;
 
   // tag:pattern
   if (pattern.startsWith("tag:")) {
-    const tag = pattern.slice(4).trim().toLowerCase();
+    const tag = pattern.slice(4).trim();
     if (!tag) return false;
     if (tag === "*") return skillTags.size > 0;
     return skillTags.has(tag);
