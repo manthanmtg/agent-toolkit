@@ -3,9 +3,9 @@
 import fs from "fs/promises";
 import path from "path";
 import { loadAllSkills, loadSkill, loadProfile, getSkillsDir, getLocalSkillsDir } from "../registry";
-import { getAdapter } from "../adapters";
+import { getAdapter, checkCharacterLimit } from "../adapters";
 import { getGlobalPath } from "../detector";
-import { atomicWrite, checkCharacterLimit } from "../safety";
+import { atomicWrite } from "../safety";
 import type { Skill, ToolId } from "../types";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

@@ -27,6 +27,7 @@ vi.mock("./registry", () => ({
 
 vi.mock("./adapters", () => ({
   getAllAdapters,
+  checkCharacterLimit,
 }));
 
 vi.mock("./safety", () => ({
@@ -35,7 +36,6 @@ vi.mock("./safety", () => ({
   loadManifest,
   saveManifest,
   addManifestEntry,
-  checkCharacterLimit,
 }));
 
 describe("builder", () => {

@@ -32,3 +32,27 @@ export function getAdapter(toolId: ToolId): BaseAdapter {
   if (!adapter) throw new Error(`No adapter found for tool: ${toolId}`);
   return adapter;
 }
+
+export interface LimitCheckResult {
+  withinLimit: boolean;
+  currentSize: number;
+  maxSize: number;
+  tool: ToolId;
+}
+
+export function checkCharacterLimit(
+  content: string,
+  toolId: ToolId,
+  scope: "global" | "workspace"
+): LimitCheckResult {
+  const adapter = getAdapter(toolId);
+  const maxSize = adapter.getCharacterLimit(scope);
+  const currentSize = content.length;
+
+  return {
+    withinLimit: maxSize === null || currentSize <= maxSize,
+    currentSize,
+    maxSize: maxSize ?? Infinity,
+    tool: toolId,
+  };
+}

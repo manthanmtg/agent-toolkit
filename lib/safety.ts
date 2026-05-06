@@ -107,35 +107,5 @@ export function addManifestEntry(
   });
 }
 
-// ── Character limit check ─────────────────────────────────────────
-export interface LimitCheckResult {
-  withinLimit: boolean;
-  currentSize: number;
-  maxSize: number;
-  tool: string;
-}
+// ── Character limit check moved to lib/adapters/index.ts ──
 
-export function checkCharacterLimit(
-  content: string,
-  tool: ToolId,
-  scope: "global" | "workspace"
-): LimitCheckResult {
-  const limits: Record<string, Record<string, number>> = {
-    windsurf: { global: 6000, workspace: 12000 },
-    opencode: { global: Infinity, workspace: 1024 }, // description limit
-    codex: { global: 32768, workspace: 32768 },
-  };
-
-  const toolLimits = limits[tool];
-  if (!toolLimits) {
-    return { withinLimit: true, currentSize: content.length, maxSize: Infinity, tool };
-  }
-
-  const maxSize = toolLimits[scope] ?? Infinity;
-  return {
-    withinLimit: content.length <= maxSize,
-    currentSize: content.length,
-    maxSize,
-    tool,
-  };
-}

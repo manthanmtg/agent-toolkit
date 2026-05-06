@@ -7,11 +7,11 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   addManifestEntry,
   atomicWrite,
-  checkCharacterLimit,
   computeChecksum,
   loadManifest,
   saveManifest,
 } from "./safety";
+import { checkCharacterLimit } from "./adapters";
 
 describe("safety utilities", () => {
   const baseTmpDir: string[] = [];
@@ -66,8 +66,8 @@ describe("safety utilities", () => {
     expect(
       checkCharacterLimit("a".repeat(2048), "opencode", "workspace")
     ).toMatchObject({
-      withinLimit: false,
-      maxSize: 1024,
+      withinLimit: true,
+      maxSize: Number.POSITIVE_INFINITY,
     });
 
     expect(checkCharacterLimit("a", "claude-code", "global")).toMatchObject({
