@@ -119,11 +119,18 @@ exclude:
 tools:
   claude-code:
     enabled: true
+    global_skills: true      # optional: output skills as global instead of project-level
   cursor:
     enabled: true
+    max_rule_length: 5000    # optional: limit length of generated rules
   windsurf:
-    enabled: false   # disable specific tools
+    enabled: false           # disable specific tools
 ```
+
+**Validation & Schema:**
+- Profile and Tool configs are strictly enforced via Zod (no extra fields allowed).
+- Patterns are case-insensitive.
+- Pattern types: `*`, `tag:name`, `domain/*`, `*/skill`, or exact `domain/skill`.
 
 **Naming rules:**
 - Profile name: lowercase alphanumeric with hyphens (`[a-z0-9]+(-[a-z0-9]+)*`)
