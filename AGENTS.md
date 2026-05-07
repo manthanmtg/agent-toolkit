@@ -78,11 +78,15 @@ exclude: []
 tools:
   claude-code:
     enabled: true
+    global_skills: true
   cursor:
     enabled: true
+    max_rule_length: 5000
 ```
 
 **Rules:**
+- Profile and Tool configs are strictly enforced (no extra fields).
+- Patterns are case-insensitive: `*`, `tag:name`, `domain/*`, `*/skill`, or exact `domain/skill`.
 - Profile name: `[a-z0-9]+(-[a-z0-9]+)*`
 - Filename must be `<profile-name>.yaml` and match internal `name`
 
