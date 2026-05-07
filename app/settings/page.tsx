@@ -1,3 +1,5 @@
+import { Info, ShieldCheck, Wrench, CheckCircle2 } from "lucide-react";
+
 export default function SettingsPage() {
   return (
     <div className="space-y-8">
@@ -8,67 +10,75 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="space-y-6">
-        <div className="border rounded-xl p-5">
-          <h2 className="font-semibold mb-3">Toolkit Info</h2>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
+      <div className="space-y-6 max-w-3xl">
+        <div className="border rounded-xl p-6 bg-card">
+          <div className="flex items-center gap-2 mb-4">
+            <Info className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold text-lg">Toolkit Info</h2>
+          </div>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between items-center py-2 border-b last:border-0 border-border/50">
               <span className="text-muted-foreground">Version</span>
-              <span className="font-mono">0.1.0</span>
+              <span className="font-mono bg-muted px-2 py-0.5 rounded text-xs">0.1.0</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center py-2 border-b last:border-0 border-border/50">
               <span className="text-muted-foreground">Runtime</span>
-              <span className="font-mono">Next.js 15 + React 19</span>
+              <span className="font-mono bg-muted px-2 py-0.5 rounded text-xs">Next.js 15 + React 19</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center py-2 border-b last:border-0 border-border/50">
               <span className="text-muted-foreground">Adapter Pattern</span>
-              <span className="font-mono">
+              <span className="font-mono text-xs text-right max-w-[200px]">
                 5 tools + AGENTS.md (extensible)
               </span>
             </div>
           </div>
         </div>
 
-        <div className="border rounded-xl p-5">
-          <h2 className="font-semibold mb-3">Safety Features</h2>
-          <ul className="text-sm text-muted-foreground space-y-1.5">
-            <li>Atomic writes (temp file + rename)</li>
-            <li>Backup before modify (~/.agent-toolkit-backup/)</li>
-            <li>JSON merge safety with key-level preservation</li>
-            <li>Duplicate detection with toolkit ownership markers</li>
-            <li>AGENTS.md section markers for safe merge</li>
-            <li>Character limit enforcement per tool</li>
-            <li>Manifest tracking for all deployed files</li>
-          </ul>
+        <div className="border rounded-xl p-6 bg-card">
+          <div className="flex items-center gap-2 mb-4">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold text-lg">Safety Features</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+            {[
+              "Atomic writes (temp file + rename)",
+              "Backup before modify (~/.agent-toolkit-backup/)",
+              "JSON merge safety (key-level preservation)",
+              "Duplicate detection with ownership markers",
+              "AGENTS.md section markers for safe merge",
+              "Character limit enforcement per tool",
+              "Manifest tracking for all deployed files",
+            ].map((feature) => (
+              <div key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-success shrink-0" />
+                <span>{feature}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="border rounded-xl p-5">
-          <h2 className="font-semibold mb-3">Supported Tools</h2>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              Claude Code
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              Cursor
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              Windsurf
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              OpenCode
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              Codex
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-blue-500" />
-              AGENTS.md (cross-tool)
-            </div>
+        <div className="border rounded-xl p-6 bg-card">
+          <div className="flex items-center gap-2 mb-4">
+            <Wrench className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold text-lg">Supported Tools</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { name: "Claude Code", status: "stable" },
+              { name: "Cursor", status: "stable" },
+              { name: "Windsurf", status: "stable" },
+              { name: "OpenCode", status: "stable" },
+              { name: "Codex", status: "stable" },
+              { name: "AGENTS.md", status: "cross-tool" },
+            ].map((tool) => (
+              <div
+                key={tool.name}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-muted/50 text-sm font-medium"
+              >
+                <div className={`w-2 h-2 rounded-full ${tool.status === "stable" ? "bg-success" : "bg-blue-500"}`} />
+                {tool.name}
+              </div>
+            ))}
           </div>
         </div>
       </div>
