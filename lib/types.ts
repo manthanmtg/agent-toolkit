@@ -169,6 +169,23 @@ export interface Manifest {
 }
 
 // ── MCP schema ────────────────────────────────────────────────────
+export const AddMcpServerInputSchema = z.object({
+  name: z.string().min(1, "Server name is required"),
+  transport: z.enum(["stdio", "sse", "streamable-http"]),
+  command: z.string().optional(),
+  args: z.array(z.string()).optional(),
+  url: z.string().url("Invalid URL").optional(),
+  env: z.record(z.string()).optional(),
+}).refine(data => {
+  if (data.transport === "stdio") {
+    return !!data.command;
+  }
+  return !!data.url;
+}, {
+  message: "Command is required for stdio, URL is required for remote transport",
+  path: ["command", "url"],
+});
+
 export const RawMcpServerConfigSchema = z.object({
   command: z.string().optional(),
   args: z.array(z.union([z.string(), z.number(), z.boolean()]).transform(String)).optional(),
