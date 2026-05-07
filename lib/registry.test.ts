@@ -312,6 +312,39 @@ describe("registry", () => {
     expect(invalidFiles[0].error).toContain("Validation error");
   });
 
+  it("rejects profiles with unknown fields due to strict schema", async () => {
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "unknown-field.yaml"),
+      "name: unknown-field\nunknown_property: true\n",
+      "utf-8"
+    );
+
+    const { invalidFiles } = await registry.loadAllProfilesWithDiagnostics();
+    expect(invalidFiles.some(f => f.file === "unknown-field.yaml" && f.error.includes("Unrecognized key"))).toBe(true);
+  });
+
+  it("rejects profiles that extend non-existent profiles", async () => {
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "bad-extends.yaml"),
+      "name: bad-extends\nextends: ghost-profile\n",
+      "utf-8"
+    );
+
+    const { invalidFiles } = await registry.loadAllProfilesWithDiagnostics();
+    expect(invalidFiles.some(f => f.file === "bad-extends.yaml" && f.error.includes("non-existent profile"))).toBe(true);
+  });
+
+  it("rejects profiles that extend invalid profile names", async () => {
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "invalid-extends.yaml"),
+      "name: invalid-extends\nextends: 'Not A Valid Name!'\n",
+      "utf-8"
+    );
+
+    const { invalidFiles } = await registry.loadAllProfilesWithDiagnostics();
+    expect(invalidFiles.some(f => f.file === "invalid-extends.yaml" && f.error.includes("invalid profile name"))).toBe(true);
+  });
+
   it("returns the active profiles directory path", () => {
     expect(registry.getProfilesDir()).toBe(path.join(repoRoot, "profiles"));
   });

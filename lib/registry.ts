@@ -133,6 +133,22 @@ export async function loadProfile(name: string): Promise<Profile> {
     );
   }
 
+  if (profile.extends) {
+    if (!isValidProfileName(profile.extends)) {
+      throw new Error(
+        `Validation error in ${name}.yaml: "extends" refers to an invalid profile name "${profile.extends}".`
+      );
+    }
+    const extendsPath = path.join(PROFILES_DIR, `${profile.extends}.yaml`);
+    try {
+      await fs.access(extendsPath);
+    } catch {
+      throw new Error(
+        `Validation error in ${name}.yaml: "extends" refers to a non-existent profile "${profile.extends}".`
+      );
+    }
+  }
+
   return profile;
 }
 
