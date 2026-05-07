@@ -2,8 +2,10 @@
 
 import fs from "fs/promises";
 import path from "path";
+import os from "os";
+import { ZodError } from "zod";
 import { detectTools, getGlobalPath } from "@/lib/detector";
-import { TOOL_LABELS, type ToolId, RawMcpServerConfigSchema, type McpServerConfig } from "@/lib/types";
+import { TOOL_LABELS, type ToolId, RawMcpServerConfigSchema, type McpServerConfig, AddMcpServerInputSchema } from "@/lib/types";
 import { atomicWrite, backupFile } from "@/lib/safety";
 
 // ── Types & Schemas ──────────────────────────────────────────────
@@ -41,6 +43,11 @@ function isNodeErrnoException(value: unknown): value is NodeJS.ErrnoException {
 }
 
 function formatError(err: unknown): string {
+  if (err instanceof ZodError) {
+    return err.errors
+      .map((e) => `${e.path.join(".")}: ${e.message}`)
+      .join(", ");
+  }
   if (isNodeErrnoException(err)) {
     const code = typeof err.code === "string" ? err.code : "";
     const message = err.message?.trim();
@@ -50,6 +57,8 @@ function formatError(err: unknown): string {
   if (typeof err === "string") return err;
   return "Unknown error";
 }
+
+const HOME = os.homedir() || process.env.HOME || process.env.USERPROFILE || "~";
 
 const TOOL_CONFIG_SOURCES: Partial<Record<ToolId, ConfigSource[]>> = {
   "claude-code": [
@@ -197,12 +206,11 @@ type ActionResult = { success: true } | { success: false; error: string };
 type ExportTransport = "stdio" | "sse" | "streamable-http";
 
 function getWritableConfigPath(toolId: ToolId): { filePath: string; key: string } | null {
-  const home = process.env.HOME || process.env.USERPROFILE || "~";
   const globalPath = getGlobalPath(toolId);
   const sources = TOOL_CONFIG_SOURCES[toolId];
   if (!sources || sources.length === 0) return null;
   return {
-    filePath: sources[0].getPath(home, globalPath),
+    filePath: sources[0].getPath(HOME, globalPath),
     key: "mcpServers",
   };
 }
@@ -254,10 +262,16 @@ export async function addMcpServerAction(
   toolId: ToolId,
   input: AddMcpServerInput
 ): Promise<ActionResult> {
+  const parseResult = AddMcpServerInputSchema.safeParse(input);
+  if (!parseResult.success) {
+    return { success: false, error: `Invalid input: ${formatError(parseResult.error)}` };
+  }
+  const validatedInput = parseResult.data;
+
   const config = getWritableConfigPath(toolId);
   if (!config) return { success: false, error: `No MCP config path for ${TOOL_LABELS[toolId]}` };
 
-  const nameError = getServerNameError(input.name);
+  const nameError = getServerNameError(validatedInput.name);
   if (nameError) {
     return { success: false, error: nameError };
   }
@@ -270,28 +284,24 @@ export async function addMcpServerAction(
   }
   const servers = getServersMap(json, config.key);
 
-  if (servers[input.name]) {
-    return { success: false, error: `Server "${input.name}" already exists in ${TOOL_LABELS[toolId]}` };
+  if (servers[validatedInput.name]) {
+    return { success: false, error: `Server "${validatedInput.name}" already exists in ${TOOL_LABELS[toolId]}` };
   }
 
   const serverDef: Record<string, unknown> = {};
-  if (input.transport === "stdio") {
-    if (!input.command) return { success: false, error: "Command is required for stdio transport" };
-    serverDef.command = input.command;
-    if (input.args && input.args.length > 0) serverDef.args = input.args;
+  if (validatedInput.transport === "stdio") {
+    serverDef.command = validatedInput.command;
+    if (validatedInput.args && validatedInput.args.length > 0) serverDef.args = validatedInput.args;
   } else {
-    if (!input.url) return { success: false, error: "URL is required for remote transport" };
-    const urlError = getUrlValidationError(input.url);
-    if (urlError) return { success: false, error: `Invalid MCP URL: ${urlError}` };
-    serverDef.url = input.url;
+    serverDef.url = validatedInput.url;
   }
   
-  const safeEnv = getSafeEnv(input.env);
+  const safeEnv = getSafeEnv(validatedInput.env);
   if (safeEnv) {
     serverDef.env = safeEnv;
   }
 
-  servers[input.name] = serverDef;
+  servers[validatedInput.name] = serverDef;
   json[config.key] = servers;
 
   try {
@@ -344,6 +354,12 @@ export async function editMcpServerAction(
   serverName: string,
   input: AddMcpServerInput
 ): Promise<ActionResult> {
+  const parseResult = AddMcpServerInputSchema.safeParse(input);
+  if (!parseResult.success) {
+    return { success: false, error: `Invalid input: ${formatError(parseResult.error)}` };
+  }
+  const validatedInput = parseResult.data;
+
   const config = getWritableConfigPath(toolId);
   if (!config) return { success: false, error: `No MCP config path for ${TOOL_LABELS[toolId]}` };
 
@@ -353,7 +369,7 @@ export async function editMcpServerAction(
   } catch (err) {
     return { success: false, error: `Failed to read config: ${formatError(err)}` };
   }
-  const inputNameError = getServerNameError(input.name);
+  const inputNameError = getServerNameError(validatedInput.name);
   if (inputNameError) return { success: false, error: `Invalid server name: ${inputNameError}` };
 
   const serverNameError = getServerNameError(serverName);
@@ -366,31 +382,27 @@ export async function editMcpServerAction(
   }
 
   const serverDef: Record<string, unknown> = {};
-  if (input.transport === "stdio") {
-    if (!input.command) return { success: false, error: "Command is required for stdio transport" };
-    serverDef.command = input.command;
-    if (input.args && input.args.length > 0) serverDef.args = input.args;
+  if (validatedInput.transport === "stdio") {
+    serverDef.command = validatedInput.command;
+    if (validatedInput.args && validatedInput.args.length > 0) serverDef.args = validatedInput.args;
   } else {
-    if (!input.url) return { success: false, error: "URL is required for remote transport" };
-    const urlError = getUrlValidationError(input.url);
-    if (urlError) return { success: false, error: `Invalid MCP URL: ${urlError}` };
-    serverDef.url = input.url;
+    serverDef.url = validatedInput.url;
   }
   
-  const safeEnv = getSafeEnv(input.env);
+  const safeEnv = getSafeEnv(validatedInput.env);
   if (safeEnv) {
     serverDef.env = safeEnv;
   }
 
   // If renamed, remove old key
-  if (input.name !== serverName) {
-    if (servers[input.name]) {
-      return { success: false, error: `Server "${input.name}" already exists` };
+  if (validatedInput.name !== serverName) {
+    if (servers[validatedInput.name]) {
+      return { success: false, error: `Server "${validatedInput.name}" already exists` };
     }
     delete servers[serverName];
   }
 
-  servers[input.name] = serverDef;
+  servers[validatedInput.name] = serverDef;
   json[config.key] = servers;
 
   try {
