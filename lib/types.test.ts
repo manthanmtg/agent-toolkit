@@ -274,27 +274,18 @@ describe("schema edge cases", () => {
     expect(parsed.include).toEqual(["domain/*"]);
   });
 
-  it("strips extra fields from tool-specific profile config", () => {
-    const parsed = ProfileSchema.parse({
-      name: "tool-config-profile",
-      tools: {
-        "claude-code": {
-          enabled: false,
-          global_skills: true,
-          unknown_tool_field: "ignored",
+  it("rejects extra fields in tool-specific profile config due to strict schema", () => {
+    expect(() =>
+      ProfileSchema.parse({
+        name: "tool-config-profile",
+        tools: {
+          "claude-code": {
+            enabled: false,
+            global_skills: true,
+            unknown_tool_field: "ignored",
+          },
         },
-      },
-    });
-
-    expect(parsed.tools["claude-code"]).toEqual({
-      enabled: false,
-      global_skills: true,
-      max_rule_length: undefined,
-      default_trigger: undefined,
-      max_bytes: undefined,
-    });
-    expect((parsed.tools["claude-code"] as Record<string, unknown>)).not.toHaveProperty(
-      "unknown_tool_field"
-    );
+      })
+    ).toThrow();
   });
 });
