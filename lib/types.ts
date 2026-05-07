@@ -82,7 +82,7 @@ export const ToolConfigSchema = z.object({
   max_rule_length: z.number().optional(),
   default_trigger: z.string().optional(),
   max_bytes: z.number().optional(),
-});
+}).strict();
 
 export const GlobPatternSchema = z.string().refine((val) => {
   const t = val.trim();
@@ -112,7 +112,7 @@ export const ProfileSchema = z.object({
   include: z.array(GlobPatternSchema).optional().default(["*"]),
   exclude: z.array(GlobPatternSchema).optional().default([]),
   tools: z.record(z.enum(TOOL_IDS), ToolConfigSchema).optional().default({}),
-});
+}).strict();
 
 export type Profile = z.infer<typeof ProfileSchema>;
 
