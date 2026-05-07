@@ -33,6 +33,8 @@ describe("detector", () => {
   let accessMock: any;
   let execMock: any;
 
+  let originalPath: string | undefined;
+
   async function loadDetector(home: string | undefined, userProfile?: string): Promise<void> {
     if (home === undefined) {
       delete process.env.HOME;
@@ -55,33 +57,39 @@ describe("detector", () => {
     detector = await import("./detector");
   }
 
-  function setDirExists(paths: string[]) {
+  let mockedDirs: string[] = [];
+  let mockedBinaries: string[] = [];
+
+  function updateAccessMock() {
+    const binPaths = mockedBinaries.map(b => path.join("/usr/bin", b));
+    const allPaths = [...mockedDirs, ...binPaths];
+
     accessMock.mockImplementation((target: string | URL) => {
-      return paths.includes(typeof target === "string" ? target : target.toString())
+      const t = typeof target === "string" ? target : target.toString();
+      // Check for exact match or match with X_OK constant
+      return allPaths.includes(t)
         ? Promise.resolve()
         : Promise.reject(new Error("missing"));
     });
   }
 
+  function setDirExists(paths: string[]) {
+    mockedDirs = paths;
+    updateAccessMock();
+  }
+
   function setBinaryResult(binaries: string[]) {
-    execMock.mockImplementation((command: string, options: unknown, callback: unknown) => {
-      const resolvedCallback =
-        typeof options === "function" ? options : (callback as (error: unknown, stdout: string, stderr: string) => void);
-      const binary = command.replace("which ", "");
-      if (binaries.includes(binary)) {
-        resolvedCallback(null, `/usr/bin/${binary}\n`, "");
-      } else {
-        const notFound = new Error("not found");
-        (notFound as { code?: number }).code = 127;
-        resolvedCallback(notFound, "", "");
-      }
-      return {} as ReturnType<typeof execMock>;
-    });
+    mockedBinaries = binaries;
+    process.env.PATH = "/usr/bin";
+    updateAccessMock();
   }
 
   beforeEach(async () => {
+    mockedDirs = [];
+    mockedBinaries = [];
     originalHome = process.env.HOME;
     originalUserProfile = process.env.USERPROFILE;
+    originalPath = process.env.PATH;
     repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), "agent-toolkit-detector-test-"));
     await loadDetector(repoRoot, undefined);
   });
@@ -97,6 +105,12 @@ describe("detector", () => {
       delete process.env.USERPROFILE;
     } else {
       process.env.USERPROFILE = originalUserProfile;
+    }
+
+    if (originalPath === undefined) {
+      delete process.env.PATH;
+    } else {
+      process.env.PATH = originalPath;
     }
 
     await fs.rm(repoRoot, { recursive: true, force: true });

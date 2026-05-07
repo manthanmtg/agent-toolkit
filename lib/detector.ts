@@ -1,10 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { exec } from "child_process";
-import { promisify } from "util";
 import type { DetectedTool, ToolId } from "./types";
-
-const execAsync = promisify(exec);
 
 const HOME = process.env.HOME || process.env.USERPROFILE || "~";
 
@@ -64,12 +60,19 @@ async function checkExists(filePath: string): Promise<boolean> {
 }
 
 async function checkBinary(name: string): Promise<boolean> {
-  try {
-    await execAsync(`which ${name}`);
-    return true;
-  } catch {
-    return false;
+  const pathEnv = process.env.PATH || "";
+  const paths = pathEnv.split(path.delimiter);
+
+  for (const dir of paths) {
+    const fullPath = path.join(dir, name);
+    try {
+      await fs.access(fullPath, fs.constants.X_OK);
+      return true;
+    } catch {
+      continue;
+    }
   }
+  return false;
 }
 
 export async function detectTools(): Promise<DetectedTool[]> {
