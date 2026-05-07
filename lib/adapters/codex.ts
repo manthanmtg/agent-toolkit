@@ -14,22 +14,30 @@ export class CodexAdapter extends BaseAdapter {
   }
 
   translateGlobal(skills: Skill[], _profile: Profile): OutputFile[] {
-    const sections = skills.map(
-      (s) =>
-        `## ${s.frontmatter.name}\n\n${s.frontmatter.description}\n\n${s.content}`
-    );
+    const renderSections = (full: boolean) =>
+      skills.map(
+        (s) =>
+          `## ${s.frontmatter.name}\n\n${s.frontmatter.description}${
+            full ? `\n\n${s.content}` : ""
+          }`
+      );
 
-    const content =
-      `# Agent Toolkit — Codex Instructions\n\n` +
-      sections.join("\n\n---\n\n") +
-      "\n";
+    const title = `# Agent Toolkit — Codex Instructions\n\n`;
+    const separator = "\n\n---\n\n";
 
-    // Enforce 32 KiB limit
-    const byteSize = Buffer.byteLength(content, "utf-8");
+    let content = title + renderSections(true).join(separator) + "\n";
+    let byteSize = Buffer.byteLength(content, "utf-8");
+
     if (byteSize > 32768) {
       console.warn(
-        `Codex AGENTS.md exceeds 32 KiB limit (${byteSize} bytes). Consider reducing skills.`
+        `Codex AGENTS.md exceeds 32 KiB limit (${byteSize} bytes). Falling back to summary-only mode.`
       );
+      content =
+        title +
+        `> NOTE: Full skill content omitted to stay within Codex's 32 KiB limit. Showing summaries only.\n\n` +
+        renderSections(false).join(separator) +
+        "\n";
+      byteSize = Buffer.byteLength(content, "utf-8");
     }
 
     return [
