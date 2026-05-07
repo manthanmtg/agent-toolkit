@@ -5,7 +5,7 @@ description: >
   data fetching, caching, and layout composition. Use when building or
   reviewing fullstack React applications with high-performance defaults.
 domain: typescript
-version: 1.1.0
+version: 1.2.0
 tags: [typescript, nextjs, react, server-actions, server-components, web]
 author: agent-toolkit
 activation:
@@ -26,6 +26,7 @@ Build fast, secure, and maintainable web applications using Next.js 15 and React
 - **Server Actions**: Unified data mutation with type safety.
 - **Client Components**: Interactivity only where needed.
 - **Streaming**: Incremental UI delivery with Suspense.
+- **Async APIs**: Dynamic request data is now asynchronous.
 
 ## Component Strategy 🏗️
 
@@ -47,19 +48,27 @@ Build fast, secure, and maintainable web applications using Next.js 15 and React
 - Use `fetch` with Next.js extensions for fine-grained caching.
 - Prefer `revalidatePath` or `revalidateTag` for on-demand cache clearing.
 
-```typescript
-// app/blog/page.tsx
-async function BlogPage() {
-  const data = await fetch('https://api.example.com/posts', {
-    next: { tags: ['posts'] }
-  });
-  const posts = await data.json();
+### Async Request APIs (Next.js 15+)
 
-  return (
-    <ul>
-      {posts.map(post => <li key={post.id}>{post.title}</li>)}
-    </ul>
-  );
+In Next.js 15, request-specific APIs are asynchronous. Always `await` them before accessing properties.
+
+- `headers()`
+- `cookies()`
+- `params` (in `Page` or `Layout` props)
+- `searchParams` (in `Page` props)
+
+```typescript
+// app/blog/[slug]/page.tsx
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { slug } = await params;
+  const { query } = await searchParams;
+  // ...
 }
 ```
 
@@ -99,6 +108,7 @@ export async function subscribe(prevState: any, formData: FormData) {
 
 - [ ] Fetch data in Server Components where possible
 - [ ] Minimize "use client" usage
+- [ ] Await async request APIs (`params`, `searchParams`, `headers`, `cookies`)
 - [ ] Validate Server Action inputs with Zod
 - [ ] Use `Suspense` and `loading.tsx` for a responsive UI
 - [ ] Set appropriate caching headers (`force-dynamic`, `revalidate`)
@@ -107,6 +117,7 @@ export async function subscribe(prevState: any, formData: FormData) {
 ## Red Flags 🚨
 
 - Overusing `"use client"` when server components would suffice
+- Using `headers()`, `cookies()`, `params`, or `searchParams` synchronously in Next.js 15
 - Throwing errors from Server Actions instead of returning them
 - Passing non-serializable data across the server-client boundary
 - Neglecting `loading.tsx` for slow data fetches
