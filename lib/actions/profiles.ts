@@ -15,23 +15,38 @@ export interface ProfileListing {
 }
 
 export async function listProfilesAction(): Promise<Profile[]> {
-  return loadAllProfiles();
+  try {
+    return await loadAllProfiles();
+  } catch {
+    return [];
+  }
 }
 
 export async function listProfilesWithDiagnosticsAction(): Promise<ProfileListing> {
-  const { profiles, invalidFiles } = await loadAllProfilesWithDiagnostics();
-  return { profiles, invalidProfiles: invalidFiles };
+  try {
+    const { profiles, invalidFiles } = await loadAllProfilesWithDiagnostics();
+    return { profiles, invalidProfiles: invalidFiles };
+  } catch (err) {
+    return {
+      profiles: [],
+      invalidProfiles: [{ file: "all", error: err instanceof Error ? err.message : "Failed to load profiles" }],
+    };
+  }
 }
 
 export async function getProfileWithSkillsAction(
   name: string
-): Promise<{ profile: Profile; skills: Skill[] } | null> {
+): Promise<{ profile: Profile; skills: Skill[]; error?: string } | null> {
   try {
     const profile = await loadProfile(name);
     const allSkills = await loadAllSkills();
     const skills = filterSkillsByProfile(allSkills, profile);
     return { profile, skills };
-  } catch {
-    return null;
+  } catch (err) {
+    return {
+      profile: {} as Profile,
+      skills: [],
+      error: err instanceof Error ? err.message : "Failed to load profile",
+    };
   }
 }
