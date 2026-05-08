@@ -92,9 +92,20 @@ export async function loadAllLocalSkills(): Promise<Skill[]> {
   return loadSkillsFromDir(LOCAL_SKILLS_DIR, "local");
 }
 
-export async function loadProfile(name: string): Promise<Profile> {
+export async function loadProfile(
+  name: string,
+  activePath: string[] = []
+): Promise<Profile> {
+  if (activePath.includes(name)) {
+    throw new Error(
+      `Circular inheritance detected: ${activePath.join(" -> ")} -> ${name}`
+    );
+  }
+
   if (!isValidProfileName(name)) {
-    throw new Error(`Invalid profile name: "${name}". Profile names must be kebab-case (e.g., "my-profile").`);
+    throw new Error(
+      `Invalid profile name: "${name}". Profile names must be kebab-case (e.g., "my-profile").`
+    );
   }
 
   const profilePath = path.join(PROFILES_DIR, `${name}.yaml`);
@@ -106,7 +117,7 @@ export async function loadProfile(name: string): Promise<Profile> {
   }
 
   const { parse } = await import("yaml");
-  let data: unknown;
+  let data: any;
   try {
     data = parse(raw);
   } catch (err) {
@@ -134,19 +145,34 @@ export async function loadProfile(name: string): Promise<Profile> {
   }
 
   if (profile.extends) {
-    if (!isValidProfileName(profile.extends)) {
-      throw new Error(
-        `Validation error in ${name}.yaml: "extends" refers to an invalid profile name "${profile.extends}".`
-      );
-    }
-    const extendsPath = path.join(PROFILES_DIR, `${profile.extends}.yaml`);
+    let parent: Profile;
     try {
-      await fs.access(extendsPath);
-    } catch {
+      parent = await loadProfile(profile.extends, [...activePath, name]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes("Circular inheritance detected")) {
+        throw err;
+      }
+      if (message.includes("Invalid profile name")) {
+        throw new Error(
+          `Validation error in ${name}.yaml: "extends" refers to an invalid profile name "${profile.extends}".`
+        );
+      }
       throw new Error(
         `Validation error in ${name}.yaml: "extends" refers to a non-existent profile "${profile.extends}".`
       );
     }
+
+    // Inherit include/exclude only if not explicitly defined in child
+    if (data.include === undefined) {
+      profile.include = parent.include;
+    }
+    if (data.exclude === undefined) {
+      profile.exclude = parent.exclude;
+    }
+
+    // Merge tools: child overrides parent
+    profile.tools = { ...parent.tools, ...profile.tools };
   }
 
   return profile;
