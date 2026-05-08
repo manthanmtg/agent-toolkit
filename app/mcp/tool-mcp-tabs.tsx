@@ -82,12 +82,16 @@ export function ToolMcpTabs({ data }: ToolMcpTabsProps) {
     <div className="space-y-6">
       {/* Tab Bar */}
       <div className="relative">
-        <div className="flex gap-1 p-1 rounded-xl bg-muted/50 border">
+        <div className="flex gap-1 p-1 rounded-xl bg-muted/50 border" role="tablist" aria-label="AI tool MCP configurations">
           {detectedTools.map((tool) => {
             const isActive = activeTab === tool.toolId;
             return (
               <button
                 key={tool.toolId}
+                id={`tab-${tool.toolId}`}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`panel-${tool.toolId}`}
                 onClick={() => setActiveTab(tool.toolId)}
                 className={`
                   relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium
@@ -119,11 +123,19 @@ export function ToolMcpTabs({ data }: ToolMcpTabsProps) {
 
       {/* Active Tool Content */}
       {activeTool && (
-        <ToolMcpContent
-          tool={activeTool}
-          allToolIds={allDetectedToolIds}
-          onRefresh={handleRefresh}
-        />
+        <div
+          id={`panel-${activeTool.toolId}`}
+          role="tabpanel"
+          aria-labelledby={`tab-${activeTool.toolId}`}
+          tabIndex={0}
+          className="focus-visible:outline-none"
+        >
+          <ToolMcpContent
+            tool={activeTool}
+            allToolIds={allDetectedToolIds}
+            onRefresh={handleRefresh}
+          />
+        </div>
       )}
     </div>
   );
