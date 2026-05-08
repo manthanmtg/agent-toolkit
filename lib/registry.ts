@@ -88,10 +88,6 @@ export async function loadAllSkills(): Promise<Skill[]> {
   );
 }
 
-export async function loadAllLocalSkills(): Promise<Skill[]> {
-  return loadSkillsFromDir(LOCAL_SKILLS_DIR, "local");
-}
-
 export async function loadProfile(
   name: string,
   activePath: string[] = []

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { syncAction } from "@/lib/actions/sync";
+import { runInstall } from "@/lib/actions/install";
 import { toast } from "sonner";
 
 export function SyncButton() {
@@ -11,7 +11,7 @@ export function SyncButton() {
   async function handleSync() {
     setSyncing(true);
     try {
-      const result = await syncAction("default");
+      const result = await runInstall("default");
       if (result.buildResult.errors.length > 0) {
         toast.error("Sync completed with errors", {
           description: result.buildResult.errors.join(", "),
