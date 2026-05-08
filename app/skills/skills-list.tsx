@@ -24,12 +24,15 @@ type FilterValue = "all" | "toolkit" | "local";
 export function SkillsList({ skills }: { skills: Skill[] }) {
   const [filter, setFilter] = useState<FilterValue>("all");
 
-  const { filtered, domains, groupedSkills, localCount, toolkitCount } = useMemo(() => {
+  const { filtered, domains, groupedSkills, localCount, toolkitCount, uniqueDomainCount } = useMemo(() => {
     const groupedSkills = new Map<string, Skill[]>();
+    const allDomains = new Set<string>();
     let localCount = 0;
     let toolkitCount = 0;
 
     for (const skill of skills) {
+      allDomains.add(skill.domain);
+
       if (skill.source === "local") {
         localCount += 1;
       } else {
@@ -56,18 +59,15 @@ export function SkillsList({ skills }: { skills: Skill[] }) {
       groupedSkills,
       localCount,
       toolkitCount,
+      uniqueDomainCount: allDomains.size,
     };
   }, [skills, filter]);
 
-  const uniqueDomainCount = useMemo(() => {
-    return new Set(skills.map((s) => s.domain)).size;
-  }, [skills]);
-
-  const filters: { value: FilterValue; label: string; count: number }[] = [
+  const filters = useMemo<{ value: FilterValue; label: string; count: number }[]>(() => [
     { value: "all", label: "All", count: skills.length },
     { value: "toolkit", label: "Toolkit", count: toolkitCount },
     { value: "local", label: "Local", count: localCount },
-  ];
+  ], [skills.length, toolkitCount, localCount]);
 
   return (
     <div className="space-y-8">
