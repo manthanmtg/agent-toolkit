@@ -32,6 +32,7 @@ describe("registry", () => {
     process.env.HOME = repoRoot;
     process.chdir(repoRoot);
     vi.resetModules();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const registryModule = await import("./registry");
     registry = {
