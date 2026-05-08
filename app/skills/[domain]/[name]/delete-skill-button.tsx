@@ -46,6 +46,8 @@ export default function DeleteSkillButton({
       <button
         onClick={handleDelete}
         disabled={deleting}
+        aria-busy={deleting}
+        aria-label={confirming ? "Confirm delete skill" : "Delete skill"}
         className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
           confirming
             ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
