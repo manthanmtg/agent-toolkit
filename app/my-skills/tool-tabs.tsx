@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TOOL_LABELS, type ToolId } from "@/lib/types";
 import type { DeployedSkillsResult, ToolDeployment } from "@/lib/actions/my-skills";
-import { syncAction } from "@/lib/actions/sync";
+import { runInstall } from "@/lib/actions/install";
 import {
   Sparkles,
   MousePointerClick,
@@ -249,7 +249,7 @@ function ToolContent({
   async function handleSync() {
     setSyncing(true);
     try {
-      const result = await syncAction("default");
+      const result = await runInstall("default");
       if (result.buildResult.errors.length > 0) {
         toast.error("Sync completed with errors", {
           description: result.buildResult.errors.join(", "),

@@ -17,8 +17,9 @@ export interface ProfileListing {
 export async function listProfilesAction(): Promise<Profile[]> {
   try {
     return await loadAllProfiles();
-  } catch {
-    return [];
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    throw new Error(`Failed to list profiles: ${message}`);
   }
 }
 
@@ -44,7 +45,7 @@ export async function getProfileWithSkillsAction(
     return { profile, skills };
   } catch (err) {
     return {
-      profile: {} as Profile,
+      profile: { name: "error", description: "Failed to load profile", include: [], exclude: [], tools: {} },
       skills: [],
       error: err instanceof Error ? err.message : "Failed to load profile",
     };
