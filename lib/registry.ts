@@ -113,7 +113,7 @@ export async function loadProfile(
   }
 
   const { parse } = await import("yaml");
-  let data: any;
+  let data: unknown;
   try {
     data = parse(raw);
   } catch (err) {
@@ -160,10 +160,11 @@ export async function loadProfile(
     }
 
     // Inherit include/exclude only if not explicitly defined in child
-    if (data.include === undefined) {
+    const rawData = data as any;
+    if (rawData.include === undefined) {
       profile.include = parent.include;
     }
-    if (data.exclude === undefined) {
+    if (rawData.exclude === undefined) {
       profile.exclude = parent.exclude;
     }
 
