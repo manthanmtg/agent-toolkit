@@ -7,6 +7,7 @@ import type { DoctorCheck, Manifest } from "./types";
 
 const detectTools = vi.fn();
 const loadAllSkills = vi.fn();
+const loadAllProfilesWithDiagnostics = vi.fn();
 const getRepoRoot = vi.fn();
 const loadManifest = vi.fn();
 
@@ -17,6 +18,7 @@ vi.mock("./detector", () => ({
 vi.mock("./registry", () => ({
   getRepoRoot,
   loadAllSkills,
+  loadAllProfilesWithDiagnostics,
 }));
 
 vi.mock("./safety", () => ({
@@ -52,8 +54,13 @@ describe("doctor checks", () => {
       { id: "agents-md", detected: true, reason: "always" },
     ]);
     loadAllSkills.mockResolvedValue([{}, {}] as never);
+    loadAllProfilesWithDiagnostics.mockResolvedValue({
+      profiles: [{ name: "default" }],
+      invalidFiles: [],
+    });
 
     await fs.mkdir(path.join(repoRoot, "profiles"), { recursive: true });
+    // Note: filesystem write is still good for sanity but mock takes precedence
     await fs.writeFile(path.join(repoRoot, "profiles", "default.yaml"), "name: default\n", "utf-8");
 
     await fs.mkdir(path.join(repoRoot, "dist"), { recursive: true });
@@ -94,7 +101,7 @@ describe("doctor checks", () => {
       message: `dist/ contains ${manifest.entries.length} managed files`,
     });
     expect(byName["Symlinks"]).toMatchObject({ status: "pass", message: "1 valid, 0 broken" });
-    expect(byName["Profiles"]).toMatchObject({ status: "pass", message: "1 profiles found" });
+    expect(byName["Profiles"]).toMatchObject({ status: "pass", message: "1 valid, 0 invalid" });
     expect(byName["Symlinks"].details).toBeUndefined();
     expect(loadManifest).toHaveBeenCalledWith(path.join(repoRoot, "dist"));
   });
@@ -109,6 +116,7 @@ describe("doctor checks", () => {
       { id: "agents-md", detected: true, reason: "always" },
     ]);
     loadAllSkills.mockRejectedValue(new Error("bad profile"));
+    loadAllProfilesWithDiagnostics.mockRejectedValue(new Error("profiles/ directory not found"));
     loadManifest.mockRejectedValue(new Error("missing manifest"));
 
     const checks = await toChecks();
@@ -120,7 +128,7 @@ describe("doctor checks", () => {
       status: "warn",
       message: "dist/ not found — run a build first",
     });
-    expect(byName["Profiles"]).toMatchObject({ status: "warn", message: "profiles/ directory not found" });
+    expect(byName["Profiles"]).toMatchObject({ status: "fail", message: "Failed to load profiles: Error: profiles/ directory not found" });
     expect(byName["Symlinks"]).toBeUndefined();
   });
 
@@ -134,6 +142,10 @@ describe("doctor checks", () => {
       { id: "agents-md", detected: true, reason: "always" },
     ]);
     loadAllSkills.mockResolvedValue([]);
+    loadAllProfilesWithDiagnostics.mockResolvedValue({
+      profiles: [{ name: "default" }],
+      invalidFiles: [],
+    });
 
     await fs.mkdir(path.join(repoRoot, "profiles"), { recursive: true });
     await fs.writeFile(path.join(repoRoot, "profiles", "default.yaml"), "name: default\n", "utf-8");
