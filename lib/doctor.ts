@@ -1,9 +1,8 @@
 import fs from "fs/promises";
 import path from "path";
 import { detectTools } from "./detector";
-import { loadAllSkills } from "./registry";
+import { loadAllSkills, loadAllProfilesWithDiagnostics, getRepoRoot } from "./registry";
 import { loadManifest } from "./safety";
-import { getRepoRoot } from "./registry";
 import type { DoctorCheck } from "./types";
 
 export async function runDoctorChecks(): Promise<DoctorCheck[]> {
@@ -94,20 +93,22 @@ export async function runDoctorChecks(): Promise<DoctorCheck[]> {
   }
 
   // 5. Check profiles directory
-  const profilesDir = path.join(getRepoRoot(), "profiles");
   try {
-    const files = await fs.readdir(profilesDir);
-    const yamlFiles = files.filter((f) => f.endsWith(".yaml"));
+    const { profiles, invalidFiles } = await loadAllProfilesWithDiagnostics();
+    const status = invalidFiles.length > 0 ? "warn" : (profiles.length > 0 ? "pass" : "warn");
     checks.push({
       name: "Profiles",
-      status: yamlFiles.length > 0 ? "pass" : "warn",
-      message: `${yamlFiles.length} profiles found`,
+      status,
+      message: `${profiles.length} valid, ${invalidFiles.length} invalid`,
+      details: invalidFiles.length > 0 
+        ? invalidFiles.map(f => `${f.file}: ${f.error}`).join("\n")
+        : undefined,
     });
-  } catch {
+  } catch (err) {
     checks.push({
       name: "Profiles",
-      status: "warn",
-      message: "profiles/ directory not found",
+      status: "fail",
+      message: `Failed to load profiles: ${err}`,
     });
   }
 
