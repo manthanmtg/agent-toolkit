@@ -96,6 +96,8 @@ export const ServerCard = memo(function ServerCard({
   const [editUrl, setEditUrl] = useState(server.url ?? "");
   const [editEnv, setEditEnv] = useState<Array<{ key: string; value: string }>>([]);
 
+  const detailsId = useId();
+
   const transport = useMemo(
     () => TRANSPORT_CONFIG[server.transport ?? "unknown"] ?? TRANSPORT_CONFIG.unknown,
     [server.transport]
@@ -351,6 +353,7 @@ export const ServerCard = memo(function ServerCard({
             <button
               onClick={() => setExpanded(!expanded)}
               aria-expanded={expanded}
+              aria-controls={detailsId}
               className="flex items-center gap-1.5 mt-4 text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider"
             >
               {expanded ? (
@@ -362,7 +365,10 @@ export const ServerCard = memo(function ServerCard({
             </button>
 
             {expanded && (
-              <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div
+                id={detailsId}
+                className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300"
+              >
                 {server.args && server.args.length > 0 && (
                   <div>
                     <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-bold mb-2">
