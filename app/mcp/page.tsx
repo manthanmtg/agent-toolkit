@@ -26,7 +26,7 @@ export default async function McpPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4" aria-label="MCP Overview Statistics">
         <div className="relative overflow-hidden rounded-xl border bg-card p-5">
           <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent" />
           <div className="relative">
@@ -69,7 +69,7 @@ export default async function McpPage() {
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Per-Tool Tabs */}
       <ToolMcpTabs data={data} />

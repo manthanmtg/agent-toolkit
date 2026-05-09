@@ -37,7 +37,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-4" aria-label="Dashboard Statistics">
         <Link
           href="/skills"
           className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200 hover:border-blue-500/30 hover:shadow-sm"
@@ -128,11 +128,11 @@ export default async function DashboardPage() {
             </div>
           </div>
         </Link>
-      </div>
+      </section>
 
       {/* Detected Tools */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Detected Tools</h2>
+      <section aria-labelledby="detected-tools-heading">
+        <h2 id="detected-tools-heading" className="text-lg font-semibold mb-3">Detected Tools</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {doctor.tools.map((tool) => (
             <div
@@ -157,12 +157,12 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* Recent Skills */}
-      <div>
+      <section aria-labelledby="skills-heading">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Skills</h2>
+          <h2 id="skills-heading" className="text-lg font-semibold">Skills</h2>
           <Link
             href="/skills"
             className="text-sm text-muted-foreground hover:text-foreground"
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
             </Link>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
