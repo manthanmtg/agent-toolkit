@@ -10,7 +10,13 @@ import type { Skill } from "../types";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+import { CreateSkillInputSchema } from "../types";
+import { ZodError } from "zod";
+
 function formatError(err: unknown): string {
+  if (err instanceof ZodError) {
+    return err.errors.map((e) => e.message).join(", ");
+  }
   if (err instanceof Error) return err.message || "Unknown error";
   return typeof err === "string" ? err : "Unknown error";
 }
@@ -27,37 +33,33 @@ export async function createLocalSkillAction(
   name: string,
   description: string
 ): Promise<{ success: boolean; error?: string }> {
-  const domainError = validateIdentifier("domain", domain);
-  if (domainError) {
-    return { success: false, error: `Invalid domain: ${domainError}` };
+  const parseResult = CreateSkillInputSchema.safeParse({ domain, name, description });
+  if (!parseResult.success) {
+    return { success: false, error: formatError(parseResult.error) };
   }
 
-  const nameError = validateIdentifier("name", name);
-  if (nameError) {
-    return { success: false, error: `Invalid name: ${nameError}` };
-  }
-
+  const validated = parseResult.data;
   const localDir = getLocalSkillsDir();
-  const skillDir = path.join(localDir, domain, name);
+  const skillDir = path.join(localDir, validated.domain, validated.name);
 
   try {
     await fs.access(skillDir);
-    return { success: false, error: `Local skill already exists at ${domain}/${name}` };
+    return { success: false, error: `Local skill already exists at ${validated.domain}/${validated.name}` };
   } catch {
     // Does not exist yet
   }
 
-  const indentedDesc = description
+  const indentedDesc = validated.description
     .split("\n")
     .map((line) => `  ${line}`)
     .join("\n");
 
   const content = [
     "---",
-    `name: ${name}`,
+    `name: ${validated.name}`,
     `description: |`,
     indentedDesc,
-    `domain: ${domain}`,
+    `domain: ${validated.domain}`,
     `version: 1.0.0`,
     `tags: []`,
     `author: ""`,
@@ -70,7 +72,7 @@ export async function createLocalSkillAction(
     "  codex: auto",
     "---",
     "",
-    `# ${name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}`,
+    `# ${validated.name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}`,
     "",
     "TODO: Add skill content here.",
     "",
@@ -78,8 +80,14 @@ export async function createLocalSkillAction(
 
   try {
     await fs.mkdir(skillDir, { recursive: true });
-    await atomicWrite(path.join(skillDir, "SKILL.md"), content);
-    return { success: true };
+    try {
+      await atomicWrite(path.join(skillDir, "SKILL.md"), content);
+      return { success: true };
+    } catch (err) {
+      // Clean up the directory if file creation fails
+      await fs.rm(skillDir, { recursive: true, force: true }).catch(() => {});
+      throw err;
+    }
   } catch (err) {
     return { success: false, error: `Failed to create local skill: ${formatError(err)}` };
   }

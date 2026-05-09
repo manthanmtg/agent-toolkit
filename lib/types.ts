@@ -194,6 +194,20 @@ export const RawMcpServerConfigSchema = z.object({
   transport: z.enum(["stdio", "sse", "streamable-http", "unknown"]).optional(),
 }).passthrough();
 
+export const CreateSkillInputSchema = z.object({
+  domain: z
+    .string()
+    .min(1, "Domain is required")
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Domain must be kebab-case (lowercase, numbers, and hyphens)"),
+  name: z
+    .string()
+    .min(1, "Skill name is required")
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Skill name must be kebab-case (lowercase, numbers, and hyphens)"),
+  description: z.string().min(1, "Description is required").max(1000, "Description is too long"),
+});
+
+export type CreateSkillInput = z.infer<typeof CreateSkillInputSchema>;
+
 export interface McpServerConfig {
   name: string;
   command?: string;
