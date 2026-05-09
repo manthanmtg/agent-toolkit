@@ -62,17 +62,18 @@ async function loadSkillsFromDir(
   }
 
   const skillMdFiles = await glob("*/*/SKILL.md", { cwd: dir });
-  const skills: Skill[] = [];
 
-  for (const relPath of skillMdFiles) {
+  const skillPromises = skillMdFiles.map(async (relPath) => {
     const skillDir = path.join(dir, path.dirname(relPath));
     try {
-      const skill = await loadSkill(skillDir, source);
-      skills.push(skill);
+      return await loadSkill(skillDir, source);
     } catch (err) {
       console.warn(`Failed to load ${source} skill at ${skillDir}:`, err);
+      return null;
     }
-  }
+  });
+
+  const skills = (await Promise.all(skillPromises)).filter((s): s is Skill => s !== null);
 
   return skills;
 }
@@ -186,18 +187,29 @@ export async function loadAllProfiles(): Promise<Profile[]> {
 
 export async function loadAllProfilesWithDiagnostics(): Promise<ProfileLoadResult> {
   const files = await glob("*.yaml", { cwd: PROFILES_DIR });
+
+  const results = await Promise.all(
+    files.map(async (file) => {
+      try {
+        const name = path.basename(file, ".yaml");
+        const profile = await loadProfile(name);
+        return { type: "success" as const, profile };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn(`Failed to load profile ${file}:`, message);
+        return { type: "error" as const, file, error: message };
+      }
+    })
+  );
+
   const profiles: Profile[] = [];
   const invalidFiles: Array<{ file: string; error: string }> = [];
 
-  for (const file of files) {
-    try {
-      const name = path.basename(file, ".yaml");
-      const profile = await loadProfile(name);
-      profiles.push(profile);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      invalidFiles.push({ file, error: message });
-      console.warn(`Failed to load profile ${file}:`, message);
+  for (const result of results) {
+    if (result.type === "success") {
+      profiles.push(result.profile);
+    } else {
+      invalidFiles.push({ file: result.file, error: result.error });
     }
   }
 
