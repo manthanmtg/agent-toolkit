@@ -43,7 +43,7 @@ lib/                  → Core logic (server-side)
     opencode.ts       → OpenCode adapter
     codex.ts          → Codex adapter
     agents-md.ts      → AGENTS.md cross-tool adapter
-  actions/            → Next.js Server Actions, including build, install, sync, doctor, detect, skills, profiles, my-skills, local-skills, mcp
+  actions/            → Next.js Server Actions, including build, install, doctor, detect, skills, profiles, my-skills, local-skills, mcp
 skills/               → Source of truth — skill markdown files
   <domain>/
     <skill-name>/
