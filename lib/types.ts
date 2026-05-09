@@ -53,7 +53,7 @@ export const SkillFrontmatterSchema = z.object({
     .min(1)
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
   version: z.string().optional().default("1.0.0"),
-  tags: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string().transform((s) => s.trim())).optional().default([]),
   author: z.string().optional().default(""),
   activation: ActivationSchema.optional().default(ActivationSchema.parse({})),
   globs: z.string().optional(),

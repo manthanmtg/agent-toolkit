@@ -1,7 +1,8 @@
 import {
   listProfilesWithDiagnosticsAction,
 } from "@/lib/actions/profiles";
-import { Layers } from "lucide-react";
+import { loadAllSkills, filterSkillsByProfile } from "@/lib/registry";
+import { Layers, FileCode } from "lucide-react";
 
 export default async function ProfilesPage() {
   const { profiles, invalidProfiles } =
@@ -9,6 +10,8 @@ export default async function ProfilesPage() {
       profiles: [],
       invalidProfiles: [],
     })));
+
+  const allSkills = await loadAllSkills().catch(() => []);
 
   return (
     <div className="space-y-8">
@@ -67,15 +70,28 @@ tools:
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {profiles.map((profile) => (
-            <div key={profile.name} className="border rounded-xl p-5">
-              <h3 className="font-semibold text-lg">{profile.name}</h3>
-              {profile.description && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  {profile.description}
-                </p>
-              )}
-              <div className="mt-3 space-y-1 text-xs">
+          {profiles.map((profile) => {
+            const profileSkills = filterSkillsByProfile(allSkills, profile);
+            return (
+              <div
+                key={profile.name}
+                className="border rounded-xl p-5 hover:border-foreground/20 transition-colors"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-lg">{profile.name}</h3>
+                    {profile.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {profile.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md text-xs font-medium shrink-0">
+                    <FileCode className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>{profileSkills.length} skills</span>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1 text-xs">
                 <p className="text-muted-foreground">
                   <span className="font-medium">Include:</span>{" "}
                   {profile.include.join(", ") || "none"}
@@ -91,10 +107,11 @@ tools:
                   </p>
                 )}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+              </div>
+              );
+              })}
+              </div>
+              )}
+              </div>
+              );
+              }

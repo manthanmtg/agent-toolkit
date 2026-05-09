@@ -226,7 +226,7 @@ export function filterSkillsByProfile(
   return skills.filter((skill) => {
     const skillPath = `${skill.domain}/${skill.skillName}`.toLowerCase();
     const skillTags = new Set(
-      skill.frontmatter.tags.map((tag) => tag.toLowerCase())
+      skill.frontmatter.tags.map((tag) => tag.trim().toLowerCase())
     );
 
     // Check exclusions first
