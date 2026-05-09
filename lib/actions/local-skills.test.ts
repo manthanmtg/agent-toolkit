@@ -52,13 +52,13 @@ describe("local-skills actions", () => {
     });
 
     it("fails with invalid identifiers", async () => {
-      const result = await actions.createLocalSkillAction("Invalid Domain", "test-skill", "Desc");
+      const result = await actions.createLocalSkillAction("Invalid Domain", "test-skill", "desc");
       expect(result.success).toBe(false);
-      expect(result.error).toContain("Invalid domain");
+      expect(result.error).toContain("Domain must be kebab-case");
 
-      const result2 = await actions.createLocalSkillAction("test-domain", "Test Skill", "Desc");
+      const result2 = await actions.createLocalSkillAction("test-domain", "Invalid Skill", "desc");
       expect(result2.success).toBe(false);
-      expect(result2.error).toContain("Invalid name");
+      expect(result2.error).toContain("Skill name must be kebab-case");
     });
 
     it("fails if skill already exists", async () => {
