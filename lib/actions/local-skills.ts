@@ -10,6 +10,11 @@ import type { Skill } from "../types";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+function formatError(err: unknown): string {
+  if (err instanceof Error) return err.message || "Unknown error";
+  return typeof err === "string" ? err : "Unknown error";
+}
+
 function validateIdentifier(type: string, value: string): string | null {
   if (!IDENTIFIER_RE.test(value)) {
     return `${type} must be lowercase letters, numbers, and hyphens (e.g. my-skill-name).`;
@@ -76,7 +81,7 @@ export async function createLocalSkillAction(
     await atomicWrite(path.join(skillDir, "SKILL.md"), content);
     return { success: true };
   } catch (err) {
-    return { success: false, error: `Failed to create local skill: ${err}` };
+    return { success: false, error: `Failed to create local skill: ${formatError(err)}` };
   }
 }
 
@@ -118,14 +123,14 @@ export async function updateLocalSkillAction(
   try {
     parsed = matter(rawContent);
   } catch (err) {
-    return { success: false, error: `Invalid frontmatter format: ${err}` };
+    return { success: false, error: `Invalid frontmatter format: ${formatError(err)}` };
   }
 
   const { data } = parsed;
   try {
     SkillFrontmatterSchema.parse(data);
   } catch (err) {
-    return { success: false, error: `Invalid frontmatter: ${err}` };
+    return { success: false, error: `Invalid frontmatter: ${formatError(err)}` };
   }
 
   const skillPath = path.join(getLocalSkillsDir(), domain, name, "SKILL.md");
@@ -141,7 +146,7 @@ export async function updateLocalSkillAction(
     await atomicWrite(skillPath, rawContent);
     return { success: true };
   } catch (err) {
-    return { success: false, error: `Failed to save: ${err}` };
+    return { success: false, error: `Failed to save: ${formatError(err)}` };
   }
 }
 
@@ -181,7 +186,7 @@ export async function deleteLocalSkillAction(
 
     return { success: true };
   } catch (err) {
-    return { success: false, error: `Failed to delete: ${err}` };
+    return { success: false, error: `Failed to delete: ${formatError(err)}` };
   }
 }
 
