@@ -27,51 +27,51 @@ export default async function MySkillsPage() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200 hover:border-blue-500/30 hover:shadow-sm">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/8 to-transparent" />
+        <div className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:scale-[1.02]">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Deployed Skills</p>
-              <p className="text-3xl font-bold mt-1">{totalDeployed}</p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-tight">Deployed Skills</p>
+              <p className="text-3xl font-bold mt-1.5 tracking-tighter">{totalDeployed}</p>
+              <p className="text-xs text-muted-foreground mt-1.5 font-medium">
                 across {detectedCount} tool{detectedCount !== 1 ? "s" : ""}
               </p>
             </div>
-            <div className="mt-1 rounded-lg bg-blue-500/10 p-2 text-blue-600 dark:text-blue-400">
+            <div className="mt-1 rounded-lg bg-primary/10 p-2.5 text-primary shadow-sm border border-primary/10">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200 hover:border-emerald-500/30 hover:shadow-sm">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/8 to-transparent" />
+        <div className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-300 hover:border-success/30 hover:shadow-lg hover:shadow-success/5 hover:scale-[1.02]">
+          <div className="absolute inset-0 bg-gradient-to-br from-success/10 to-transparent" />
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Up to Date</p>
-              <p className="text-3xl font-bold mt-1 text-emerald-600">
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-tight">Up to Date</p>
+              <p className="text-3xl font-bold mt-1.5 text-success tracking-tighter">
                 {totalDeployed - totalOutdated}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">skills current</p>
+              <p className="text-xs text-muted-foreground mt-1.5 font-medium">skills current</p>
             </div>
-            <div className="mt-1 rounded-lg bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400">
+            <div className="mt-1 rounded-lg bg-success/10 p-2.5 text-success shadow-sm border border-success/10">
               <Archive className="w-4 h-4" />
             </div>
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-200 hover:border-amber-500/30 hover:shadow-sm">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/8 to-transparent" />
+        <div className="relative overflow-hidden rounded-xl border bg-card p-5 transition-all duration-300 hover:border-warning/40 hover:shadow-lg hover:shadow-warning/5 hover:scale-[1.02]">
+          <div className="absolute inset-0 bg-gradient-to-br from-warning/10 to-transparent" />
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Needs Update</p>
-              <p className={`text-3xl font-bold mt-1 ${totalOutdated > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-tight">Needs Update</p>
+              <p className={`text-3xl font-bold mt-1.5 tracking-tighter ${totalOutdated > 0 ? "text-warning" : "text-muted-foreground"}`}>
                 {totalOutdated}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1.5 font-medium">
                 {totalOutdated > 0 ? "skills outdated" : "everything current"}
               </p>
             </div>
-            <div className="mt-1 rounded-lg bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
+            <div className="mt-1 rounded-lg bg-warning/10 p-2.5 text-warning shadow-sm border border-warning/10">
               <TriangleAlert className="w-4 h-4" />
             </div>
           </div>
