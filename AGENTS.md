@@ -26,8 +26,8 @@ This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills an
 ## Autonomous Maintenance
 
 - **Prompts**: `prompts/` contains instructions for autonomous agents. `random_selector.md` picks a safe task.
-- **Metadata**: `prompts/prompts_metadata.json` tracks prompt usage and outcomes.
-- **Issue Management**: Use `issues_to_look/` for deferred investigations. Use `YYYY-MM-DD_<short-slug>.md` naming.
+- **Metadata**: `prompts/prompts_metadata.json` tracks prompt usage and outcomes. Update it at the start and end of every autonomous run.
+- **Issue Management**: Use `issues_to_look/` for deferred investigations. Use `YYYY-MM-DD_<short-slug>.md` naming. Move resolved issues to `issues_to_look/resolved/`.
 
 ## How to Add a Skill
 
