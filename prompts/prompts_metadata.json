@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-05-10T06:32:43.596Z",
+  "updatedAt": "2026-05-10T08:12:31.090Z",
   "description": "Prompt-suite observability metadata. Keep static identity here aligned with prompt frontmatter and update counters during random_selector runs.",
   "outcomeDefinitions": {
     "selected": "The prompt has been selected and the run has not recorded a terminal outcome yet.",
@@ -91,12 +91,12 @@
       "category": "performance",
       "enabled": true,
       "autonomousSafe": true,
-      "totalSelected": 5,
-      "totalCompleted": 5,
+      "totalSelected": 6,
+      "totalCompleted": 6,
       "totalNoop": 0,
       "totalFailed": 0,
-      "lastSelectedAt": "2026-05-09T14:20:00.000Z",
-      "lastCompletedAt": "2026-05-09T14:40:00.000Z",
+      "lastSelectedAt": "2026-05-10T08:00:43.014Z",
+      "lastCompletedAt": "2026-05-10T08:12:31.090Z",
       "lastOutcome": "completed"
     },
     "profile_workflow_auditor.md": {
