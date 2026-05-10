@@ -95,20 +95,20 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
   }
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:shadow-md focus-within:border-primary/40">
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 group-hover:opacity-100 group-focus-within:opacity-50 transition-opacity duration-300`} />
+    <div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-border/80 hover:scale-[1.01] focus-within:shadow-lg focus-within:border-primary/40 focus-within:scale-[1.01]">
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 group-hover:opacity-100 group-focus-within:opacity-50 transition-opacity duration-500`} />
 
       <div className="relative p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                 <Box className="w-4 h-4 text-primary/70" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-sm truncate">{skill.name}</h3>
+                  <h3 className="font-semibold text-sm truncate tracking-tight">{skill.name}</h3>
                   {skill.domain && (
                     <Link
                       href={`/skills/${skill.domain}/${skill.name}`}
@@ -120,17 +120,17 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
                   )}
                 </div>
                 {skill.domain && (
-                  <p className="text-[11px] text-muted-foreground mt-0.5 capitalize truncate">
+                  <p className="text-[11px] text-muted-foreground mt-0.5 capitalize truncate opacity-80">
                     {skill.domain.replace(/-/g, " ")}
                   </p>
                 )}
               </div>
             </div>
             {skill.source === "cross-agent" && skill.sharedFrom && (
-              <div className="flex items-center gap-1 mt-2">
+              <div className="inline-flex items-center gap-1.5 mt-3 px-2 py-0.5 rounded-md bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100/50 dark:border-blue-800/50">
                 <Share2 className="w-3 h-3 text-blue-500" />
-                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">
-                  Shared from {skill.sharedFrom}
+                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-tight">
+                  From {skill.sharedFrom}
                 </span>
               </div>
             )}
@@ -138,7 +138,7 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
 
           {/* Status Badge */}
           <div
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider ${config.bgClass}`}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${config.bgClass}`}
           >
             <Icon className="w-3 h-3" />
             <span className={config.textClass}>{config.label}</span>
@@ -152,9 +152,9 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/50">
+        <div className="flex items-center gap-2 mt-5 pt-3 border-t border-border/40">
           {skill.source === "cross-agent" ? (
-            <span className="text-[11px] text-muted-foreground italic">
+            <span className="text-[11px] text-muted-foreground italic opacity-70">
               Managed by {skill.sharedFrom ?? "another tool"}
             </span>
           ) : (
@@ -163,11 +163,11 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
                 <button
                   onClick={handleUpdate}
                   disabled={updating}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                    bg-amber-500 text-white hover:bg-amber-600 active:bg-amber-700
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide
+                    bg-warning text-warning-foreground hover:opacity-90 active:scale-95
                     disabled:opacity-50 disabled:cursor-not-allowed
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background
-                    transition-colors"
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background
+                    transition-all"
                 >
                   {updating ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -181,11 +181,11 @@ export function SkillCard({ skill, toolId, gradientClass, onAction }: SkillCardP
               <button
                 onClick={handleRemove}
                 disabled={removing}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide
                   border text-muted-foreground hover:text-destructive hover:border-destructive/50 hover:bg-destructive/5
                   disabled:opacity-50 disabled:cursor-not-allowed
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/55 focus-visible:ring-offset-2 focus-visible:ring-offset-background
-                  active:bg-destructive/10 transition-colors ml-auto"
+                  active:scale-95 transition-all ml-auto"
               >
                 {removing ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
