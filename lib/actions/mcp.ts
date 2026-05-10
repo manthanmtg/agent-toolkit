@@ -6,7 +6,7 @@ import os from "os";
 import { ZodError } from "zod";
 import { detectTools, getGlobalPath } from "@/lib/detector";
 import { TOOL_LABELS, type ToolId, RawMcpServerConfigSchema, type McpServerConfig, AddMcpServerInputSchema } from "@/lib/types";
-import { atomicWrite, backupFile } from "@/lib/safety";
+import { atomicWrite, backupFile, HOME } from "@/lib/safety";
 
 // ── Types & Schemas ──────────────────────────────────────────────
 
@@ -57,8 +57,6 @@ function formatError(err: unknown): string {
   if (typeof err === "string") return err;
   return "Unknown error";
 }
-
-const HOME = os.homedir() || process.env.HOME || process.env.USERPROFILE || "~";
 
 const TOOL_CONFIG_SOURCES: Partial<Record<ToolId, ConfigSource[]>> = {
   "claude-code": [
@@ -1054,7 +1052,6 @@ export async function importAllMcpServersAction(
 
 export async function getMcpOverview(): Promise<McpOverviewResult> {
   const detectedTools = await detectTools();
-  const home = process.env.HOME || process.env.USERPROFILE || "~";
   const toolsToScan: ToolId[] = ["claude-code", "cursor", "windsurf", "codex"];
 
   const tools: McpToolEntry[] = [];
@@ -1072,8 +1069,8 @@ export async function getMcpOverview(): Promise<McpOverviewResult> {
     const seenNames = new Set<string>();
 
     for (const source of sources) {
-      const filePath = source.getPath(home, globalPath);
-      const pathDisplay = filePath.replace(home, "~");
+      const filePath = source.getPath(HOME, globalPath);
+      const pathDisplay = filePath.replace(HOME, "~");
       let exists = false;
 
       try {

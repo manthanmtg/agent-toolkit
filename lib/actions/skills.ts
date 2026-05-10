@@ -5,7 +5,7 @@ import path from "path";
 import { loadAllSkills, loadSkill, loadProfile, getSkillsDir, getLocalSkillsDir } from "../registry";
 import { getAdapter, checkCharacterLimit } from "../adapters";
 import { getGlobalPath } from "../detector";
-import { atomicWrite } from "../safety";
+import { atomicWrite, isWithinPath, HOME } from "../safety";
 import type { Skill, ToolId } from "../types";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -191,6 +191,10 @@ export async function installSkillAction(
 
         if (globalPath) {
           destPath = path.join(globalPath, output.relativePath);
+          if (!isWithinPath(globalPath, destPath)) {
+            errors.push(`${toolId}: security violation — refusing to write outside global path: ${output.relativePath}`);
+            continue;
+          }
         } else {
           errors.push(`${toolId}: no global path configured`);
           continue;

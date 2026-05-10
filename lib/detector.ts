@@ -1,8 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
+import { HOME } from "./safety";
 import type { DetectedTool, ToolId } from "./types";
-
-const HOME = process.env.HOME || process.env.USERPROFILE || "~";
 
 interface ToolCheck {
   id: ToolId;
