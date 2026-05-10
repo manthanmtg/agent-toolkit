@@ -6,7 +6,7 @@ import crypto from "crypto";
 import { detectTools, getGlobalPath } from "../detector";
 import { loadAllSkills, loadProfile } from "../registry";
 import { getAdapter } from "../adapters";
-import { atomicWrite } from "../safety";
+import { atomicWrite, HOME, isWithinPath } from "../safety";
 import type { Skill, ToolId, Profile } from "../types";
 import { TOOL_IDS } from "../types";
 
@@ -189,7 +189,6 @@ export async function getDeployedSkillsPerTool(): Promise<DeployedSkillsResult> 
     profile = { name: "default", description: "", include: ["*"], exclude: [], tools: {} };
   }
 
-  const home = process.env.HOME || process.env.USERPROFILE || "~";
   const toolsToScan = TOOL_IDS.filter((id) => id !== "agents-md");
 
   // Pre-calculate expected hashes for native and cross-agent skills
@@ -203,7 +202,7 @@ export async function getDeployedSkillsPerTool(): Promise<DeployedSkillsResult> 
       const detected = detectedTools.find((t) => t.id === toolId);
       const isDetected = detected?.detected ?? false;
       const globalPath = getGlobalPath(toolId) ?? null;
-      const globalPathDisplay = globalPath ? globalPath.replace(home, "~") : null;
+      const globalPathDisplay = globalPath ? globalPath.replace(HOME, "~") : null;
 
       // Bundled tools (all skills merged into one file)
       const bundledInfo = BUNDLED_TOOLS[toolId];
@@ -274,7 +273,7 @@ export async function getDeployedSkillsPerTool(): Promise<DeployedSkillsResult> 
       }
 
       // Cross-agent: scan other tools' directories that this tool reads
-      const crossAgentPaths = getCrossAgentPaths(home);
+      const crossAgentPaths = getCrossAgentPaths(HOME);
       const crossPaths = crossAgentPaths[toolId] ?? [];
       const nativeNames = new Set(skills.map((s) => s.name));
 
@@ -378,6 +377,9 @@ export async function updateDeployedSkillAction(
 
     for (const output of outputs) {
       const destPath = path.join(globalPath, output.relativePath);
+      if (!isWithinPath(globalPath, destPath)) {
+        return { success: false, error: `Security violation: refusing to write outside global path: ${output.relativePath}` };
+      }
       await fs.mkdir(path.dirname(destPath), { recursive: true });
       await atomicWrite(destPath, output.content);
     }

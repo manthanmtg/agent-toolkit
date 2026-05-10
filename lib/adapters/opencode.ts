@@ -1,8 +1,7 @@
 import path from "path";
 import type { Skill, Profile, OutputFile } from "../types";
 import { BaseAdapter } from "./base";
-
-const HOME = process.env.HOME || process.env.USERPROFILE || "~";
+import { HOME } from "../safety";
 
 export class OpenCodeAdapter extends BaseAdapter {
   readonly toolId = "opencode" as const;

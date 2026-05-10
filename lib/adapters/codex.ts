@@ -1,8 +1,8 @@
 import path from "path";
 import type { Skill, Profile, OutputFile } from "../types";
 import { BaseAdapter } from "./base";
+import { HOME } from "../safety";
 
-const HOME = process.env.HOME || process.env.USERPROFILE || "~";
 const CODEX_HOME = process.env.CODEX_HOME || path.join(HOME, ".codex");
 
 export class CodexAdapter extends BaseAdapter {

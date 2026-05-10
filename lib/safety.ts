@@ -1,10 +1,25 @@
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import os from "os";
 import type { Manifest, ManifestEntry, ToolId, SymlinkScope } from "./types";
 
-const HOME = process.env.HOME || process.env.USERPROFILE || "~";
+export const HOME = process.env.HOME || process.env.USERPROFILE || os.homedir() || "~";
 const BACKUP_DIR = path.join(HOME, ".agent-toolkit-backup");
+
+/**
+ * Ensures a path is within a specific base directory.
+ * Used to prevent path traversal vulnerabilities.
+ */
+export function isWithinPath(base: string, target: string): boolean {
+  const resolvedBase = path.resolve(base);
+  const resolvedTarget = path.resolve(target);
+  
+  // Ensure the base has a trailing separator to prevent matching /foo against /foobar
+  const baseWithSep = resolvedBase.endsWith(path.sep) ? resolvedBase : `${resolvedBase}${path.sep}`;
+  
+  return resolvedTarget === resolvedBase || resolvedTarget.startsWith(baseWithSep);
+}
 
 // ── Atomic write ──────────────────────────────────────────────────
 export async function atomicWrite(
@@ -36,7 +51,13 @@ export async function backupFile(filePath: string): Promise<string | null> {
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const relativeName = filePath.replace(HOME, "HOME").replace(/\//g, "__");
+  // Robust replacement of path separators for the backup filename
+  const relativeName = filePath
+    .replace(HOME, "HOME")
+    .split(/[/\\]/)
+    .filter(Boolean)
+    .join("__");
+    
   const backupPath = path.join(BACKUP_DIR, `${relativeName}.${timestamp}`);
 
   await fs.mkdir(BACKUP_DIR, { recursive: true });

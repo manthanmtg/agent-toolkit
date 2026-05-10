@@ -4,11 +4,11 @@ import matter from "gray-matter";
 import { glob } from "glob";
 import { ZodError } from "zod";
 import { SkillFrontmatterSchema, type Skill, type SkillSource, type Profile, ProfileSchema } from "./types";
+import { HOME } from "./safety";
 
 const REPO_ROOT = path.resolve(process.cwd());
 const SKILLS_DIR = path.join(REPO_ROOT, "skills");
 const PROFILES_DIR = path.join(REPO_ROOT, "profiles");
-const HOME = process.env.HOME || process.env.USERPROFILE || "~";
 const LOCAL_SKILLS_DIR = path.join(HOME, ".agent-toolkit", "local-skills");
 const PROFILE_NAME_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
