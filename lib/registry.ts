@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import matter from "gray-matter";
 import { glob } from "glob";
+import { parse } from "yaml";
 import { ZodError } from "zod";
 import { SkillFrontmatterSchema, type Skill, type SkillSource, type Profile, ProfileSchema } from "./types";
 import { HOME } from "./safety";
@@ -18,7 +19,8 @@ function isValidProfileName(name: string): boolean {
 
 export async function loadSkill(
   skillDir: string,
-  source: SkillSource = "toolkit"
+  source: SkillSource = "toolkit",
+  preLoadedFiles?: string[]
 ): Promise<Skill> {
   const baseDir = source === "local" ? LOCAL_SKILLS_DIR : SKILLS_DIR;
   const skillMdPath = path.join(skillDir, "SKILL.md");
@@ -32,7 +34,7 @@ export async function loadSkill(
   const domain = parts[0];
   const skillName = parts[parts.length - 1];
 
-  const allFiles = await glob("**/*", { cwd: skillDir, nodir: true });
+  const allFiles = preLoadedFiles ?? await glob("**/*", { cwd: skillDir, nodir: true });
   const supportingFiles = allFiles
     .filter((f) => f !== "SKILL.md")
     .map((f) => path.join(rel, f));
@@ -61,14 +63,39 @@ async function loadSkillsFromDir(
     return [];
   }
 
-  const skillMdFiles = await glob("*/*/SKILL.md", { cwd: dir });
+  // Optimize: Find all files at once to avoid N additional glob calls
+  // Pattern * / * / ** finds all files within any domain/skill directory
+  const allFiles = await glob("*/*/**", { cwd: dir, nodir: true });
+  
+  const filesBySkill = new Map<string, string[]>();
+  const skillMdFiles: string[] = [];
+
+  for (const file of allFiles) {
+    const parts = file.split("/");
+    if (parts.length < 3) continue;
+    
+    const skillRelDir = parts.slice(0, 2).join("/");
+    const fileName = parts.slice(2).join("/");
+    
+    if (fileName === "SKILL.md") {
+      skillMdFiles.push(file);
+    }
+    
+    if (!filesBySkill.has(skillRelDir)) {
+      filesBySkill.set(skillRelDir, []);
+    }
+    filesBySkill.get(skillRelDir)!.push(fileName);
+  }
 
   const skillPromises = skillMdFiles.map(async (relPath) => {
-    const skillDir = path.join(dir, path.dirname(relPath));
+    const skillRelDir = path.dirname(relPath);
+    const skillAbsDir = path.join(dir, skillRelDir);
+    const skillFiles = filesBySkill.get(skillRelDir) || [];
+    
     try {
-      return await loadSkill(skillDir, source);
+      return await loadSkill(skillAbsDir, source, skillFiles);
     } catch (err) {
-      console.warn(`Failed to load ${source} skill at ${skillDir}:`, err);
+      console.warn(`Failed to load ${source} skill at ${skillAbsDir}:`, err);
       return null;
     }
   });
@@ -113,7 +140,6 @@ export async function loadProfile(
     throw new Error(`Could not read profile file at ${profilePath}`);
   }
 
-  const { parse } = await import("yaml");
   let data: unknown;
   try {
     data = parse(raw);
