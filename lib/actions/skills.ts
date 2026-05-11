@@ -7,11 +7,10 @@ import { getAdapter, checkCharacterLimit } from "../adapters";
 import { getGlobalPath } from "../detector";
 import { atomicWrite, isWithinPath, HOME } from "../safety";
 import type { Skill, ToolId } from "../types";
+import { CreateSkillInputSchema, InstallSkillInputSchema, UninstallSkillInputSchema, TOOL_LABELS } from "../types";
+import { ZodError } from "zod";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-import { CreateSkillInputSchema } from "../types";
-import { ZodError } from "zod";
 
 function formatError(err: unknown): string {
   if (err instanceof ZodError) {
@@ -132,34 +131,26 @@ export async function installSkillAction(
   skillName: string,
   toolIds: ToolId[]
 ): Promise<{ success: boolean; installed: ToolId[]; errors: string[] }> {
-  const domainError = validateIdentifier("domain", domain);
-  if (domainError) {
+  const parseResult = InstallSkillInputSchema.safeParse({ domain, skillName, toolIds });
+  if (!parseResult.success) {
     return {
       success: false,
       installed: [],
-      errors: [`Invalid domain: ${domainError}`],
+      errors: [formatError(parseResult.error)],
     };
   }
 
-  const nameError = validateIdentifier("name", skillName);
-  if (nameError) {
-    return {
-      success: false,
-      installed: [],
-      errors: [`Invalid skill name: ${nameError}`],
-    };
-  }
-
+  const { domain: validatedDomain, skillName: validatedSkillName, toolIds: validatedToolIds } = parseResult.data;
   const installed: ToolId[] = [];
   const errors: string[] = [];
 
   let skill: Skill | null = null;
 
-  const toolkitDir = path.join(getSkillsDir(), domain, skillName);
+  const toolkitDir = path.join(getSkillsDir(), validatedDomain, validatedSkillName);
   try {
     skill = await loadSkill(toolkitDir, "toolkit");
   } catch {
-    const localDir = path.join(getLocalSkillsDir(), domain, skillName);
+    const localDir = path.join(getLocalSkillsDir(), validatedDomain, validatedSkillName);
     try {
       skill = await loadSkill(localDir, "local");
     } catch (err) {
@@ -174,29 +165,26 @@ export async function installSkillAction(
     profile = { name: "default", description: "", include: ["*"], exclude: [], tools: {} };
   }
 
-  for (const toolId of toolIds) {
+  for (const toolId of validatedToolIds) {
     try {
       const adapter = getAdapter(toolId);
       const outputs = adapter.translateSkill(skill, profile);
 
       if (outputs.length === 0) {
-        errors.push(`${toolId}: adapter produced no output for this skill`);
+        errors.push(`${TOOL_LABELS[toolId]}: adapter produced no output for this skill`);
         continue;
       }
 
       const globalPath = getGlobalPath(toolId);
+      if (!globalPath) {
+        errors.push(`${TOOL_LABELS[toolId]}: global path not detected or configured`);
+        continue;
+      }
 
       for (const output of outputs) {
-        let destPath: string;
-
-        if (globalPath) {
-          destPath = path.join(globalPath, output.relativePath);
-          if (!isWithinPath(globalPath, destPath)) {
-            errors.push(`${toolId}: security violation — refusing to write outside global path: ${output.relativePath}`);
-            continue;
-          }
-        } else {
-          errors.push(`${toolId}: no global path configured`);
+        const destPath = path.join(globalPath, output.relativePath);
+        if (!isWithinPath(globalPath, destPath)) {
+          errors.push(`${TOOL_LABELS[toolId]}: security violation — refusing to write outside global path: ${output.relativePath}`);
           continue;
         }
 
@@ -208,18 +196,24 @@ export async function installSkillAction(
           );
           if (!limitCheck.withinLimit) {
             errors.push(
-              `${toolId}: ${output.relativePath} exceeds ${output.scope} limit (${limitCheck.currentSize} > ${limitCheck.maxSize} chars)`
+              `${TOOL_LABELS[toolId]}: ${output.relativePath} exceeds ${output.scope} limit (${limitCheck.currentSize} > ${limitCheck.maxSize} chars)`
             );
+            continue;
           }
         }
 
-        await fs.mkdir(path.dirname(destPath), { recursive: true });
-        await atomicWrite(destPath, output.content);
+        try {
+          await fs.mkdir(path.dirname(destPath), { recursive: true });
+          await atomicWrite(destPath, output.content);
+        } catch (err) {
+          errors.push(`${TOOL_LABELS[toolId]}: failed to write ${output.relativePath}: ${formatError(err)}`);
+          continue;
+        }
       }
 
       installed.push(toolId);
     } catch (err) {
-      errors.push(`${toolId}: ${formatError(err)}`);
+      errors.push(`${TOOL_LABELS[toolId]}: ${formatError(err)}`);
     }
   }
 
@@ -230,42 +224,68 @@ export async function uninstallSkillAction(
   skillName: string,
   toolIds: ToolId[]
 ): Promise<{ success: boolean; removed: string[]; errors: string[] }> {
-  const nameError = validateIdentifier("skill name", skillName);
-  if (nameError) {
+  const parseResult = UninstallSkillInputSchema.safeParse({ skillName, toolIds });
+  if (!parseResult.success) {
     return {
       success: false,
       removed: [],
-      errors: [`Invalid skill name: ${nameError}`],
+      errors: [formatError(parseResult.error)],
     };
   }
 
+  const { skillName: validatedSkillName, toolIds: validatedToolIds } = parseResult.data;
   const removed: string[] = [];
   const errors: string[] = [];
 
   const removalPaths: Record<ToolId, string[]> = {
-    "claude-code": [`skills/${skillName}`],
-    cursor: [`rules/${skillName}.mdc`],
-    windsurf: [`rules/${skillName}.md`, `skills/${skillName}`],
-    opencode: [`skills/${skillName}`],
+    "claude-code": [`skills/${validatedSkillName}`],
+    cursor: [`rules/${validatedSkillName}.mdc`],
+    windsurf: [`rules/${validatedSkillName}.md`, `skills/${validatedSkillName}`],
+    opencode: [`skills/${validatedSkillName}`],
     codex: [],
     "agents-md": [],
   };
 
-  for (const toolId of toolIds) {
-    const globalPath = getGlobalPath(toolId);
-    if (!globalPath) continue;
-
-    const paths = removalPaths[toolId] ?? [];
-    for (const rel of paths) {
-      const fullPath = path.join(globalPath, rel);
-      try {
-        await fs.rm(fullPath, { recursive: true, force: true });
-        removed.push(`${toolId}:${rel}`);
-      } catch (err) {
-        errors.push(`${toolId}: failed to remove ${rel}: ${err}`);
+  for (const toolId of validatedToolIds) {
+    try {
+      const globalPath = getGlobalPath(toolId);
+      if (!globalPath) {
+        // Skip silently if tool not detected during uninstallation, or log a minor warning?
+        // We'll skip as we can't uninstall if we don't know where it is.
+        continue;
       }
+
+      const paths = removalPaths[toolId] ?? [];
+      for (const rel of paths) {
+        const fullPath = path.join(globalPath, rel);
+        if (!isWithinPath(globalPath, fullPath)) {
+          errors.push(`${TOOL_LABELS[toolId]}: security violation — refusing to remove outside global path: ${rel}`);
+          continue;
+        }
+
+        try {
+          // Check if it exists before trying to remove, to avoid unnecessary errors
+          await fs.access(fullPath);
+          await fs.rm(fullPath, { recursive: true, force: true });
+          removed.push(`${TOOL_LABELS[toolId]}:${rel}`);
+        } catch (err) {
+          if (isNodeErrnoException(err) && err.code === "ENOENT") {
+            // Already gone, count as success if the user specifically asked for it?
+            // Usually uninstallation of non-existent thing is a no-op success.
+            continue;
+          }
+          errors.push(`${TOOL_LABELS[toolId]}: failed to remove ${rel}: ${formatError(err)}`);
+        }
+      }
+    } catch (err) {
+      errors.push(`${TOOL_LABELS[toolId]}: ${formatError(err)}`);
     }
   }
 
-  return { success: removed.length > 0, removed, errors };
+  return { success: removed.length > 0 || errors.length === 0, removed, errors };
+}
+
+function isNodeErrnoException(value: unknown): value is NodeJS.ErrnoException {
+  if (!(value instanceof Error)) return false;
+  return "code" in value;
 }
