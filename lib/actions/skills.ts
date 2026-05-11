@@ -87,7 +87,7 @@ export async function createSkillAction(
     .map((line) => `  ${line}`)
     .join("\n");
 
-  const frontmatter = [
+  const content = [
     "---",
     `name: ${validated.name}`,
     `description: |`,
@@ -114,7 +114,7 @@ export async function createSkillAction(
   try {
     await fs.mkdir(skillDir, { recursive: true });
     try {
-      await atomicWrite(path.join(skillDir, "SKILL.md"), frontmatter);
+      await atomicWrite(path.join(skillDir, "SKILL.md"), content);
       return { success: true };
     } catch (err) {
       // Clean up the directory if file creation fails
