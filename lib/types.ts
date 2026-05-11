@@ -12,6 +12,9 @@ export const TOOL_IDS = [
 
 export type ToolId = (typeof TOOL_IDS)[number];
 
+export const ToolIdSchema = z.enum(TOOL_IDS);
+export const ToolIdsSchema = z.array(ToolIdSchema);
+
 export const TOOL_LABELS: Record<ToolId, string> = {
   "claude-code": "Claude Code",
   cursor: "Cursor",
@@ -74,6 +77,17 @@ export interface Skill {
   supportingFiles: string[]; // relative paths of examples/, scripts/, templates/
   source: SkillSource;
 }
+
+export const InstallSkillInputSchema = z.object({
+  domain: z.string().min(1).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+  skillName: z.string().min(1).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+  toolIds: ToolIdsSchema,
+});
+
+export const UninstallSkillInputSchema = z.object({
+  skillName: z.string().min(1).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+  toolIds: ToolIdsSchema,
+});
 
 // ── Profile schema ────────────────────────────────────────────────
 export const ToolConfigSchema = z.object({
