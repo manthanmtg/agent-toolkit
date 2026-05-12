@@ -3,11 +3,8 @@
 import {
   loadAllProfiles,
   loadAllProfilesWithDiagnostics,
-  loadProfile,
-  loadAllSkills,
-  filterSkillsByProfile,
 } from "../registry";
-import type { Profile, Skill } from "../types";
+import type { Profile } from "../types";
 
 export interface ProfileListing {
   profiles: Profile[];
@@ -31,23 +28,6 @@ export async function listProfilesWithDiagnosticsAction(): Promise<ProfileListin
     return {
       profiles: [],
       invalidProfiles: [{ file: "all", error: err instanceof Error ? err.message : "Failed to load profiles" }],
-    };
-  }
-}
-
-export async function getProfileWithSkillsAction(
-  name: string
-): Promise<{ profile: Profile; skills: Skill[]; error?: string } | null> {
-  try {
-    const profile = await loadProfile(name);
-    const allSkills = await loadAllSkills();
-    const skills = filterSkillsByProfile(allSkills, profile);
-    return { profile, skills };
-  } catch (err) {
-    return {
-      profile: { name: "error", description: "Failed to load profile", include: [], exclude: [], tools: {} },
-      skills: [],
-      error: err instanceof Error ? err.message : "Failed to load profile",
     };
   }
 }
