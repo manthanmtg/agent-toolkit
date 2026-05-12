@@ -91,21 +91,6 @@ async function createSymlinkInner(
   }
 }
 
-export async function removeSymlink(
-  destination: string
-): Promise<{ removed: boolean; error: string | null }> {
-  try {
-    const stat = await fs.lstat(destination);
-    if (stat.isSymbolicLink()) {
-      await fs.unlink(destination);
-      return { removed: true, error: null };
-    }
-    return { removed: false, error: `Not a symlink: ${destination}` };
-  } catch {
-    return { removed: false, error: null }; // Already gone
-  }
-}
-
 export async function linkGlobal(
   targets: SymlinkTarget[]
 ): Promise<LinkResult> {
@@ -214,19 +199,4 @@ async function updateGitignore(
 
   const section = `\n${marker}\n${paths.join("\n")}\n`;
   await atomicWrite(gitignorePath, content.trimEnd() + section);
-}
-
-export async function unlinkAll(
-  destinations: string[]
-): Promise<{ removed: number; errors: string[] }> {
-  let removed = 0;
-  const errors: string[] = [];
-
-  for (const dest of destinations) {
-    const result = await removeSymlink(dest);
-    if (result.removed) removed++;
-    if (result.error) errors.push(result.error);
-  }
-
-  return { removed, errors };
 }

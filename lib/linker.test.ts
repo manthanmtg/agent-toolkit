@@ -3,10 +3,8 @@ import fs from "fs/promises";
 import path from "path";
 import {
   createSymlink,
-  removeSymlink,
   linkGlobal,
   linkProject,
-  unlinkAll,
 } from "./linker";
 import { backupFile, writeToolkitMarker, checkDuplicate, atomicWrite } from "./safety";
 
@@ -81,36 +79,6 @@ describe("linker", () => {
     });
   });
 
-  describe("removeSymlink", () => {
-    it("should remove symlink if it exists", async () => {
-      vi.mocked(fs.lstat).mockResolvedValue({ isSymbolicLink: () => true } as any);
-      vi.mocked(fs.unlink).mockResolvedValue(undefined);
-
-      const result = await removeSymlink("/dest/link");
-
-      expect(fs.unlink).toHaveBeenCalledWith("/dest/link");
-      expect(result).toEqual({ removed: true, error: null });
-    });
-
-    it("should not remove if it is not a symlink", async () => {
-      vi.mocked(fs.lstat).mockResolvedValue({ isSymbolicLink: () => false } as any);
-
-      const result = await removeSymlink("/dest/link");
-
-      expect(fs.unlink).not.toHaveBeenCalled();
-      expect(result.removed).toBe(false);
-      expect(result.error).toContain("Not a symlink");
-    });
-
-    it("should return removed: false if it does not exist", async () => {
-      vi.mocked(fs.lstat).mockRejectedValue(new Error("ENOENT"));
-
-      const result = await removeSymlink("/dest/link");
-
-      expect(result).toEqual({ removed: false, error: null });
-    });
-  });
-
   describe("linkGlobal", () => {
     it("should link multiple targets and write markers", async () => {
       vi.mocked(checkDuplicate).mockResolvedValue({ exists: false, isToolkitManaged: false });
@@ -167,17 +135,6 @@ describe("linker", () => {
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0]).toContain("Refusing to link outside project");
       expect(result.created).toHaveLength(0);
-    });
-  });
-
-  describe("unlinkAll", () => {
-    it("should remove multiple symlinks", async () => {
-      vi.mocked(fs.lstat).mockResolvedValue({ isSymbolicLink: () => true } as any);
-      
-      const result = await unlinkAll(["/d1", "/d2"]);
-
-      expect(result.removed).toBe(2);
-      expect(fs.unlink).toHaveBeenCalledTimes(2);
     });
   });
 });
