@@ -149,12 +149,16 @@ export async function installSkillAction(
   const toolkitDir = path.join(getSkillsDir(), validatedDomain, validatedSkillName);
   try {
     skill = await loadSkill(toolkitDir, "toolkit");
-  } catch {
+  } catch (toolkitErr) {
     const localDir = path.join(getLocalSkillsDir(), validatedDomain, validatedSkillName);
     try {
       skill = await loadSkill(localDir, "local");
-    } catch (err) {
-      return { success: false, installed, errors: [`Skill not found: ${formatError(err)}`] };
+    } catch (localErr) {
+      return { 
+        success: false, 
+        installed, 
+        errors: [`Skill not found in toolkit or local registry: ${validatedDomain}/${validatedSkillName}`] 
+      };
     }
   }
 
@@ -177,7 +181,7 @@ export async function installSkillAction(
 
       const globalPath = getGlobalPath(toolId);
       if (!globalPath) {
-        errors.push(`${TOOL_LABELS[toolId]}: global path not detected or configured`);
+        errors.push(`${TOOL_LABELS[toolId]}: tool not detected or global path not configured`);
         continue;
       }
 
@@ -250,8 +254,7 @@ export async function uninstallSkillAction(
     try {
       const globalPath = getGlobalPath(toolId);
       if (!globalPath) {
-        // Skip silently if tool not detected during uninstallation, or log a minor warning?
-        // We'll skip as we can't uninstall if we don't know where it is.
+        errors.push(`${TOOL_LABELS[toolId]}: tool not detected or global path not configured`);
         continue;
       }
 
@@ -264,14 +267,13 @@ export async function uninstallSkillAction(
         }
 
         try {
-          // Check if it exists before trying to remove, to avoid unnecessary errors
+          // Check if it exists before trying to remove
           await fs.access(fullPath);
           await fs.rm(fullPath, { recursive: true, force: true });
-          removed.push(`${TOOL_LABELS[toolId]}:${rel}`);
+          removed.push(`${TOOL_LABELS[toolId]}: ${rel}`);
         } catch (err) {
           if (isNodeErrnoException(err) && err.code === "ENOENT") {
-            // Already gone, count as success if the user specifically asked for it?
-            // Usually uninstallation of non-existent thing is a no-op success.
+            // Already gone, no error needed
             continue;
           }
           errors.push(`${TOOL_LABELS[toolId]}: failed to remove ${rel}: ${formatError(err)}`);
