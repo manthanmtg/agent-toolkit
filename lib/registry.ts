@@ -322,10 +322,6 @@ export function getLocalSkillsDir(): string {
   return LOCAL_SKILLS_DIR;
 }
 
-export function getProfilesDir(): string {
-  return PROFILES_DIR;
-}
-
 export function getRepoRoot(): string {
   return REPO_ROOT;
 }

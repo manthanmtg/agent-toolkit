@@ -198,10 +198,6 @@ activation:
       // But getGlobalPath just returns the string.
       // detector.ts's detectTools checks if it exists, but actions/skills.ts calls getGlobalPath directly.
       
-      // Let's see what happens if the file doesn't exist.
-      // uninstallSkillAction:
-      // try { await fs.access(fullPath); await fs.rm(fullPath, ...); removed.push(...); } catch (err) { if (err.code === "ENOENT") continue; ... }
-      
       const result2 = await actions.uninstallSkillAction("test-skill", ["claude-code"]);
       expect(result2.success).toBe(true); // Should be true if no errors even if nothing removed
       expect(result2.removed).toHaveLength(0);

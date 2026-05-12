@@ -13,7 +13,6 @@ interface RegistryModule {
     invalidFiles: Array<{ file: string; error: string }>;
   }>;
   loadProfile: (name: string) => Promise<Profile>;
-  getProfilesDir: () => string;
 }
 
 describe("registry", () => {
@@ -39,7 +38,6 @@ describe("registry", () => {
       filterSkillsByProfile: registryModule.filterSkillsByProfile,
       loadAllProfilesWithDiagnostics: registryModule.loadAllProfilesWithDiagnostics,
       loadProfile: registryModule.loadProfile,
-      getProfilesDir: registryModule.getProfilesDir,
     };
   });
 
@@ -344,9 +342,5 @@ describe("registry", () => {
 
     const { invalidFiles } = await registry.loadAllProfilesWithDiagnostics();
     expect(invalidFiles.some(f => f.file === "invalid-extends.yaml" && f.error.includes("invalid profile name"))).toBe(true);
-  });
-
-  it("returns the active profiles directory path", () => {
-    expect(registry.getProfilesDir()).toBe(path.join(repoRoot, "profiles"));
   });
 });
