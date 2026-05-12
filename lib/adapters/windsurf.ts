@@ -38,9 +38,7 @@ export class WindsurfAdapter extends BaseAdapter {
     // Also emit as a skill directory
     const skillFrontmatter = [
       "---",
-      `name: ${skill.frontmatter.name}`,
-      "description: |",
-      ...descriptionLines.map((line) => `  ${line}`),
+      ...this.renderSkillFrontmatter(skill),
       "---",
       "",
     ].join("\n");

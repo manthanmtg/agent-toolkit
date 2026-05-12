@@ -51,6 +51,12 @@ describe("ClaudeCodeAdapter", () => {
     expect(outputs[0].content).toContain("  line 1");
     expect(outputs[0].content).toContain("  line 2");
   });
+
+  it("should include core metadata (version, domain) in translated skills", () => {
+    const outputs = adapter.translateSkill(mockSkill, mockProfile);
+    expect(outputs[0].content).toContain(`version: 1.0.0`);
+    expect(outputs[0].content).toContain(`domain: test`);
+  });
 });
 
 describe("WindsurfAdapter", () => {
@@ -70,6 +76,8 @@ describe("WindsurfAdapter", () => {
     const skill = outputs.find(o => o.relativePath === "skills/test-skill/SKILL.md");
     expect(skill).toBeDefined();
     expect(skill?.content).toContain("name: test-skill");
+    expect(skill?.content).toContain("version: 1.0.0");
+    expect(skill?.content).toContain("domain: test");
   });
 
   it("should respect activation trigger and globs", () => {
@@ -127,6 +135,8 @@ describe("CursorAdapter", () => {
     const skill = outputs.find(o => o.relativePath === "skills/test-skill/SKILL.md");
     expect(skill).toBeDefined();
     expect(skill?.content).toContain("name: test-skill");
+    expect(skill?.content).toContain("version: 1.0.0");
+    expect(skill?.content).toContain("domain: test");
   });
 
   it("should handle 'always' activation and globs", () => {
@@ -179,6 +189,12 @@ describe("OpenCodeAdapter", () => {
     expect(outputs[0].content).toContain("  line 1");
     expect(outputs[0].content).toContain("  line 2");
     expect(outputs[0].content).toContain('globs: "*.py"');
+  });
+
+  it("should include core metadata (version, domain) in translated skills", () => {
+    const outputs = adapter.translateSkill(mockSkill, mockProfile);
+    expect(outputs[0].content).toContain(`version: 1.0.0`);
+    expect(outputs[0].content).toContain(`domain: test`);
   });
 
   it("should truncate long descriptions and warn", () => {

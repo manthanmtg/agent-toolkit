@@ -9,26 +9,27 @@ export class OpenCodeAdapter extends BaseAdapter {
   translateSkill(skill: Skill, _profile: Profile): OutputFile[] {
     const fullDescription = skill.frontmatter.description;
     const shouldTruncateDescription = fullDescription.length > 1024;
-    const descriptionLines = (shouldTruncateDescription
-      ? fullDescription.slice(0, 1024)
-      : fullDescription
-    ).split("\n");
 
     // OpenCode skills use the same SKILL.md format as Claude Code
-    const frontmatter = [
-      "---",
-      `name: ${skill.frontmatter.name}`,
-      `description: |`,
-      ...descriptionLines.map((line) => `  ${line}`),
-    ];
+    const frontmatter = ["---", ...this.renderSkillFrontmatter(skill)];
+
+    if (shouldTruncateDescription) {
+      // Re-render description for truncation if needed
+      const truncatedDesc = fullDescription.slice(0, 1024);
+      const descriptionLines = truncatedDesc.split("\n");
+      const descIdx = frontmatter.findIndex(l => l.startsWith("description:"));
+      if (descIdx !== -1) {
+        frontmatter.splice(descIdx, frontmatter.length - descIdx,
+          "description: |",
+          ...descriptionLines.map((line) => `  ${line}`)
+        );
+      }
+      frontmatter.push(`truncated-description: true`);
+      frontmatter.push(`description-length: ${fullDescription.length}`);
+    }
 
     if (skill.frontmatter.globs) {
       frontmatter.push(`globs: "${skill.frontmatter.globs}"`);
-    }
-
-    if (shouldTruncateDescription) {
-      frontmatter.push(`truncated-description: true`);
-      frontmatter.push(`description-length: ${fullDescription.length}`);
     }
 
     frontmatter.push("---", "");
