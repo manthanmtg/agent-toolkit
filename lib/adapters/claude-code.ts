@@ -9,14 +9,8 @@ export class ClaudeCodeAdapter extends BaseAdapter {
   translateSkill(skill: Skill, _profile: Profile): OutputFile[] {
     const activation = skill.frontmatter.activation?.["claude-code"] ?? "model";
     const disableModelInvocation = activation === "user-only";
-    const descriptionLines = skill.frontmatter.description.split("\n");
 
-    const frontmatter = [
-      "---",
-      `name: ${skill.frontmatter.name}`,
-      `description: |`,
-      ...descriptionLines.map((line) => `  ${line}`),
-    ];
+    const frontmatter = ["---", ...this.renderSkillFrontmatter(skill)];
 
     if (disableModelInvocation) {
       frontmatter.push(`disable-model-invocation: true`);

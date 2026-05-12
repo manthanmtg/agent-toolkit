@@ -28,12 +28,7 @@ export class CursorAdapter extends BaseAdapter {
     const ruleContent = ruleFrontmatter.join("\n") + skill.content + "\n";
 
     // Skill format (SKILL.md) for .cursor/skills/ and ~/.cursor/skills/
-    const skillFrontmatter = [
-      "---",
-      `name: ${skill.frontmatter.name}`,
-      "description: |",
-      ...descriptionLines.map((line) => `  ${line}`),
-    ];
+    const skillFrontmatter = ["---", ...this.renderSkillFrontmatter(skill)];
 
     if (activation === "manual") {
       skillFrontmatter.push("disable-model-invocation: true");
