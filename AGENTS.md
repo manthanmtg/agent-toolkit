@@ -107,6 +107,6 @@ Supports Claude Code, Cursor, Windsurf, and Codex. Manage (add/edit/remove/copy)
 - Client Components: `"use client"` — keep as leaf nodes
 - All file writes use `atomicWrite()` from `lib/safety.ts` (temp + rename)
 - Backups go to `~/.agent-toolkit-backup/`
-- Character Limits: Validate size with `checkCharacterLimit()`. Windsurf: 6K (global) / 12K (workspace); Codex: 32 KiB (global).
+- Character Limits: Validate size with `checkCharacterLimit()` (from `lib/adapters/`). Windsurf: 6,000 (global) / 12,000 (workspace); Codex: 32,768 bytes (global).
 - Adapter imports: always `BaseAdapter` from `./base`, never `./index`
 - No bare `fs.writeFile` — use `atomicWrite` for safety

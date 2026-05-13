@@ -167,7 +167,7 @@ The toolkit supports managing Model Context Protocol (MCP) servers for Claude Co
 - **No bare fs.writeFile**: Use `atomicWrite` (temp file + rename) for safety
 - **Backups**: Files are backed up to `~/.agent-toolkit-backup/` before modification
 - **Duplicate detection**: Check for existing content before writing with `checkDuplicate()`
-- **Character Limits**: Validate output size with `checkCharacterLimit()`.
+- **Character Limits**: Validate output size with `checkCharacterLimit()` (exported from `lib/adapters/index.ts`).
   - **Windsurf**: 6,000 (global) / 12,000 (workspace)
   - **Codex**: 32,768 bytes (global)
 - **Imports in adapters**: Always import `BaseAdapter` from `./base`, never from `./index`
