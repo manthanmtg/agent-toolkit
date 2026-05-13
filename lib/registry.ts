@@ -4,7 +4,7 @@ import matter from "gray-matter";
 import { glob } from "glob";
 import { parse } from "yaml";
 import { ZodError } from "zod";
-import { SkillFrontmatterSchema, type Skill, type SkillSource, type Profile, ProfileSchema } from "./types";
+import { SkillFrontmatterSchema, type Skill, type SkillSource, type Profile, ProfileSchema, ToolConfigSchema, type ToolId, TOOL_IDS } from "./types";
 import { HOME } from "./safety";
 
 const REPO_ROOT = path.resolve(process.cwd());
@@ -195,8 +195,24 @@ export async function loadProfile(
       profile.exclude = parent.exclude;
     }
 
-    // Merge tools: child overrides parent
-    profile.tools = { ...parent.tools, ...profile.tools };
+    // Merge tools: child overrides parent property by property
+    const explicitChildTools = rawData.tools || {};
+    const mergedTools: Record<string, any> = { ...parent.tools };
+
+    for (const [toolId, childConfig] of Object.entries(profile.tools)) {
+      const tid = toolId as ToolId;
+      if (explicitChildTools[tid] && parent.tools[tid]) {
+        // Deep merge tool config: parent parsed values + child raw explicit values
+        mergedTools[tid] = ToolConfigSchema.parse({
+          ...parent.tools[tid],
+          ...explicitChildTools[tid],
+        });
+      } else {
+        // Only in child, or not in parent, or not explicit in child (already handled by ProfileSchema.parse)
+        mergedTools[tid] = childConfig;
+      }
+    }
+    profile.tools = mergedTools as Record<ToolId, any>;
   }
 
   return profile;
