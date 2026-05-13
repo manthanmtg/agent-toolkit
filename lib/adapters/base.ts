@@ -14,13 +14,29 @@ export abstract class BaseAdapter {
    * Includes name, domain, version, and multi-line description.
    */
   protected renderSkillFrontmatter(skill: Skill): string[] {
-    const descriptionLines = skill.frontmatter.description.split("\n");
-    return [
-      `name: ${skill.frontmatter.name}`,
-      `domain: ${skill.frontmatter.domain}`,
-      `version: ${skill.frontmatter.version}`,
-      "description: |",
-      ...descriptionLines.map((line) => `  ${line}`),
+    const { name, domain, version, description, author, tags, depends_on } = skill.frontmatter;
+    const descriptionLines = description.split("\n");
+    const lines = [
+      `name: ${name}`,
+      `domain: ${domain}`,
+      `version: ${version}`,
     ];
+
+    if (author) {
+      lines.push(`author: ${author}`);
+    }
+
+    if (tags && tags.length > 0) {
+      lines.push(`tags: [${tags.join(", ")}]`);
+    }
+
+    if (depends_on && depends_on.length > 0) {
+      lines.push(`depends_on: [${depends_on.join(", ")}]`);
+    }
+
+    lines.push("description: |");
+    lines.push(...descriptionLines.map((line) => `  ${line}`));
+
+    return lines;
   }
 }

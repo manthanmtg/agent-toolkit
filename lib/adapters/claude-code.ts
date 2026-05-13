@@ -36,16 +36,25 @@ export class ClaudeCodeAdapter extends BaseAdapter {
 
   translateGlobal(skills: Skill[], _profile: Profile): OutputFile[] {
     const sections = skills.map(
-      (s) => `## ${s.frontmatter.name}\n\n${s.frontmatter.description}`
+      (s) => `## ${s.frontmatter.name}\n\n${s.frontmatter.description}\n\n${s.content}`
     );
+
+    const content =
+      `# Agent Toolkit — Claude Code Instructions\n\n` +
+      sections.join("\n\n---\n\n") +
+      "\n";
+
+    // Enforce 32k char limit warning for CLAUDE.md
+    if (content.length > 32000) {
+      console.warn(
+        `Claude Code global instructions (CLAUDE.md) exceed 32,000 char limit (${content.length} chars). Consider reducing global skills.`
+      );
+    }
 
     return [
       {
         relativePath: "CLAUDE.md",
-        content:
-          `# Agent Toolkit — Claude Code Instructions\n\n` +
-          sections.join("\n\n---\n\n") +
-          "\n",
+        content,
         tool: "claude-code",
         scope: "global",
       },
@@ -66,7 +75,7 @@ export class ClaudeCodeAdapter extends BaseAdapter {
     ]);
   }
 
-  getCharacterLimit(_scope: "global" | "workspace"): number | null {
-    return null; // No hard limit
+  getCharacterLimit(scope: "global" | "workspace"): number | null {
+    return scope === "global" ? 32000 : null;
   }
 }
