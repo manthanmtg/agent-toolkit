@@ -72,7 +72,7 @@ describe("safety utilities", () => {
 
     expect(checkCharacterLimit("a", "claude-code", "global")).toMatchObject({
       withinLimit: true,
-      maxSize: Number.POSITIVE_INFINITY,
+      maxSize: 32000,
     });
   });
 
