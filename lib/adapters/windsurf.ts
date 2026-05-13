@@ -7,8 +7,8 @@ export class WindsurfAdapter extends BaseAdapter {
   readonly toolId = "windsurf" as const;
 
   translateSkill(skill: Skill, _profile: Profile): OutputFile[] {
-    const trigger =
-      skill.frontmatter.activation?.windsurf ?? "model_decision";
+    const activation = skill.frontmatter.activation?.windsurf ?? "model_decision";
+    const trigger = activation;
     const descriptionLines = skill.frontmatter.description.split("\n");
 
     const frontmatter = [
@@ -36,9 +36,14 @@ export class WindsurfAdapter extends BaseAdapter {
     ];
 
     // Also emit as a skill directory
+    const skillFrontmatterLines = [...this.renderSkillFrontmatter(skill)];
+    if (activation === "manual") {
+      skillFrontmatterLines.push("disable-model-invocation: true");
+    }
+
     const skillFrontmatter = [
       "---",
-      ...this.renderSkillFrontmatter(skill),
+      ...skillFrontmatterLines,
       "---",
       "",
     ].join("\n");
@@ -55,7 +60,8 @@ export class WindsurfAdapter extends BaseAdapter {
 
   translateGlobal(skills: Skill[], _profile: Profile): OutputFile[] {
     const sections = skills.map(
-      (s) => `## ${s.frontmatter.name}\n\n${s.frontmatter.description}`
+      (s) =>
+        `## ${s.frontmatter.name}\n\n${s.frontmatter.description}\n\n${s.content}`
     );
 
     const globalContent =
