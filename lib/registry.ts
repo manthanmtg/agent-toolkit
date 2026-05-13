@@ -234,6 +234,12 @@ export async function loadAllProfiles(): Promise<Profile[]> {
 }
 
 export async function loadAllProfilesWithDiagnostics(): Promise<ProfileLoadResult> {
+  try {
+    await fs.access(PROFILES_DIR);
+  } catch {
+    return { profiles: [], invalidFiles: [] };
+  }
+
   const files = await glob("*.yaml", { cwd: PROFILES_DIR });
 
   const results = await Promise.all(

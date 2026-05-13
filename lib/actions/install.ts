@@ -5,7 +5,7 @@ import { detectTools } from "../detector";
 import { build } from "../builder";
 import { linkGlobal } from "../linker";
 import { getAllAdapters } from "../adapters";
-import { getRepoRoot } from "../registry";
+import { getRepoRoot, loadProfile } from "../registry";
 import type { DetectedTool, SymlinkTarget } from "../types";
 
 function formatError(err: unknown): string {
@@ -34,6 +34,25 @@ export async function runInstall(
     typeof profileName === "string" && profileName.trim().length > 0
       ? profileName.trim()
       : "default";
+
+  // Step 0: Validate profile exists
+  try {
+    await loadProfile(normalizedProfile);
+  } catch (err) {
+    return {
+      tools: [],
+      buildResult: {
+        totalSkills: 0,
+        totalFiles: 0,
+        errors: [`Invalid profile "${normalizedProfile}": ${formatError(err)}`],
+      },
+      linkResult: {
+        created: 0,
+        backedUp: 0,
+        errors: ["Install flow stopped due to profile validation failure."],
+      },
+    };
+  }
 
   // Step 1: Detect tools
   let tools: DetectedTool[] = [];

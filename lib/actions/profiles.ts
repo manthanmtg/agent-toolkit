@@ -11,12 +11,16 @@ export interface ProfileListing {
   invalidProfiles: Array<{ file: string; error: string }>;
 }
 
+function formatError(err: unknown): string {
+  if (err instanceof Error) return err.message || "Unknown error";
+  return typeof err === "string" ? err : "Unknown error";
+}
+
 export async function listProfilesAction(): Promise<Profile[]> {
   try {
     return await loadAllProfiles();
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    throw new Error(`Failed to list profiles: ${message}`);
+    throw new Error(`Failed to list profiles: ${formatError(err)}`);
   }
 }
 
