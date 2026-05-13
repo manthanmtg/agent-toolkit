@@ -145,6 +145,8 @@ tools:
 4. Register it in `lib/adapters/index.ts` (import + add to `getAllAdapters()`)
 5. Add the tool ID to `TOOL_IDS` and `TOOL_LABELS` in `lib/types.ts`
 
+**Helpers:** Use `this.renderSkillFrontmatter(skill)` from `BaseAdapter` to generate consistent common frontmatter (name, domain, version, description).
+
 **Note:** `getCharacterLimit(scope)` takes `"global"` or `"workspace"` to return scope-specific limits.
 
 ## MCP Server Management
@@ -168,6 +170,7 @@ The toolkit supports managing Model Context Protocol (MCP) servers for Claude Co
 - **Backups**: Files are backed up to `~/.agent-toolkit-backup/` before modification
 - **Duplicate detection**: Check for existing content before writing with `checkDuplicate()`
 - **Character Limits**: Validate output size with `checkCharacterLimit()` (exported from `lib/adapters/index.ts`).
+  - **Claude Code**: 32,000 (global)
   - **Windsurf**: 6,000 (global) / 12,000 (workspace)
   - **Codex**: 32,768 bytes (global)
 - **Imports in adapters**: Always import `BaseAdapter` from `./base`, never from `./index`

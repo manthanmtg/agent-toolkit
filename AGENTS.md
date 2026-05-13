@@ -97,6 +97,8 @@ tools:
 3. Implement: `translateSkill`, `translateGlobal`, `getGlobalSymlinkTargets`, `getProjectSymlinkTargets`, `getCharacterLimit(scope)`
 4. Register in `lib/adapters/index.ts` and add tool ID to `lib/types.ts`
 
+**Helpers:** Use `this.renderSkillFrontmatter(skill)` from `BaseAdapter` to generate consistent common frontmatter (name, domain, version, description).
+
 ## MCP Server Management
 
 Supports Claude Code, Cursor, Windsurf, and Codex. Manage (add/edit/remove/copy) stdio, SSE, and HTTP servers with health checks and bulk export/import.
@@ -107,6 +109,6 @@ Supports Claude Code, Cursor, Windsurf, and Codex. Manage (add/edit/remove/copy)
 - Client Components: `"use client"` — keep as leaf nodes
 - All file writes use `atomicWrite()` from `lib/safety.ts` (temp + rename)
 - Backups go to `~/.agent-toolkit-backup/`
-- Character Limits: Validate size with `checkCharacterLimit()` (from `lib/adapters/`). Windsurf: 6,000 (global) / 12,000 (workspace); Codex: 32,768 bytes (global).
+- Character Limits: Validate size with `checkCharacterLimit()` (from `lib/adapters/`). Claude Code: 32,000 (global); Windsurf: 6,000 (global) / 12,000 (workspace); Codex: 32,768 bytes (global).
 - Adapter imports: always `BaseAdapter` from `./base`, never `./index`
 - No bare `fs.writeFile` — use `atomicWrite` for safety
