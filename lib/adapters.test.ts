@@ -94,6 +94,9 @@ describe("WindsurfAdapter", () => {
     const rule = outputs.find(o => o.relativePath === "rules/test-skill.md");
     expect(rule?.content).toContain("trigger: manual");
     expect(rule?.content).toContain('globs: "*.ts"');
+
+    const skillOutput = outputs.find(o => o.relativePath === "skills/test-skill/SKILL.md");
+    expect(skillOutput?.content).toContain("disable-model-invocation: true");
   });
 
   it("should translate global rules", () => {
@@ -103,6 +106,7 @@ describe("WindsurfAdapter", () => {
     expect(outputs[0].content).toContain("# Agent Toolkit — Global Rules");
     expect(outputs[0].content).toContain("## test-skill");
     expect(outputs[0].content).toContain("line 1\nline 2");
+    expect(outputs[0].content).toContain("Test content");
   });
 
   it("should warn when global rules exceed limit", () => {
