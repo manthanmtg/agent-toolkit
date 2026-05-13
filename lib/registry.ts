@@ -181,8 +181,14 @@ export async function loadProfile(
           `Validation error in ${name}.yaml: "extends" refers to an invalid profile name "${profile.extends}".`
         );
       }
+      if (message.includes("Could not read profile file")) {
+        throw new Error(
+          `Validation error in ${name}.yaml: "extends" refers to a non-existent profile "${profile.extends}".`
+        );
+      }
+      // Re-wrap other errors (YAML parse, Zod validation) to show they came from the parent
       throw new Error(
-        `Validation error in ${name}.yaml: "extends" refers to a non-existent profile "${profile.extends}".`
+        `Validation error in ${name}.yaml: "extends" refers to an invalid profile "${profile.extends}". Inner error: ${message}`
       );
     }
 

@@ -343,4 +343,23 @@ describe("registry", () => {
     const { invalidFiles } = await registry.loadAllProfilesWithDiagnostics();
     expect(invalidFiles.some(f => f.file === "invalid-extends.yaml" && f.error.includes("invalid profile name"))).toBe(true);
   });
+
+  it("reports when a profile extends a profile with invalid YAML", async () => {
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "parent-invalid.yaml"),
+      "name: parent-invalid\ninclude: [unclosed list",
+      "utf-8"
+    );
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "child.yaml"),
+      "name: child\nextends: parent-invalid\n",
+      "utf-8"
+    );
+
+    const { invalidFiles } = await registry.loadAllProfilesWithDiagnostics();
+    const childError = invalidFiles.find(f => f.file === "child.yaml")?.error;
+    // We want the error to be descriptive, not just "non-existent"
+    expect(childError).toContain("YAML parse error");
+    expect(childError).not.toContain("non-existent profile");
+  });
 });
