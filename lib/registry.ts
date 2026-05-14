@@ -279,13 +279,21 @@ export function filterSkillsByProfile(
 
   return skills.filter((skill) => {
     const skillPath = `${skill.domain}/${skill.skillName}`.toLowerCase();
-    const skillTags = new Set(
-      skill.frontmatter.tags.map((tag) => tag.trim().toLowerCase())
-    );
+
+    // Lazy tag set creation to avoid overhead if no tag patterns are used
+    let skillTags: Set<string> | undefined;
+    const getSkillTags = () => {
+      if (!skillTags) {
+        skillTags = new Set(
+          skill.frontmatter.tags.map((tag) => tag.toLowerCase())
+        );
+      }
+      return skillTags;
+    };
 
     // Check exclusions first
     for (const pattern of excludePatterns) {
-      if (matchGlob(skillPath, pattern, skillTags)) return false;
+      if (matchGlob(skillPath, pattern, getSkillTags)) return false;
     }
 
     // Check inclusions
@@ -294,7 +302,7 @@ export function filterSkillsByProfile(
     }
 
     for (const pattern of includePatterns) {
-      if (matchGlob(skillPath, pattern, skillTags)) return true;
+      if (matchGlob(skillPath, pattern, getSkillTags)) return true;
     }
 
     return false;
@@ -314,7 +322,7 @@ function normalizePatterns(patterns: string[]): string[] {
 function matchGlob(
   skillPath: string,
   pattern: string,
-  skillTags: Set<string>
+  getSkillTags: () => Set<string>
 ): boolean {
   // All inputs are assumed to be lowercase
   if (pattern === "*") return true;
@@ -323,8 +331,9 @@ function matchGlob(
   if (pattern.startsWith("tag:")) {
     const tag = pattern.slice(4).trim();
     if (!tag) return false;
-    if (tag === "*") return skillTags.size > 0;
-    return skillTags.has(tag);
+    const tags = getSkillTags();
+    if (tag === "*") return tags.size > 0;
+    return tags.has(tag);
   }
 
   // domain/*

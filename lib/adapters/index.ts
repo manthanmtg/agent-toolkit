@@ -27,15 +27,20 @@ function getInstanceOf<T extends BaseAdapter>(
   return instances[toolId] as T;
 }
 
+let allAdaptersCache: BaseAdapter[] | null = null;
+
 export function getAllAdapters(): BaseAdapter[] {
-  return [
-    getInstanceOf("claude-code", ClaudeCodeAdapter),
-    getInstanceOf("cursor", CursorAdapter),
-    getInstanceOf("windsurf", WindsurfAdapter),
-    getInstanceOf("opencode", OpenCodeAdapter),
-    getInstanceOf("codex", CodexAdapter),
-    getInstanceOf("agents-md", AgentsMdAdapter),
-  ];
+  if (!allAdaptersCache) {
+    allAdaptersCache = [
+      getInstanceOf("claude-code", ClaudeCodeAdapter),
+      getInstanceOf("cursor", CursorAdapter),
+      getInstanceOf("windsurf", WindsurfAdapter),
+      getInstanceOf("opencode", OpenCodeAdapter),
+      getInstanceOf("codex", CodexAdapter),
+      getInstanceOf("agents-md", AgentsMdAdapter),
+    ];
+  }
+  return allAdaptersCache;
 }
 
 export function getAdapter(toolId: ToolId): BaseAdapter {
