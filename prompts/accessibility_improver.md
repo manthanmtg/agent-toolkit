@@ -20,9 +20,13 @@ Choose one page or component from:
 - `app/page.tsx`
 - `app/skills/`
 - `app/my-skills/`
+- `app/add-skill/`
 - `app/install/`
 - `app/doctor/`
 - `app/mcp/`
+- `app/profiles/`
+- `app/projects/`
+- `app/settings/`
 - shared UI such as `app/sidebar-nav.tsx`, `app/sync-button.tsx`, or dialogs.
 
 ### 2. Audit
