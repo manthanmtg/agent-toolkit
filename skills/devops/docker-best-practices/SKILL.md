@@ -2,10 +2,10 @@
 name: docker-best-practices
 description: >
   Docker best practices for building efficient, secure, and reproducible
-  container images, used when reviewing or authoring Dockerfiles and image
-  build pipelines.
+  container images. Use when reviewing, authoring, or optimizing Dockerfiles
+  and container build pipelines.
 domain: devops
-version: 1.0.0
+version: 1.1.0
 tags: [docker, containers, devops, security]
 author: agent-toolkit
 activation:
@@ -17,6 +17,17 @@ activation:
 ---
 
 # Docker Best Practices
+
+Build efficient, secure, and reproducible container images.
+
+## Trigger Signals 🎯
+
+Use this skill when:
+- Authoring a new `Dockerfile` or `docker-compose.yml`
+- Reviewing or optimizing an existing container image
+- Hardening container security for production
+- Fixing slow container build pipelines
+- Minimizing image size and layer count
 
 ## Multi-Stage Builds
 
