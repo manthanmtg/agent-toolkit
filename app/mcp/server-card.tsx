@@ -261,9 +261,23 @@ export const ServerCard = memo(function ServerCard({
                 </span>
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold text-sm truncate tracking-tight">
-                  {server.name}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-sm truncate tracking-tight">
+                    {server.name}
+                  </h3>
+                  {healthResult && (
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 shadow-sm ${
+                        healthResult.status === "healthy"
+                          ? "bg-emerald-500"
+                          : healthResult.status === "unhealthy"
+                          ? "bg-red-500"
+                          : "bg-gray-400"
+                      }`}
+                      title={`Status: ${healthResult.status}`}
+                    />
+                  )}
+                </div>
                 {server.url && (
                   <p className="text-[11px] text-muted-foreground truncate mt-0.5 font-mono opacity-80">
                     {server.url}
@@ -304,15 +318,15 @@ export const ServerCard = memo(function ServerCard({
         )}
 
         {/* Quick info chips */}
-        <div className="flex items-center gap-4 mt-4">
+        <div className="flex items-center gap-2.5 mt-4">
           {envCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground/70 hover:text-foreground transition-colors cursor-default">
-              <Key className="w-3.5 h-3.5 opacity-70" />
-              {envCount} variable{envCount !== 1 ? "s" : ""}
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted/40 border border-border/30 text-[10px] font-bold text-muted-foreground uppercase tracking-tight hover:text-foreground hover:bg-muted/60 transition-colors cursor-default">
+              <Key className="w-3 h-3 opacity-70" />
+              {envCount} env{envCount !== 1 ? "s" : ""}
             </span>
           )}
           {server.args && server.args.length > 0 && (
-            <span className="text-[11px] font-medium text-muted-foreground/70 hover:text-foreground transition-colors cursor-default">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted/40 border border-border/30 text-[10px] font-bold text-muted-foreground uppercase tracking-tight hover:text-foreground hover:bg-muted/60 transition-colors cursor-default">
               {server.args.length} arg{server.args.length !== 1 ? "s" : ""}
             </span>
           )}
@@ -356,7 +370,7 @@ export const ServerCard = memo(function ServerCard({
               onClick={() => setExpanded(!expanded)}
               aria-expanded={expanded}
               aria-controls={detailsId}
-              className="flex items-center gap-1.5 mt-4 text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors uppercase tracking-wider"
+              className="inline-flex items-center gap-1.5 mt-4 px-2 py-1 -ml-2 rounded-md text-[11px] font-bold text-muted-foreground/80 hover:text-primary hover:bg-primary/5 transition-all uppercase tracking-wider active:scale-95"
             >
               {expanded ? (
                 <ChevronUp className="w-3.5 h-3.5" />
