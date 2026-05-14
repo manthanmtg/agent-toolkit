@@ -19,30 +19,88 @@ const SourceBadge = memo(function SourceBadge({ source }: { source: SkillSource 
   );
 });
 
+const SkillCard = memo(function SkillCard({ skill }: { skill: Skill }) {
+  return (
+    <Link
+      href={`/skills/${skill.domain}/${skill.skillName}`}
+      className="group relative flex flex-col border rounded-xl p-5 bg-card hover:bg-accent/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-border/80 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary/20"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:scale-110 transition-all duration-300">
+            <Puzzle className="w-4 h-4 text-primary/70" />
+          </div>
+          <p className="font-semibold text-sm truncate tracking-tight group-hover:text-primary transition-colors">
+            {skill.skillName}
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <SourceBadge source={skill.source} />
+        </div>
+      </div>
+      <p className="text-sm text-muted-foreground mt-3 line-clamp-2 leading-relaxed opacity-90">
+        {skill.frontmatter.description}
+      </p>
+
+      <div className="mt-auto pt-4 flex items-center justify-between gap-2">
+        {skill.frontmatter.tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5 overflow-hidden">
+            {skill.frontmatter.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="px-2 py-0.5 text-[10px] font-medium rounded-md bg-muted text-muted-foreground border border-border/50"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div />
+        )}
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground border border-border/50 uppercase tracking-tight">
+          v{skill.frontmatter.version}
+        </span>
+      </div>
+    </Link>
+  );
+});
+
 type FilterValue = "all" | "toolkit" | "local";
 
 export function SkillsList({ skills }: { skills: Skill[] }) {
   const [filter, setFilter] = useState<FilterValue>("all");
 
-  const { filtered, domains, groupedSkills, localCount, toolkitCount, uniqueDomainCount } = useMemo(() => {
-    const groupedSkills = new Map<string, Skill[]>();
+  const { localCount, toolkitCount, uniqueDomainCount } = useMemo(() => {
     const allDomains = new Set<string>();
     let localCount = 0;
     let toolkitCount = 0;
 
     for (const skill of skills) {
       allDomains.add(skill.domain);
-
       if (skill.source === "local") {
         localCount += 1;
       } else {
         toolkitCount += 1;
       }
+    }
 
+    return {
+      localCount,
+      toolkitCount,
+      uniqueDomainCount: allDomains.size,
+    };
+  }, [skills]);
+
+  const { domains, groupedSkills, filteredCount } = useMemo(() => {
+    const groupedSkills = new Map<string, Skill[]>();
+    let filteredCount = 0;
+
+    for (const skill of skills) {
       if (filter !== "all" && skill.source !== filter) {
         continue;
       }
 
+      filteredCount++;
       const existing = groupedSkills.get(skill.domain);
       if (existing) {
         existing.push(skill);
@@ -54,12 +112,9 @@ export function SkillsList({ skills }: { skills: Skill[] }) {
     const domains = [...groupedSkills.keys()].sort();
 
     return {
-      filtered: Array.from(groupedSkills.values()).flat(),
       domains,
       groupedSkills,
-      localCount,
-      toolkitCount,
-      uniqueDomainCount: allDomains.size,
+      filteredCount,
     };
   }, [skills, filter]);
 
@@ -107,7 +162,7 @@ export function SkillsList({ skills }: { skills: Skill[] }) {
         </div>
       )}
 
-      {filtered.length === 0 ? (
+      {filteredCount === 0 ? (
         <div className="border rounded-2xl p-12 text-center bg-muted/20">
           <Puzzle className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
           <h3 className="text-lg font-semibold tracking-tight">
@@ -136,48 +191,7 @@ export function SkillsList({ skills }: { skills: Skill[] }) {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {groupedSkills.get(domain)!.map((skill) => (
-                <Link
-                  key={`${skill.source}/${skill.skillName}`}
-                  href={`/skills/${skill.domain}/${skill.skillName}`}
-                  className="group relative flex flex-col border rounded-xl p-5 bg-card hover:bg-accent/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-border/80 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:scale-110 transition-all duration-300">
-                        <Puzzle className="w-4 h-4 text-primary/70" />
-                      </div>
-                      <p className="font-semibold text-sm truncate tracking-tight group-hover:text-primary transition-colors">
-                        {skill.skillName}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <SourceBadge source={skill.source} />
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-3 line-clamp-2 leading-relaxed opacity-90">
-                    {skill.frontmatter.description}
-                  </p>
-
-                  <div className="mt-auto pt-4 flex items-center justify-between gap-2">
-                    {skill.frontmatter.tags.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5 overflow-hidden">
-                        {skill.frontmatter.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-2 py-0.5 text-[10px] font-medium rounded-md bg-muted text-muted-foreground border border-border/50"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <div />
-                    )}
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground border border-border/50 uppercase tracking-tight">
-                      v{skill.frontmatter.version}
-                    </span>
-                  </div>
-                </Link>
+                <SkillCard key={`${skill.source}/${skill.skillName}`} skill={skill} />
               ))}
             </div>
           </div>
