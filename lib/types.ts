@@ -100,11 +100,14 @@ export const ToolConfigSchema = z.object({
 
 export const GlobPatternSchema = z.string().refine((val) => {
   const t = val.trim();
+  if (!t) return false;
   if (t === "*") return true;
   if (t.startsWith("tag:")) return t.length > 4;
 
   const starCount = (t.match(/\*/g) || []).length;
-  if (starCount === 0) return true;
+  if (starCount === 0) {
+    return t.includes("/") && t.split("/").length === 2 && t.split("/").every(p => p.length > 0);
+  }
 
   if (starCount === 1) {
     if (t.endsWith("/*") && t.length > 2) return true;

@@ -195,6 +195,31 @@ describe("ProfileSchema", () => {
     ).toThrow("Invalid pattern. Supported:");
   });
 
+  it("rejects empty patterns", () => {
+    expect(() =>
+      ProfileSchema.parse({
+        name: "bad-profile",
+        include: [""],
+      })
+    ).toThrow("Invalid pattern. Supported:");
+
+    expect(() =>
+      ProfileSchema.parse({
+        name: "bad-profile",
+        include: ["   "],
+      })
+    ).toThrow("Invalid pattern. Supported:");
+  });
+
+  it("rejects exact match patterns without a slash", () => {
+    expect(() =>
+      ProfileSchema.parse({
+        name: "bad-profile",
+        include: ["just-domain-no-slash"],
+      })
+    ).toThrow("Invalid pattern. Supported:");
+  });
+
   it("rejects invalid tool keys in profile", () => {
     expect(() =>
       ProfileSchema.parse({
