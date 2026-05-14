@@ -97,7 +97,7 @@ tools:
 3. Implement: `translateSkill`, `translateGlobal`, `getGlobalSymlinkTargets`, `getProjectSymlinkTargets`, `getCharacterLimit(scope)`
 4. Register in `lib/adapters/index.ts` and add tool ID to `lib/types.ts`
 
-**Helpers:** Use `this.renderSkillFrontmatter(skill)` from `BaseAdapter` to generate consistent common frontmatter (name, domain, version, description).
+**Helpers:** Use `this.renderSkillFrontmatter(skill)` from `BaseAdapter` to generate consistent common frontmatter (name, domain, version, description, author, tags, depends_on).
 
 ## MCP Server Management
 
