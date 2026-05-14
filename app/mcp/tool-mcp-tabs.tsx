@@ -58,7 +58,10 @@ export function ToolMcpTabs({ data }: ToolMcpTabsProps) {
       ?? "claude-code"
   );
 
-  const activeTool = data.tools.find((t) => t.toolId === activeTab);
+  const activeTool = useMemo(
+    () => data.tools.find((t) => t.toolId === activeTab),
+    [data.tools, activeTab]
+  );
 
   const handleRefresh = useCallback(() => {
     router.refresh();
