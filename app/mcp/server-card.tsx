@@ -321,6 +321,8 @@ export const ServerCard = memo(function ServerCard({
         {/* Health check result */}
         {healthResult && (
           <div
+            role="status"
+            aria-live="polite"
             className={`mt-4 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-300 ${
               healthResult.status === "healthy"
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/50"
