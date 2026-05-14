@@ -145,7 +145,7 @@ tools:
 4. Register it in `lib/adapters/index.ts` (import + add to `getAllAdapters()`)
 5. Add the tool ID to `TOOL_IDS` and `TOOL_LABELS` in `lib/types.ts`
 
-**Helpers:** Use `this.renderSkillFrontmatter(skill)` from `BaseAdapter` to generate consistent common frontmatter (name, domain, version, description).
+**Helpers:** Use `this.renderSkillFrontmatter(skill)` from `BaseAdapter` to generate consistent common frontmatter (name, domain, version, description, author, tags, depends_on).
 
 **Note:** `getCharacterLimit(scope)` takes `"global"` or `"workspace"` to return scope-specific limits.
 
