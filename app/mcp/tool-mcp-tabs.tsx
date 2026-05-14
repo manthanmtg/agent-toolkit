@@ -18,10 +18,10 @@ import { AddServerDialog } from "./add-server-dialog";
 import { ImportServerDialog } from "./import-server-dialog";
 
 const TOOL_ICONS: Partial<Record<ToolId, React.ReactNode>> = {
-  "claude-code": <Sparkles className="w-4 h-4" />,
-  cursor: <MousePointerClick className="w-4 h-4" />,
-  windsurf: <Wind className="w-4 h-4" />,
-  codex: <Bot className="w-4 h-4" />,
+  "claude-code": <Sparkles className="w-4 h-4" aria-hidden="true" />,
+  cursor: <MousePointerClick className="w-4 h-4" aria-hidden="true" />,
+  windsurf: <Wind className="w-4 h-4" aria-hidden="true" />,
+  codex: <Bot className="w-4 h-4" aria-hidden="true" />,
 };
 
 const TOOL_COLORS: Partial<Record<ToolId, string>> = {

@@ -32,7 +32,7 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 p-4 space-y-1">
+    <nav className="flex-1 p-4 space-y-1" aria-label="Main Navigation">
       {NAV_ITEMS.map((item) => {
         const isActive =
           item.href === "/"
@@ -50,7 +50,10 @@ export function SidebarNav() {
             }`}
             aria-current={isActive ? "page" : undefined}
           >
-            <item.icon className={`w-4 h-4 ${isActive ? "text-primary" : ""}`} />
+            <item.icon
+              className={`w-4 h-4 ${isActive ? "text-primary" : ""}`}
+              aria-hidden="true"
+            />
             {item.label}
           </Link>
         );
