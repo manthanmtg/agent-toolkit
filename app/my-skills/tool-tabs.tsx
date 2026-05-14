@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TOOL_LABELS, type ToolId } from "@/lib/types";
@@ -186,7 +186,7 @@ export function ToolTabs({ data }: ToolTabsProps) {
   );
 }
 
-function ToolContent({
+const ToolContent = memo(function ToolContent({
   tool,
   registrySkills,
   onRefresh,
@@ -427,7 +427,7 @@ function ToolContent({
       )}
     </div>
   );
-}
+});
 
 function EmptyState({ toolId }: { toolId: ToolId }) {
   return (
