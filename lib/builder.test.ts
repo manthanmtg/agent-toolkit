@@ -154,7 +154,7 @@ describe("builder", () => {
 
     const result = await build("missing");
 
-    expect(result.errors).toEqual([`Failed to load profile "missing": Error: profile missing`]);
+    expect(result.errors).toEqual([`Failed to load profile "missing": profile missing`]);
     expect(result.totalFiles).toBe(0);
     expect(loadAllSkills).not.toHaveBeenCalled();
   });
@@ -218,6 +218,6 @@ describe("builder", () => {
     expect(result.errors).toEqual([
       "Output cursor/rules/too-long.md exceeds global limit: 10 > 3 characters.",
     ]);
-    expect(atomicWrite).toHaveBeenCalledTimes(1);
+    expect(atomicWrite).toHaveBeenCalledTimes(0);
   });
 });

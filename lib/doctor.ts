@@ -108,7 +108,7 @@ export async function runDoctorChecks(): Promise<DoctorCheck[]> {
     checks.push({
       name: "Profiles",
       status: "fail",
-      message: `Failed to load profiles: ${err}`,
+      message: `Failed to load profiles: ${err instanceof Error ? err.message : String(err)}`,
     });
   }
 

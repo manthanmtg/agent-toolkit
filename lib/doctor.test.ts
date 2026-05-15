@@ -128,7 +128,7 @@ describe("doctor checks", () => {
       status: "warn",
       message: "dist/ not found — run a build first",
     });
-    expect(byName["Profiles"]).toMatchObject({ status: "fail", message: "Failed to load profiles: Error: profiles/ directory not found" });
+    expect(byName["Profiles"]).toMatchObject({ status: "fail", message: "Failed to load profiles: profiles/ directory not found" });
     expect(byName["Symlinks"]).toBeUndefined();
   });
 

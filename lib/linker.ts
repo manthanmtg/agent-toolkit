@@ -87,7 +87,8 @@ async function createSymlinkInner(
     await fs.symlink(source, destination);
     return { backedUp, error: null };
   } catch (err) {
-    return { backedUp, error: `Failed to create symlink: ${err}` };
+    const message = err instanceof Error ? err.message : String(err);
+    return { backedUp, error: `Failed to create symlink: ${message}` };
   }
 }
 
