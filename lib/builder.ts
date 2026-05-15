@@ -53,7 +53,7 @@ export async function build(profileName: string = "default"): Promise<BuildResul
   try {
     profile = await loadProfile(profileName);
   } catch (err) {
-    result.errors.push(`Failed to load profile "${profileName}": ${err}`);
+    result.errors.push(`Failed to load profile "${profileName}": ${err instanceof Error ? err.message : String(err)}`);
     return result;
   }
 
@@ -79,7 +79,7 @@ export async function build(profileName: string = "default"): Promise<BuildResul
       const globalOutputs = adapter.translateGlobal(skills, profile);
       allOutputs.push(...globalOutputs);
     } catch (err) {
-      result.errors.push(`Adapter ${adapter.toolId} failed: ${err}`);
+      result.errors.push(`Adapter ${adapter.toolId} failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
@@ -104,6 +104,7 @@ export async function build(profileName: string = "default"): Promise<BuildResul
           result.errors.push(
             `Output ${output.tool}/${output.relativePath} exceeds ${output.scope} limit: ${limitCheck.currentSize} > ${limitCheck.maxSize} characters.`
           );
+          continue;
         }
       }
 
@@ -119,7 +120,7 @@ export async function build(profileName: string = "default"): Promise<BuildResul
       result.filesByTool[output.tool] = (result.filesByTool[output.tool] || 0) + 1;
       result.totalFiles++;
     } catch (err) {
-      result.errors.push(`Failed to write ${fullPath}: ${err}`);
+      result.errors.push(`Failed to write ${fullPath}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

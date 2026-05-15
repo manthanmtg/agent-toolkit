@@ -137,7 +137,8 @@ export async function loadProfile(
   try {
     raw = await fs.readFile(profilePath, "utf-8");
   } catch (err) {
-    throw new Error(`Could not read profile file at ${profilePath}`);
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Could not read profile file at ${profilePath}: ${message}`);
   }
 
   let data: unknown;
