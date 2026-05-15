@@ -20,7 +20,8 @@ export async function listProfilesAction(): Promise<Profile[]> {
   try {
     return await loadAllProfiles();
   } catch (err) {
-    throw new Error(`Failed to list profiles: ${formatError(err)}`);
+    console.error(`Failed to list profiles: ${formatError(err)}`);
+    return [];
   }
 }
 
@@ -31,7 +32,7 @@ export async function listProfilesWithDiagnosticsAction(): Promise<ProfileListin
   } catch (err) {
     return {
       profiles: [],
-      invalidProfiles: [{ file: "all", error: err instanceof Error ? err.message : "Failed to load profiles" }],
+      invalidProfiles: [{ file: "all", error: formatError(err) }],
     };
   }
 }

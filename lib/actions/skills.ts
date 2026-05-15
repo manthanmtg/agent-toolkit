@@ -33,7 +33,12 @@ function validateIdentifier(type: string, value: string): string | null {
 }
 
 export async function listSkillsAction(): Promise<Skill[]> {
-  return loadAllSkills();
+  try {
+    return await loadAllSkills();
+  } catch (err) {
+    console.error(`Failed to load skills: ${formatError(err)}`);
+    return [];
+  }
 }
 
 export async function getSkillAction(
