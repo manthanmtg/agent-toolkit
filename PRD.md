@@ -399,8 +399,6 @@ A Next.js fullstack app (`localhost:3000`) is the primary interface. Server Acti
 │   └── ...
 │
 ├── dist/                           # Generated output (gitignored)
-└── overrides/                      # User-local overrides (gitignored)
-│
 ├── overrides/                      # User-local overrides (gitignored)
 │   └── .gitkeep
 │
