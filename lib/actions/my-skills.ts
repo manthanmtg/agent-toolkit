@@ -6,7 +6,7 @@ import crypto from "crypto";
 import { detectTools, getGlobalPath } from "../detector";
 import { loadAllSkills, loadProfile } from "../registry";
 import { getAdapter } from "../adapters";
-import { atomicWrite, HOME, isWithinPath } from "../safety";
+import { atomicWrite, HOME, isWithinPath, checkDuplicate, backupFile, writeToolkitMarker } from "../safety";
 import type { Skill, ToolId, Profile } from "../types";
 import { TOOL_IDS } from "../types";
 
@@ -380,8 +380,20 @@ export async function updateDeployedSkillAction(
       if (!isWithinPath(globalPath, destPath)) {
         return { success: false, error: `Security violation: refusing to write outside global path: ${output.relativePath}` };
       }
+
+      const dup = await checkDuplicate(destPath);
+      if (dup.exists && !dup.isToolkitManaged) {
+        try {
+          await backupFile(destPath);
+        } catch (err) {
+          console.warn(`Backup failed for ${destPath}: ${err}`);
+        }
+      }
       await fs.mkdir(path.dirname(destPath), { recursive: true });
       await atomicWrite(destPath, output.content);
+      try {
+        await writeToolkitMarker(path.dirname(destPath));
+      } catch {}
     }
 
     return { success: true };
