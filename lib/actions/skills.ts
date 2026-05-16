@@ -5,7 +5,7 @@ import path from "path";
 import { loadAllSkills, loadSkill, loadProfile, getSkillsDir, getLocalSkillsDir } from "../registry";
 import { getAdapter, checkCharacterLimit } from "../adapters";
 import { getGlobalPath } from "../detector";
-import { atomicWrite, isWithinPath, HOME } from "../safety";
+import { atomicWrite, isWithinPath, HOME, checkDuplicate, backupFile, writeToolkitMarker } from "../safety";
 import type { Skill, ToolId } from "../types";
 import { CreateSkillInputSchema, InstallSkillInputSchema, UninstallSkillInputSchema, TOOL_LABELS } from "../types";
 import { ZodError } from "zod";
@@ -212,8 +212,19 @@ export async function installSkillAction(
         }
 
         try {
+          const dup = await checkDuplicate(destPath);
+          if (dup.exists && !dup.isToolkitManaged) {
+            try {
+              await backupFile(destPath);
+            } catch (err) {
+              console.warn(`Backup failed for ${destPath}: ${err}`);
+            }
+          }
           await fs.mkdir(path.dirname(destPath), { recursive: true });
           await atomicWrite(destPath, output.content);
+          try {
+            await writeToolkitMarker(path.dirname(destPath));
+          } catch {}
         } catch (err) {
           errors.push(`${TOOL_LABELS[toolId]}: failed to write ${output.relativePath}: ${formatError(err)}`);
           continue;
