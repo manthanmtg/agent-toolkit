@@ -615,13 +615,14 @@ export const ServerCard = memo(function ServerCard({
 
         {/* Action bar */}
         {!editing && (
-          <div className="flex items-center gap-2 mt-5 pt-4 border-t border-border/50">
+          <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-border/50">
             {/* Edit */}
             <button
               onClick={handleStartEdit}
               disabled={editLoading}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
                 border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background
                 disabled:opacity-50 transition-all active:scale-95"
             >
               {editLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Pencil className="w-3.5 h-3.5" />}
@@ -634,6 +635,7 @@ export const ServerCard = memo(function ServerCard({
               disabled={exporting}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
                 border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background
                 disabled:opacity-50 transition-all active:scale-95"
             >
               {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-3.5 h-3.5" />}
@@ -646,6 +648,7 @@ export const ServerCard = memo(function ServerCard({
               disabled={checking}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
                 border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background
                 disabled:opacity-50 transition-all active:scale-95"
             >
               {checking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HeartPulse className="w-3.5 h-3.5" />}
@@ -661,6 +664,7 @@ export const ServerCard = memo(function ServerCard({
                   aria-haspopup="true"
                   className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
                     border bg-background shadow-sm text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background
                     transition-all active:scale-95 ${showCopyMenu ? "bg-secondary border-border text-foreground" : ""}`}
                 >
                   <Send className="w-3.5 h-3.5" />
@@ -677,7 +681,7 @@ export const ServerCard = memo(function ServerCard({
                         key={target}
                         onClick={() => handleCopyTo(target)}
                         disabled={copying !== null}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-medium hover:bg-secondary transition-colors disabled:opacity-50"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-medium hover:bg-secondary transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:bg-secondary"
                       >
                         {copying === target ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -698,6 +702,7 @@ export const ServerCard = memo(function ServerCard({
               disabled={removing}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide
                 border bg-background shadow-sm text-muted-foreground hover:text-destructive hover:border-destructive/50 hover:bg-destructive/5
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background
                 disabled:opacity-50 transition-all active:scale-95 ml-auto"
             >
               {removing ? (
