@@ -98,7 +98,7 @@ export const ToolConfigSchema = z.object({
   max_bytes: z.number().optional(),
 }).strict();
 
-export const GlobPatternSchema = z.string().refine((val) => {
+const GlobPatternSchema = z.string().refine((val) => {
   const t = val.trim();
   if (!t) return false;
   if (t === "*") return true;

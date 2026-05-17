@@ -200,5 +200,3 @@ export function SkillsList({ skills }: { skills: Skill[] }) {
     </div>
   );
 }
-
-export { SourceBadge };
