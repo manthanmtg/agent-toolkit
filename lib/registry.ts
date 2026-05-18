@@ -268,6 +268,10 @@ export async function loadAllProfilesWithDiagnostics(): Promise<ProfileLoadResul
     }
   }
 
+  // Sort results for consistent UI
+  profiles.sort((a, b) => a.name.localeCompare(b.name));
+  invalidFiles.sort((a, b) => a.file.localeCompare(b.file));
+
   return { profiles, invalidFiles };
 }
 
@@ -340,7 +344,8 @@ function matchGlob(
   // domain/*
   if (pattern.endsWith("/*")) {
     const prefix = pattern.slice(0, -2);
-    return skillPath.startsWith(prefix + "/") || skillPath === prefix;
+    // skillPath is always "domain/skill", so it must start with "domain/"
+    return skillPath.startsWith(prefix + "/");
   }
 
   // */skill-name
