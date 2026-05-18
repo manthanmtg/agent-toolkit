@@ -10,13 +10,12 @@ import {
   CreateSkillInputSchema,
   InstallSkillInputSchema,
   UninstallSkillInputSchema,
+  IdentifierSchema,
   TOOL_LABELS,
   type Skill,
   type ToolId,
 } from "../types";
 import { ZodError } from "zod";
-
-const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function formatError(err: unknown): string {
   if (err instanceof ZodError) {
@@ -29,13 +28,6 @@ function formatError(err: unknown): string {
     return err;
   }
   return "Unknown error";
-}
-
-function validateIdentifier(type: string, value: string): string | null {
-  if (!IDENTIFIER_RE.test(value)) {
-    return `${type} must be lowercase letters, numbers, and hyphens (e.g. my-skill-name).`;
-  }
-  return null;
 }
 
 export async function listSkillsAction(): Promise<Skill[]> {
@@ -51,21 +43,25 @@ export async function getSkillAction(
   domain: string,
   name: string
 ): Promise<Skill | null> {
-  const domainError = validateIdentifier("domain", domain);
-  if (domainError) return null;
+  const domainParse = IdentifierSchema.safeParse(domain);
+  const nameParse = IdentifierSchema.safeParse(name);
 
-  const nameError = validateIdentifier("name", name);
-  if (nameError) return null;
+  if (!domainParse.success || !nameParse.success) {
+    return null;
+  }
+
+  const validatedDomain = domainParse.data;
+  const validatedName = nameParse.data;
 
   // Try toolkit skills first, then local skills
-  const toolkitDir = path.join(getSkillsDir(), domain, name);
+  const toolkitDir = path.join(getSkillsDir(), validatedDomain, validatedName);
   try {
     return await loadSkill(toolkitDir, "toolkit");
   } catch {
     // Not found in toolkit, try local
   }
 
-  const localDir = path.join(getLocalSkillsDir(), domain, name);
+  const localDir = path.join(getLocalSkillsDir(), validatedDomain, validatedName);
   try {
     return await loadSkill(localDir, "local");
   } catch {

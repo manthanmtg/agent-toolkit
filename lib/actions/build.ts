@@ -2,6 +2,7 @@
 
 import { build, cleanDist } from "../builder";
 import type { BuildResult } from "../builder";
+import { IdentifierSchema } from "../types";
 
 function formatError(err: unknown): string {
   if (err instanceof Error) {
@@ -14,10 +15,22 @@ export async function buildAction(
   profileName: string = "default",
   clean: boolean = false
 ): Promise<BuildResult> {
-  const normalizedProfile =
-    typeof profileName === "string" && profileName.trim().length > 0
-      ? profileName.trim()
-      : "default";
+  const parseResult = IdentifierSchema.safeParse(profileName);
+
+  // Use 'default' if input is empty, whitespace, or nullish.
+  // Otherwise, use the validated (and trimmed) value if successful.
+  const isEffectivelyEmpty = typeof profileName !== "string" || profileName.trim() === "";
+  const normalizedProfile = parseResult.success ? parseResult.data : "default";
+
+  if (!parseResult.success && !isEffectivelyEmpty) {
+    return {
+      profile: typeof profileName === "string" ? profileName : "invalid",
+      totalSkills: 0,
+      totalFiles: 0,
+      filesByTool: {},
+      errors: [`Invalid profile name format: ${formatError(parseResult.error)}`],
+    };
+  }
 
   if (typeof clean !== "boolean") {
     return {
