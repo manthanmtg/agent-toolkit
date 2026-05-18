@@ -362,4 +362,32 @@ describe("registry", () => {
     expect(childError).toContain("YAML parse error");
     expect(childError).not.toContain("non-existent profile");
   });
+
+  it("sorts profiles and invalid files alphabetically", async () => {
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "c.yaml"),
+      "name: c\ndescription: c profile\n",
+      "utf-8"
+    );
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "a.yaml"),
+      "name: a\ndescription: a profile\n",
+      "utf-8"
+    );
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "b-invalid.yaml"),
+      "invalid yaml content",
+      "utf-8"
+    );
+    await fs.writeFile(
+      path.join(repoRoot, "profiles", "a-invalid.yaml"),
+      "invalid yaml content",
+      "utf-8"
+    );
+
+    const { profiles, invalidFiles } = await registry.loadAllProfilesWithDiagnostics();
+
+    expect(profiles.map(p => p.name)).toEqual(["a", "c"]);
+    expect(invalidFiles.map(f => f.file)).toEqual(["a-invalid.yaml", "b-invalid.yaml"]);
+  });
 });
