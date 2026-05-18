@@ -5,7 +5,7 @@ description: >
   maintainability, and missing tests. Use when the user asks for a serious review
   of a diff, branch, PR, or local changes.
 domain: code-review
-version: 1.0.0
+version: 1.1.0
 tags: [code-review, bugs, security, performance, testing, maintainability]
 author: agent-toolkit
 activation:
@@ -108,12 +108,39 @@ before file access and reject unknown values early.
 
 ## Reviewer Output Format 📋
 
-Prefer:
+Deliver the review in this order:
 
-- Short executive summary
-- Ordered findings by severity
-- Open questions or assumptions
-- Residual risk if no major issues are found
+1. **Executive Summary**: One paragraph on overall quality and key risks.
+2. **Findings Table**: List all non-nit findings ordered by severity.
+3. **Scorecard**: Evaluate each lens from 1-10.
+4. **Verdict**: Final recommendation.
+5. **Top 3 Priority Fixes**: Most impactful changes required.
+
+### Findings Table
+
+| # | Severity | Lens | File:Line | Finding | Recommendation |
+|---|----------|------|-----------|---------|----------------|
+| 1 | High | Security | `auth.ts:22` | Token logging | Remove sensitive log |
+| ... | ... | ... | ... | ... | ... |
+
+### Scorecard
+
+| Lens | Score (1-10) | Key Issue |
+|-----------|:---:|-----------|
+| Correctness | — | — |
+| Security | — | — |
+| Performance | — | — |
+| Testing | — | — |
+| Maintainability | — | — |
+| **Overall** | **—** | — |
+
+## Verdict 🏁
+
+One of:
+- **Ship It** (9-10): Exceptional work, no significant issues.
+- **Approve with Comments** (7-8): Solid work, minor improvements suggested.
+- **Request Changes** (5-6): Notable issues that should be addressed.
+- **Block** (<5): Significant problems that must be fixed.
 
 ## Red Flags 🚨
 
