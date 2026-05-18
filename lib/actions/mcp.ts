@@ -1062,62 +1062,74 @@ export async function getMcpOverview(): Promise<McpOverviewResult> {
   const detectedTools = await detectTools();
   const toolsToScan: ToolId[] = ["claude-code", "cursor", "windsurf", "codex"];
 
-  const tools: McpToolEntry[] = [];
   const allServerNames = new Set<string>();
   let totalServers = 0;
 
-  for (const toolId of toolsToScan) {
-    const detected = detectedTools.find((t) => t.id === toolId);
-    const isDetected = detected?.detected ?? false;
-    const globalPath = getGlobalPath(toolId);
-    const sources = TOOL_CONFIG_SOURCES[toolId] ?? [];
+  const tools: McpToolEntry[] = await Promise.all(
+    toolsToScan.map(async (toolId) => {
+      const detected = detectedTools.find((t) => t.id === toolId);
+      const isDetected = detected?.detected ?? false;
+      const globalPath = getGlobalPath(toolId);
+      const sources = TOOL_CONFIG_SOURCES[toolId] ?? [];
 
-    const configPaths: McpToolEntry["configPaths"] = [];
-    const servers: McpServerConfig[] = [];
-    const seenNames = new Set<string>();
+      const servers: McpServerConfig[] = [];
+      const seenNames = new Set<string>();
 
-    for (const source of sources) {
-      const filePath = source.getPath(HOME, globalPath);
-      const pathDisplay = filePath.replace(HOME, "~");
-      let exists = false;
+      const configPaths: McpToolEntry["configPaths"] = await Promise.all(
+        sources.map(async (source) => {
+          const filePath = source.getPath(HOME, globalPath);
+          const pathDisplay = filePath.replace(HOME, "~");
+          let exists = false;
 
-      try {
-        const raw = await fs.readFile(filePath, "utf-8");
-        const parsed = JSON.parse(raw) as unknown;
-        exists = true;
+          try {
+            const raw = await fs.readFile(filePath, "utf-8");
+            const parsed = JSON.parse(raw) as unknown;
+            exists = true;
 
-        const mcpServers = source.extract(parsed);
-        if (mcpServers) {
-          for (const [name, config] of Object.entries(mcpServers)) {
-            if (seenNames.has(name)) continue;
-            seenNames.add(name);
-            servers.push(parseServerConfig(name, config));
-            allServerNames.add(name);
+            const mcpServers = source.extract(parsed);
+            if (mcpServers) {
+              for (const [name, config] of Object.entries(mcpServers)) {
+                if (!seenNames.has(name)) {
+                  seenNames.add(name);
+                  servers.push(parseServerConfig(name, config));
+                }
+              }
+            }
+          } catch {
+            // File doesn't exist or isn't valid JSON
+            try {
+              await fs.access(filePath);
+              exists = true;
+            } catch {
+              // truly doesn't exist
+            }
           }
-        }
-      } catch {
-        // File doesn't exist or isn't valid JSON
-        try {
-          await fs.access(filePath);
-          exists = true;
-        } catch {
-          // truly doesn't exist
-        }
+
+          return {
+            label: source.label,
+            path: filePath,
+            pathDisplay,
+            exists,
+          };
+        })
+      );
+
+      // Add to global server names set (done after parallel read to maintain consistency)
+      for (const name of seenNames) {
+        allServerNames.add(name);
       }
 
-      configPaths.push({ label: source.label, path: filePath, pathDisplay, exists });
-    }
+      return {
+        toolId,
+        toolLabel: TOOL_LABELS[toolId],
+        detected: isDetected,
+        configPaths,
+        servers,
+      };
+    })
+  );
 
-    totalServers += servers.length;
-
-    tools.push({
-      toolId,
-      toolLabel: TOOL_LABELS[toolId],
-      detected: isDetected,
-      configPaths,
-      servers,
-    });
-  }
+  totalServers = tools.reduce((acc, t) => acc + t.servers.length, 0);
 
   return {
     tools,
