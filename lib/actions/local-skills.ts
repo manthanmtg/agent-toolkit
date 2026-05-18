@@ -3,15 +3,12 @@
 import fs from "fs/promises";
 import path from "path";
 import matter from "gray-matter";
+import { ZodError } from "zod";
 import { loadSkill, getLocalSkillsDir } from "../registry";
 import { atomicWrite, backupFile } from "../safety";
-import { SkillFrontmatterSchema } from "../types";
-import type { Skill } from "../types";
+import { SkillFrontmatterSchema, CreateSkillInputSchema, type Skill } from "../types";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-import { CreateSkillInputSchema } from "../types";
-import { ZodError } from "zod";
 
 function formatError(err: unknown): string {
   if (err instanceof ZodError) {

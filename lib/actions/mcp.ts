@@ -4,8 +4,8 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import { ZodError } from "zod";
-import { detectTools, getGlobalPath } from "@/lib/detector";
-import { TOOL_LABELS, type ToolId, RawMcpServerConfigSchema, type McpServerConfig, AddMcpServerInputSchema } from "@/lib/types";
+import { detectTools, getGlobalPath } from "../detector";
+import { TOOL_LABELS, type ToolId, RawMcpServerConfigSchema, type McpServerConfig, AddMcpServerInputSchema } from "../types";
 import { atomicWrite, backupFile, HOME } from "@/lib/safety";
 
 // ── Types & Schemas ──────────────────────────────────────────────

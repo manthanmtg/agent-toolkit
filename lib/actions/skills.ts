@@ -6,8 +6,14 @@ import { loadAllSkills, loadSkill, loadProfile, getSkillsDir, getLocalSkillsDir 
 import { getAdapter, checkCharacterLimit } from "../adapters";
 import { getGlobalPath } from "../detector";
 import { atomicWrite, isWithinPath, HOME, checkDuplicate, backupFile, writeToolkitMarker } from "../safety";
-import type { Skill, ToolId } from "../types";
-import { CreateSkillInputSchema, InstallSkillInputSchema, UninstallSkillInputSchema, TOOL_LABELS } from "../types";
+import {
+  CreateSkillInputSchema,
+  InstallSkillInputSchema,
+  UninstallSkillInputSchema,
+  TOOL_LABELS,
+  type Skill,
+  type ToolId,
+} from "../types";
 import { ZodError } from "zod";
 
 const IDENTIFIER_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
