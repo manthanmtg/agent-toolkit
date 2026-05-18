@@ -75,9 +75,7 @@ async function checkBinary(name: string): Promise<boolean> {
 }
 
 export async function detectTools(): Promise<DetectedTool[]> {
-  const results: DetectedTool[] = [];
-
-  for (const tool of TOOL_CHECKS) {
+  const toolPromises = TOOL_CHECKS.map(async (tool) => {
     let detected = false;
     let reason = "not found";
 
@@ -101,19 +99,22 @@ export async function detectTools(): Promise<DetectedTool[]> {
       reason = `not found (checked: ${tool.checks.map((c) => c.path).join(", ")})`;
     }
 
-    results.push({
+    return {
       id: tool.id,
       detected,
       reason,
       globalPath: getGlobalPath(tool.id),
-    });
-  }
+    };
+  });
+
+  const results = await Promise.all(toolPromises);
 
   // AGENTS.md is always "detected" — it's a universal format
   results.push({
     id: "agents-md",
     detected: true,
     reason: "universal cross-tool format (always available)",
+    globalPath: getGlobalPath("agents-md"),
   });
 
   return results;
