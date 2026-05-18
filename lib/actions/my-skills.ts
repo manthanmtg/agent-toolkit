@@ -3,12 +3,25 @@
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { ZodError, z } from "zod";
 import { detectTools, getGlobalPath } from "../detector";
 import { loadAllSkills, loadProfile } from "../registry";
 import { getAdapter } from "../adapters";
 import { atomicWrite, HOME, isWithinPath, checkDuplicate, backupFile, writeToolkitMarker } from "../safety";
-import type { Skill, ToolId, Profile } from "../types";
-import { TOOL_IDS } from "../types";
+import { TOOL_IDS, IdentifierSchema, ToolIdSchema, type Skill, type ToolId, type Profile } from "../types";
+
+function formatError(err: unknown): string {
+  if (err instanceof ZodError) {
+    return err.errors.map((e) => e.message).join(", ");
+  }
+  if (err instanceof Error) {
+    return err.message || "Unknown error";
+  }
+  if (typeof err === "string") {
+    return err;
+  }
+  return "Unknown error";
+}
 
 export type DeployedSkillStatus = "up-to-date" | "outdated" | "unknown";
 export type DeploymentModel = "per-skill" | "bundled" | "project-only";
@@ -344,25 +357,37 @@ export async function getDeployedSkillsPerTool(): Promise<DeployedSkillsResult> 
   return { tools, registrySkills };
 }
 
+const UpdateDeployedSkillSchema = z.object({
+  domain: IdentifierSchema,
+  skillName: IdentifierSchema,
+  toolId: ToolIdSchema,
+});
+
 export async function updateDeployedSkillAction(
   domain: string,
   skillName: string,
   toolId: ToolId
 ): Promise<{ success: boolean; error?: string }> {
-  const globalPath = getGlobalPath(toolId);
+  const parseResult = UpdateDeployedSkillSchema.safeParse({ domain, skillName, toolId });
+  if (!parseResult.success) {
+    return { success: false, error: formatError(parseResult.error) };
+  }
+  const validated = parseResult.data;
+
+  const globalPath = getGlobalPath(validated.toolId);
   if (!globalPath) {
-    return { success: false, error: `No global path for ${toolId}` };
+    return { success: false, error: `No global path for ${validated.toolId}` };
   }
 
-  if (BUNDLED_TOOLS[toolId]) {
-    return { success: false, error: `${toolId} uses a bundled file. Use Sync to update all skills.` };
+  if (BUNDLED_TOOLS[validated.toolId]) {
+    return { success: false, error: `${validated.toolId} uses a bundled file. Use Sync to update all skills.` };
   }
 
   try {
     const allSkills = await loadAllSkills();
-    const skill = allSkills.find((s) => s.skillName === skillName && s.domain === domain);
+    const skill = allSkills.find((s) => s.skillName === validated.skillName && s.domain === validated.domain);
     if (!skill) {
-      return { success: false, error: `Skill ${domain}/${skillName} not found in registry` };
+      return { success: false, error: `Skill ${validated.domain}/${validated.skillName} not found in registry` };
     }
 
     let profile: Profile;
@@ -372,7 +397,7 @@ export async function updateDeployedSkillAction(
       profile = { name: "default", description: "", include: ["*"], exclude: [], tools: {} };
     }
 
-    const adapter = getAdapter(toolId);
+    const adapter = getAdapter(validated.toolId);
     const outputs = adapter.translateSkill(skill, profile);
 
     for (const output of outputs) {
@@ -398,7 +423,7 @@ export async function updateDeployedSkillAction(
 
     return { success: true };
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: formatError(err) };
   }
 }
 
@@ -410,37 +435,62 @@ export async function addSkillToToolAction(
   return updateDeployedSkillAction(domain, skillName, toolId);
 }
 
+const RemoveSkillFromToolSchema = z.object({
+  skillName: IdentifierSchema,
+  toolId: ToolIdSchema,
+});
+
+function isNodeErrnoException(value: unknown): value is NodeJS.ErrnoException {
+  if (!(value instanceof Error)) return false;
+  return "code" in value;
+}
+
 export async function removeSkillFromToolAction(
   skillName: string,
   toolId: ToolId
 ): Promise<{ success: boolean; error?: string }> {
-  const globalPath = getGlobalPath(toolId);
+  const parseResult = RemoveSkillFromToolSchema.safeParse({ skillName, toolId });
+  if (!parseResult.success) {
+    return { success: false, error: formatError(parseResult.error) };
+  }
+  const validated = parseResult.data;
+
+  const globalPath = getGlobalPath(validated.toolId);
   if (!globalPath) {
-    return { success: false, error: `No global path for ${toolId}` };
+    return { success: false, error: `No global path for ${validated.toolId}` };
   }
 
-  if (BUNDLED_TOOLS[toolId]) {
-    return { success: false, error: `${toolId} uses a bundled file. Use Sync to rebuild.` };
+  if (BUNDLED_TOOLS[validated.toolId]) {
+    return { success: false, error: `${validated.toolId} uses a bundled file. Use Sync to rebuild.` };
   }
 
   const removalPaths: Partial<Record<ToolId, string[]>> = {
-    "claude-code": [`skills/${skillName}`],
-    cursor: [`skills/${skillName}`],
-    windsurf: [`skills/${skillName}`],
-    opencode: [`skills/${skillName}`],
+    "claude-code": [`skills/${validated.skillName}`],
+    cursor: [`skills/${validated.skillName}`],
+    windsurf: [`skills/${validated.skillName}`],
+    opencode: [`skills/${validated.skillName}`],
   };
 
-  const paths = removalPaths[toolId] ?? [];
+  const paths = removalPaths[validated.toolId] ?? [];
   if (paths.length === 0) {
-    return { success: false, error: `Cannot remove individual skills from ${toolId}` };
+    return { success: false, error: `Cannot remove individual skills from ${validated.toolId}` };
   }
 
   try {
     for (const rel of paths) {
-      await fs.rm(path.join(globalPath, rel), { recursive: true, force: true });
+      const fullPath = path.join(globalPath, rel);
+      try {
+        await fs.access(fullPath);
+        await fs.rm(fullPath, { recursive: true, force: true });
+      } catch (err) {
+        if (isNodeErrnoException(err) && err.code === "ENOENT") {
+          continue; // Already removed
+        }
+        throw err;
+      }
     }
     return { success: true };
   } catch (err) {
-    return { success: false, error: String(err) };
+    return { success: false, error: formatError(err) };
   }
 }
