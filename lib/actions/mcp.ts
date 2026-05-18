@@ -291,6 +291,10 @@ export async function addMcpServerAction(
     serverDef.command = validatedInput.command;
     if (validatedInput.args && validatedInput.args.length > 0) serverDef.args = validatedInput.args;
   } else {
+    if (validatedInput.url) {
+      const urlError = getUrlValidationError(validatedInput.url);
+      if (urlError) return { success: false, error: `Invalid URL: ${urlError}` };
+    }
     serverDef.url = validatedInput.url;
   }
   
@@ -384,6 +388,10 @@ export async function editMcpServerAction(
     serverDef.command = validatedInput.command;
     if (validatedInput.args && validatedInput.args.length > 0) serverDef.args = validatedInput.args;
   } else {
+    if (validatedInput.url) {
+      const urlError = getUrlValidationError(validatedInput.url);
+      if (urlError) return { success: false, error: `Invalid URL: ${urlError}` };
+    }
     serverDef.url = validatedInput.url;
   }
   
