@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 // ── Tool identifiers ──────────────────────────────────────────────
+export const IdentifierSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+
 export const TOOL_IDS = [
   "claude-code",
   "cursor",

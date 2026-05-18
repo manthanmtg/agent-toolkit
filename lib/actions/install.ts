@@ -6,7 +6,7 @@ import { build } from "../builder";
 import { linkGlobal } from "../linker";
 import { getAllAdapters } from "../adapters";
 import { getRepoRoot, loadProfile } from "../registry";
-import type { DetectedTool, SymlinkTarget } from "../types";
+import { IdentifierSchema, type DetectedTool, type SymlinkTarget } from "../types";
 
 function formatError(err: unknown): string {
   if (err instanceof Error) return err.message || "Unknown error";
@@ -30,10 +30,28 @@ export interface InstallResult {
 export async function runInstall(
   profileName: string = "default"
 ): Promise<InstallResult> {
-  const normalizedProfile =
-    typeof profileName === "string" && profileName.trim().length > 0
-      ? profileName.trim()
-      : "default";
+  const parseResult = IdentifierSchema.safeParse(profileName);
+
+  // Use 'default' if input is empty, whitespace, or nullish.
+  // Otherwise, use the validated (and trimmed) value if successful.
+  const isEffectivelyEmpty = typeof profileName !== "string" || profileName.trim() === "";
+  const normalizedProfile = parseResult.success ? parseResult.data : "default";
+
+  if (!parseResult.success && !isEffectivelyEmpty) {
+    return {
+      tools: [],
+      buildResult: {
+        totalSkills: 0,
+        totalFiles: 0,
+        errors: [`Invalid profile name format: ${formatError(parseResult.error)}`],
+      },
+      linkResult: {
+        created: 0,
+        backedUp: 0,
+        errors: ["Install flow stopped due to invalid profile name."],
+      },
+    };
+  }
 
   // Step 0: Validate profile exists
   try {
