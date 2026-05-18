@@ -1,6 +1,6 @@
 # Agent Toolkit — Repository Guide
 
-This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills and configurations. It builds, translates, and deploys skill files to 5 supported tools: Claude Code, Cursor, Windsurf, OpenCode, and Codex.
+This is a **Next.js 15 fullstack webapp** that manages AI coding agent skills and configurations. It builds, translates, and deploys skill files to 6 supported tools: Claude Code, Cursor, Windsurf, OpenCode, Codex, and AGENTS.md.
 
 ## Tech Stack
 
