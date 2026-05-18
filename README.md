@@ -5,7 +5,7 @@
 **Write skills once. Deploy everywhere.**
 
 Build, manage, and deploy AI coding agent skills across
-**Claude Code** · **Cursor** · **Windsurf** · **OpenCode** · **Codex**
+**Claude Code** · **Cursor** · **Windsurf** · **OpenCode** · **Codex** · **AGENTS.md**
 
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
@@ -24,7 +24,7 @@ Agent Toolkit solves this. You write a skill **once** as a Markdown file, and th
 
 ## Features
 
-- **Universal Skills** — Write Markdown + YAML frontmatter, deploy to 5+ tools
+- **Universal Skills** — Write Markdown + YAML frontmatter, deploy to 6 tools
 - **Adapter System** — Each tool gets its native format (`.mdc`, `SKILL.md`, `AGENTS.md`, etc.)
 - **My Skills Dashboard** — See what's deployed where, detect drift, update outdated skills in one click
 - **Cross-Agent Discovery** — Skills deployed to Claude Code are automatically visible in Cursor & Windsurf
@@ -90,6 +90,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | **Windsurf** | Per-skill + global rules | `~/.codeium/windsurf/memories/global_rules.md`, `~/.codeium/windsurf/skills/` | `.windsurf/rules/`, `.windsurf/skills/` | `SKILL.md` + `.md` rules |
 | **OpenCode** | Per-skill + global AGENTS | `~/.config/opencode/AGENTS.md`, `~/.config/opencode/skills/` | `.opencode/skills/` | `SKILL.md` |
 | **Codex** | Bundled | `~/.codex/` | Project root | `AGENTS.md` (merged) |
+| **AGENTS.md** | Bundled | — | Project root | `AGENTS.md` (merged) |
 
 > **Cross-agent compatibility:** Cursor and Windsurf automatically discover skills in `~/.claude/skills/`. Deploy once to Claude Code, use everywhere.
 
