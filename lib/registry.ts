@@ -194,17 +194,17 @@ export async function loadProfile(
     }
 
     // Inherit include/exclude only if not explicitly defined in child
-    const rawData = data as any;
-    if (rawData.include === undefined) {
+    const rawData = data as Record<string, unknown> | null | undefined;
+    if (rawData && rawData.include === undefined) {
       profile.include = parent.include;
     }
-    if (rawData.exclude === undefined) {
+    if (rawData && rawData.exclude === undefined) {
       profile.exclude = parent.exclude;
     }
 
     // Merge tools: child overrides parent property by property
-    const explicitChildTools = rawData.tools || {};
-    const mergedTools: Record<string, any> = { ...parent.tools };
+    const explicitChildTools = (rawData?.tools as Record<string, unknown>) || {};
+    const mergedTools: Partial<Profile["tools"]> = { ...parent.tools };
 
     for (const [toolId, childConfig] of Object.entries(profile.tools)) {
       const tid = toolId as ToolId;
@@ -212,14 +212,14 @@ export async function loadProfile(
         // Deep merge tool config: parent parsed values + child raw explicit values
         mergedTools[tid] = ToolConfigSchema.parse({
           ...parent.tools[tid],
-          ...explicitChildTools[tid],
+          ...(explicitChildTools[tid] as Record<string, unknown>),
         });
       } else {
         // Only in child, or not in parent, or not explicit in child (already handled by ProfileSchema.parse)
         mergedTools[tid] = childConfig;
       }
     }
-    profile.tools = mergedTools as Record<ToolId, any>;
+    profile.tools = mergedTools as Profile["tools"];
   }
 
   return profile;
