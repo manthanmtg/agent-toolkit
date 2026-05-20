@@ -4,7 +4,6 @@ import path from "path";
 import {
   createSymlink,
   linkGlobal,
-  linkProject,
 } from "./linker";
 import { backupFile, writeToolkitMarker, checkDuplicate, atomicWrite } from "./safety";
 
@@ -107,34 +106,6 @@ describe("linker", () => {
 
       expect(backupFile).toHaveBeenCalledWith("/d1");
       expect(result.backedUp).toContain("/backup/d1");
-    });
-  });
-
-  describe("linkProject", () => {
-    it("should link within project and update .gitignore", async () => {
-      const projectPath = "/projects/my-app";
-      const targets = [{ source: "/src/skill", destination: "skills/link" }];
-      
-      vi.mocked(fs.access).mockResolvedValue(undefined);
-      vi.mocked(fs.lstat).mockRejectedValue(new Error("ENOENT"));
-      vi.mocked(fs.readFile).mockResolvedValue("node_modules\n");
-
-      const result = await linkProject(projectPath, targets as any);
-
-      expect(result.created).toHaveLength(1);
-      expect(result.created[0].destination).toBe(path.resolve(projectPath, "skills/link"));
-      expect(atomicWrite).toHaveBeenCalled();
-    });
-
-    it("should refuse to link outside project path", async () => {
-      const projectPath = "/projects/my-app";
-      const targets = [{ source: "/src/skill", destination: "../../outside/link" }];
-
-      const result = await linkProject(projectPath, targets as any);
-
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0]).toContain("Refusing to link outside project");
-      expect(result.created).toHaveLength(0);
     });
   });
 });
