@@ -14,6 +14,7 @@ export class CursorAdapter extends BaseAdapter {
     // Rule format (.mdc) for .cursor/rules/
     const ruleFrontmatter = [
       "---",
+      `name: ${skill.frontmatter.name}`,
       "description: |",
       ...descriptionLines.map((line) => `  ${line}`),
       `alwaysApply: ${alwaysApply}`,
