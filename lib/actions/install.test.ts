@@ -146,6 +146,24 @@ describe("runInstall", () => {
 
     const result = await runInstall("default");
     expect(result.buildResult.errors[0]).toContain("Build failed: Build crashed");
+    expect(result.linkResult.errors[0]).toBe("Install flow stopped due to build exception.");
+    expect(linker.linkGlobal).not.toHaveBeenCalled();
+  });
+
+  it("should stop install flow if build produces no files when skills were expected", async () => {
+    vi.mocked(registry.loadProfile).mockResolvedValue({} as any);
+    vi.mocked(detector.detectTools).mockResolvedValue([]);
+    vi.mocked(builder.build).mockResolvedValue({
+      totalSkills: 5,
+      totalFiles: 0,
+      errors: ["Missing templates"],
+    } as any);
+    vi.mocked(adapters.getAllAdapters).mockReturnValue([]);
+
+    const result = await runInstall("default");
+    expect(result.buildResult.errors[0]).toContain("Build failed to produce any files");
+    expect(result.linkResult.errors[0]).toBe("Install flow stopped due to build failure.");
+    expect(linker.linkGlobal).not.toHaveBeenCalled();
   });
 
   it("should handle linkGlobal throwing", async () => {
@@ -156,6 +174,6 @@ describe("runInstall", () => {
     vi.mocked(linker.linkGlobal).mockRejectedValue(new Error("Link failed"));
 
     const result = await runInstall("default");
-    expect(result.linkResult.errors[0]).toContain("Failed to link global configs: Link failed");
+    expect(result.linkResult.errors[0]).toContain("Critical failure during global linking: Link failed");
   });
 });
