@@ -120,11 +120,17 @@ async function scanToolDirectory(
             const skillName = pattern.nameExtractor(entry);
             if (!skillName) return;
 
+            // Skip files larger than 1MB to prevent memory issues during scanning
+            if (stat.size > 1024 * 1024) return;
+
             let content: string | null = null;
 
             if (stat.isDirectory()) {
               const skillFile = path.join(fullPath, "SKILL.md");
-              content = await fs.readFile(skillFile, "utf-8").catch(() => null);
+              const skillStat = await fs.stat(skillFile).catch(() => null);
+              if (skillStat && skillStat.size <= 1024 * 1024) {
+                content = await fs.readFile(skillFile, "utf-8").catch(() => null);
+              }
             } else if (stat.isFile()) {
               content = await fs.readFile(fullPath, "utf-8").catch(() => null);
             }
@@ -151,9 +157,14 @@ async function scanSkillsDir(skillsDir: string): Promise<Map<string, string>> {
       entries.map(async (entry) => {
         if (entry.startsWith(".")) return;
         const skillFile = path.join(skillsDir, entry, "SKILL.md");
-        const content = await fs.readFile(skillFile, "utf-8").catch(() => null);
-        if (content !== null) {
-          found.set(entry, hashContent(content));
+        const stat = await fs.stat(skillFile).catch(() => null);
+        
+        // Skip files larger than 1MB
+        if (stat && stat.size <= 1024 * 1024) {
+          const content = await fs.readFile(skillFile, "utf-8").catch(() => null);
+          if (content !== null) {
+            found.set(entry, hashContent(content));
+          }
         }
       })
     );
@@ -479,6 +490,11 @@ export async function removeSkillFromToolAction(
   try {
     for (const rel of paths) {
       const fullPath = path.join(globalPath, rel);
+      
+      if (!isWithinPath(globalPath, fullPath)) {
+        return { success: false, error: `Security violation: refusing to remove outside global path: ${rel}` };
+      }
+
       try {
         await fs.access(fullPath);
         await fs.rm(fullPath, { recursive: true, force: true });

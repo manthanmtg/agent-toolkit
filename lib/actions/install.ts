@@ -106,8 +106,39 @@ export async function runInstall(
       totalFiles: result.totalFiles,
       errors: [...result.errors],
     };
+
+    // If we have skills to install but no files were produced, something is wrong.
+    // We stop here to prevent linking stale or non-existent files.
+    if (result.totalSkills > 0 && result.totalFiles === 0 && result.errors.length > 0) {
+      return {
+        tools,
+        buildResult: {
+          totalSkills: result.totalSkills,
+          totalFiles: 0,
+          errors: ["Build failed to produce any files. Install flow stopped.", ...result.errors],
+        },
+        linkResult: {
+          created: 0,
+          backedUp: 0,
+          errors: ["Install flow stopped due to build failure."],
+        },
+      };
+    }
   } catch (err) {
-    buildResult.errors.push(`Build failed: ${formatError(err)}`);
+    const msg = `Build failed: ${formatError(err)}`;
+    return {
+      tools,
+      buildResult: {
+        totalSkills: 0,
+        totalFiles: 0,
+        errors: [msg],
+      },
+      linkResult: {
+        created: 0,
+        backedUp: 0,
+        errors: ["Install flow stopped due to build exception."],
+      },
+    };
   }
 
   // Step 3: Link global configs
@@ -134,10 +165,14 @@ export async function runInstall(
   try {
     linkResult = await linkGlobal(targets);
   } catch (err) {
-    linkResult = {
-      created: [],
-      backedUp: [],
-      errors: [`Failed to link global configs: ${formatError(err)}`],
+    return {
+      tools,
+      buildResult,
+      linkResult: {
+        created: 0,
+        backedUp: 0,
+        errors: [`Critical failure during global linking: ${formatError(err)}`],
+      },
     };
   }
 
