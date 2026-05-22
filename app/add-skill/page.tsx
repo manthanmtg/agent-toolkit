@@ -66,11 +66,13 @@ export default function AddSkillPage() {
 
       {/* Scope */}
       <div>
-        <h2 className="text-sm font-medium mb-2">Scope</h2>
-        <div className="flex gap-2">
+        <h2 id="scope-heading" className="text-sm font-medium mb-2">Scope</h2>
+        <div className="flex gap-2" role="radiogroup" aria-labelledby="scope-heading">
           {(["global", "project"] as const).map((s) => (
             <button
               key={s}
+              role="radio"
+              aria-checked={scope === s}
               onClick={() => setScope(s)}
               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
                 scope === s
@@ -86,12 +88,13 @@ export default function AddSkillPage() {
 
       {/* Tool selection */}
       <div>
-        <h2 className="text-sm font-medium mb-2">Target Tools</h2>
-        <div className="space-y-2">
+        <h2 id="tools-heading" className="text-sm font-medium mb-2">Target Tools</h2>
+        <div className="space-y-2" role="group" aria-labelledby="tools-heading">
           {TOOL_IDS.filter((id) => id !== "agents-md").map((toolId) => (
             <button
               key={toolId}
               onClick={() => toggleTool(toolId)}
+              aria-pressed={selectedTools.includes(toolId)}
               className={`w-full flex items-center justify-between p-3 rounded-lg border transition-colors ${
                 selectedTools.includes(toolId)
                   ? "border-primary bg-primary/5"
