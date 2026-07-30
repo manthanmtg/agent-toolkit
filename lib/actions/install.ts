@@ -97,6 +97,7 @@ export async function runInstall(
   let buildResult = {
     totalSkills: 0,
     totalFiles: 0,
+    outputFiles: [] as Array<{ tool: SymlinkTarget["tool"]; relativePath: string }>,
     errors: [] as string[],
   };
   try {
@@ -104,6 +105,7 @@ export async function runInstall(
     buildResult = {
       totalSkills: result.totalSkills,
       totalFiles: result.totalFiles,
+      outputFiles: result.outputFiles,
       errors: [...result.errors],
     };
 
@@ -150,7 +152,10 @@ export async function runInstall(
     const tool = tools.find((t) => t.id === adapter.toolId);
     if (!tool?.detected && adapter.toolId !== "agents-md") continue;
 
-    const symlinkMap = adapter.getGlobalSymlinkTargets();
+    const adapterOutputFiles = buildResult.outputFiles
+      .filter((output) => output.tool === adapter.toolId)
+      .map((output) => output.relativePath);
+    const symlinkMap = adapter.getGlobalSymlinkTargets(adapterOutputFiles);
     for (const [distRel, systemPath] of symlinkMap) {
       targets.push({
         source: path.join(distDir, adapter.toolId, distRel),

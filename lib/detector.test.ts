@@ -30,6 +30,7 @@ describe("detector", () => {
   let repoRoot: string;
   let originalHome: string | undefined;
   let originalUserProfile: string | undefined;
+  let originalCodexHome: string | undefined;
   let accessMock: any;
   let execMock: any;
 
@@ -89,6 +90,8 @@ describe("detector", () => {
     mockedBinaries = [];
     originalHome = process.env.HOME;
     originalUserProfile = process.env.USERPROFILE;
+    originalCodexHome = process.env.CODEX_HOME;
+    delete process.env.CODEX_HOME;
     originalPath = process.env.PATH;
     repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), "agent-toolkit-detector-test-"));
     await loadDetector(repoRoot, undefined);
@@ -105,6 +108,11 @@ describe("detector", () => {
       delete process.env.USERPROFILE;
     } else {
       process.env.USERPROFILE = originalUserProfile;
+    }
+    if (originalCodexHome === undefined) {
+      delete process.env.CODEX_HOME;
+    } else {
+      process.env.CODEX_HOME = originalCodexHome;
     }
 
     if (originalPath === undefined) {
@@ -130,6 +138,14 @@ describe("detector", () => {
 
     expect(detector.getGlobalPath("claude-code")).toBe(path.join(repoRoot, ".claude"));
     expect(detector.getGlobalPath("cursor")).toBe(path.join(repoRoot, ".cursor"));
+  });
+
+  it("uses CODEX_HOME for the Codex global path", async () => {
+    const codexHome = path.join(repoRoot, "custom-codex");
+    process.env.CODEX_HOME = codexHome;
+    await loadDetector(repoRoot, undefined);
+
+    expect(detector.getGlobalPath("codex")).toBe(codexHome);
   });
 
   it("detects a tool when its directory path exists", async () => {

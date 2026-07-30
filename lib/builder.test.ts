@@ -130,6 +130,10 @@ describe("builder", () => {
       totalSkills: 1,
       totalFiles: 2,
       filesByTool: { "claude-code": 2 },
+      outputFiles: [
+        { tool: "claude-code", relativePath: "rules/formatting.md" },
+        { tool: "claude-code", relativePath: "global.md" },
+      ],
       errors: [],
     });
 

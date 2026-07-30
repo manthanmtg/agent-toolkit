@@ -27,6 +27,7 @@ describe("buildAction", () => {
       totalSkills: 1,
       totalFiles: 1,
       filesByTool: { "claude-code": 1 },
+      outputFiles: [{ tool: "claude-code", relativePath: "skills/example/SKILL.md" }],
       errors: [],
     });
 
@@ -44,6 +45,7 @@ describe("buildAction", () => {
       totalSkills: 1,
       totalFiles: 1,
       filesByTool: {},
+      outputFiles: [],
       errors: [],
     });
 
@@ -57,6 +59,7 @@ describe("buildAction", () => {
       totalSkills: 1,
       totalFiles: 1,
       filesByTool: {},
+      outputFiles: [],
       errors: [],
     });
 
@@ -102,6 +105,7 @@ describe("buildAction", () => {
       totalSkills: 5,
       totalFiles: 10,
       filesByTool: { cursor: 10 },
+      outputFiles: [],
       errors: [],
     };
     vi.mocked(build).mockResolvedValue(mockResult);

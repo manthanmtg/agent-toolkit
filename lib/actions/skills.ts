@@ -192,6 +192,7 @@ export async function installSkillAction(
         continue;
       }
 
+      let successfulOutputs = 0;
       for (const output of outputs) {
         const destPath = path.join(globalPath, output.relativePath);
         if (!isWithinPath(globalPath, destPath)) {
@@ -224,6 +225,7 @@ export async function installSkillAction(
           }
           await fs.mkdir(path.dirname(destPath), { recursive: true });
           await atomicWrite(destPath, output.content);
+          successfulOutputs++;
           try {
             await writeToolkitMarker(path.dirname(destPath));
           } catch {}
@@ -233,7 +235,9 @@ export async function installSkillAction(
         }
       }
 
-      installed.push(toolId);
+      if (successfulOutputs > 0) {
+        installed.push(toolId);
+      }
     } catch (err) {
       errors.push(`${TOOL_LABELS[toolId]}: ${formatError(err)}`);
     }
@@ -264,7 +268,7 @@ export async function uninstallSkillAction(
     cursor: [`rules/${validatedSkillName}.mdc`],
     windsurf: [`rules/${validatedSkillName}.md`, `skills/${validatedSkillName}`],
     opencode: [`skills/${validatedSkillName}`],
-    codex: [],
+    codex: [`skills/${validatedSkillName}`],
     "agents-md": [],
   };
 

@@ -42,9 +42,21 @@ describe("runInstall", () => {
   it("should handle effectively empty profile name", async () => {
     vi.mocked(registry.loadProfile).mockResolvedValue({} as any);
     vi.mocked(detector.detectTools).mockResolvedValue([]);
-    vi.mocked(builder.build).mockResolvedValue({ totalSkills: 0, totalFiles: 0, errors: [] });
+    vi.mocked(builder.build).mockResolvedValue({
+      profile: "default",
+      totalSkills: 0,
+      totalFiles: 0,
+      filesByTool: {},
+      outputFiles: [],
+      errors: [],
+    });
     vi.mocked(adapters.getAllAdapters).mockReturnValue([]);
-    vi.mocked(linker.linkGlobal).mockResolvedValue({ created: [], backedUp: [], errors: [] });
+    vi.mocked(linker.linkGlobal).mockResolvedValue({
+      created: [],
+      skipped: [],
+      backedUp: [],
+      errors: [],
+    });
 
     // @ts-expect-error testing null input
     await runInstall(null);
@@ -87,6 +99,12 @@ describe("runInstall", () => {
     vi.mocked(builder.build).mockResolvedValue({
       totalSkills: 5,
       totalFiles: 10,
+      outputFiles: [
+        {
+          tool: "claude-code",
+          relativePath: "config",
+        },
+      ],
       errors: [],
     } as any);
 
@@ -99,7 +117,15 @@ describe("runInstall", () => {
 
     // Mock linker
     vi.mocked(linker.linkGlobal).mockResolvedValue({
-      created: ["/home/user/.claude/config"],
+      created: [
+        {
+          source: "/mock/repo/dist/claude-code/config",
+          destination: "/home/user/.claude/config",
+          tool: "claude-code",
+          scope: "global",
+        },
+      ],
+      skipped: [],
       backedUp: [],
       errors: [],
     });
@@ -112,6 +138,7 @@ describe("runInstall", () => {
     expect(result.linkResult.errors).toHaveLength(0);
 
     expect(builder.build).toHaveBeenCalledWith("default");
+    expect(mockAdapter.getGlobalSymlinkTargets).toHaveBeenCalledWith(["config"]);
     expect(linker.linkGlobal).toHaveBeenCalledWith([
       {
         source: "/mock/repo/dist/claude-code/config",
@@ -131,7 +158,12 @@ describe("runInstall", () => {
       errors: ["Build error 1"],
     } as any);
     vi.mocked(adapters.getAllAdapters).mockReturnValue([]);
-    vi.mocked(linker.linkGlobal).mockResolvedValue({ created: [], backedUp: [], errors: [] });
+    vi.mocked(linker.linkGlobal).mockResolvedValue({
+      created: [],
+      skipped: [],
+      backedUp: [],
+      errors: [],
+    });
 
     const result = await runInstall("default");
     expect(result.buildResult.errors).toContain("Build error 1");
@@ -142,7 +174,12 @@ describe("runInstall", () => {
     vi.mocked(detector.detectTools).mockResolvedValue([]);
     vi.mocked(builder.build).mockRejectedValue(new Error("Build crashed"));
     vi.mocked(adapters.getAllAdapters).mockReturnValue([]);
-    vi.mocked(linker.linkGlobal).mockResolvedValue({ created: [], backedUp: [], errors: [] });
+    vi.mocked(linker.linkGlobal).mockResolvedValue({
+      created: [],
+      skipped: [],
+      backedUp: [],
+      errors: [],
+    });
 
     const result = await runInstall("default");
     expect(result.buildResult.errors[0]).toContain("Build failed: Build crashed");

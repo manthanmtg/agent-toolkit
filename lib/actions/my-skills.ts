@@ -72,6 +72,9 @@ const PER_SKILL_TOOLS: Partial<Record<ToolId, ScanPattern[]>> = {
   opencode: [
     { dir: "skills", nameExtractor: (entry) => entry },
   ],
+  codex: [
+    { dir: "skills", nameExtractor: (entry) => entry },
+  ],
 };
 
 // Cross-agent compatibility paths — tools that read skills from other tools' directories.
@@ -86,14 +89,6 @@ function getCrossAgentPaths(home: string): Partial<Record<ToolId, Array<{ label:
     ],
   };
 }
-
-// Tools that merge all skills into a single output file (no per-skill global files).
-const BUNDLED_TOOLS: Partial<Record<ToolId, { file: string; description: string }>> = {
-  codex: {
-    file: "AGENTS.md",
-    description: "Codex reads a single AGENTS.md file. All skills are merged into this one file via the Sync flow. Individual skill management requires a full rebuild.",
-  },
-};
 
 function hashContent(content: string): string {
   return crypto.createHash("sha256").update(content, "utf-8").digest("hex").slice(0, 16);
@@ -227,20 +222,6 @@ export async function getDeployedSkillsPerTool(): Promise<DeployedSkillsResult> 
       const isDetected = detected?.detected ?? false;
       const globalPath = getGlobalPath(toolId) ?? null;
       const globalPathDisplay = globalPath ? globalPath.replace(HOME, "~") : null;
-
-      // Bundled tools (all skills merged into one file)
-      const bundledInfo = BUNDLED_TOOLS[toolId];
-      if (bundledInfo) {
-        return {
-          toolId,
-          detected: isDetected,
-          globalPath,
-          globalPathDisplay,
-          deploymentModel: "bundled",
-          note: bundledInfo.description,
-          skills: [],
-        };
-      }
 
       // Undetected tools
       if (!globalPath || !isDetected) {
@@ -390,10 +371,6 @@ export async function updateDeployedSkillAction(
     return { success: false, error: `No global path for ${validated.toolId}` };
   }
 
-  if (BUNDLED_TOOLS[validated.toolId]) {
-    return { success: false, error: `${validated.toolId} uses a bundled file. Use Sync to update all skills.` };
-  }
-
   try {
     const allSkills = await loadAllSkills();
     const skill = allSkills.find((s) => s.skillName === validated.skillName && s.domain === validated.domain);
@@ -471,15 +448,12 @@ export async function removeSkillFromToolAction(
     return { success: false, error: `No global path for ${validated.toolId}` };
   }
 
-  if (BUNDLED_TOOLS[validated.toolId]) {
-    return { success: false, error: `${validated.toolId} uses a bundled file. Use Sync to rebuild.` };
-  }
-
   const removalPaths: Partial<Record<ToolId, string[]>> = {
     "claude-code": [`skills/${validated.skillName}`],
     cursor: [`skills/${validated.skillName}`],
     windsurf: [`skills/${validated.skillName}`],
     opencode: [`skills/${validated.skillName}`],
+    codex: [`skills/${validated.skillName}`],
   };
 
   const paths = removalPaths[validated.toolId] ?? [];

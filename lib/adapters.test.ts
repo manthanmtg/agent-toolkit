@@ -230,8 +230,44 @@ describe("OpenCodeAdapter", () => {
 describe("CodexAdapter", () => {
   const adapter = new CodexAdapter();
 
-  it("should return empty array for translateSkill", () => {
-    expect(adapter.translateSkill(mockSkill, mockProfile)).toHaveLength(0);
+  it("should translate a standalone skill to SKILL.md", () => {
+    const outputs = adapter.translateSkill(mockSkill, mockProfile);
+
+    expect(outputs).toHaveLength(1);
+    expect(outputs[0]).toMatchObject({
+      relativePath: "skills/test-skill/SKILL.md",
+      tool: "codex",
+      scope: "workspace",
+    });
+    expect(outputs[0].content).toContain("name: test-skill");
+    expect(outputs[0].content).toContain("description: |");
+    expect(outputs[0].content).toContain("Test content");
+  });
+
+  it("should link generated skills individually without replacing the skills directory", () => {
+    const previousCodexHome = process.env.CODEX_HOME;
+    process.env.CODEX_HOME = "/tmp/custom-codex-home";
+
+    try {
+      const targets = adapter.getGlobalSymlinkTargets([
+        "AGENTS.md",
+        "skills/test-skill/SKILL.md",
+      ]);
+
+      expect(targets.get("AGENTS.md")).toBe(
+        "/tmp/custom-codex-home/AGENTS.md"
+      );
+      expect(targets.get("skills/test-skill")).toBe(
+        "/tmp/custom-codex-home/skills/test-skill"
+      );
+      expect(targets.has("skills")).toBe(false);
+    } finally {
+      if (previousCodexHome === undefined) {
+        delete process.env.CODEX_HOME;
+      } else {
+        process.env.CODEX_HOME = previousCodexHome;
+      }
+    }
   });
 
   it("should translate global rules and warn on size limit", () => {

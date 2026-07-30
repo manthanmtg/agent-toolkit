@@ -43,11 +43,15 @@ const TOOL_CHECKS: ToolCheck[] = [
   {
     id: "codex",
     checks: [
-      { type: "dir", path: path.join(HOME, ".codex") },
+      { type: "dir", path: getCodexHome() },
       { type: "binary", path: "codex" },
     ],
   },
 ];
+
+export function getCodexHome(): string {
+  return process.env.CODEX_HOME || path.join(HOME, ".codex");
+}
 
 async function checkExists(filePath: string): Promise<boolean> {
   try {
@@ -131,7 +135,7 @@ export function getGlobalPath(toolId: ToolId): string | undefined {
     case "opencode":
       return path.join(HOME, ".config", "opencode");
     case "codex":
-      return path.join(HOME, ".codex");
+      return getCodexHome();
     case "agents-md":
       return undefined;
   }

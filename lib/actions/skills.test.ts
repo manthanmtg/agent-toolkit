@@ -7,15 +7,18 @@ describe("skills actions", () => {
   let repoRoot: string;
   let originalCwd: string;
   let originalHome: string | undefined;
+  let originalCodexHome: string | undefined;
   let actions: any;
 
   beforeEach(async () => {
     originalCwd = process.cwd();
     originalHome = process.env.HOME;
+    originalCodexHome = process.env.CODEX_HOME;
 
     repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), "agent-toolkit-skills-test-"));
     
     process.env.HOME = repoRoot;
+    delete process.env.CODEX_HOME;
     process.chdir(repoRoot);
     
     // Create necessary directories
@@ -48,6 +51,11 @@ activation:
       delete process.env.HOME;
     } else {
       process.env.HOME = originalHome;
+    }
+    if (originalCodexHome === undefined) {
+      delete process.env.CODEX_HOME;
+    } else {
+      process.env.CODEX_HOME = originalCodexHome;
     }
     await fs.rm(repoRoot, { recursive: true, force: true });
     vi.resetModules();
@@ -162,6 +170,29 @@ activation:
       await expect(fs.access(path.join(cursorPath, "rules/test-skill.mdc"))).resolves.toBeUndefined();
     });
 
+    it("installs a standalone Codex skill", async () => {
+      const result = await actions.installSkillAction(
+        "test-domain",
+        "test-skill",
+        ["codex"]
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.installed).toContain("codex");
+
+      const installedFile = path.join(
+        repoRoot,
+        ".codex",
+        "skills",
+        "test-skill",
+        "SKILL.md"
+      );
+      await expect(fs.access(installedFile)).resolves.toBeUndefined();
+      await expect(fs.readFile(installedFile, "utf-8")).resolves.toContain(
+        "Toolkit Skill content"
+      );
+    });
+
     it("reports errors for missing tools", async () => {
       // agents-md adapter.translateSkill returns [] by design
       const result = await actions.installSkillAction("test-domain", "test-skill", ["agents-md"]);
@@ -190,14 +221,25 @@ activation:
       await expect(fs.access(skillPath)).rejects.toThrow();
     });
 
-    it("handles missing tool gracefully", async () => {
-      // If tool path is not detected, it should skip
+    it("uninstalls a Codex skill", async () => {
+      const skillPath = path.join(
+        repoRoot,
+        ".codex",
+        "skills",
+        "test-skill",
+        "SKILL.md"
+      );
+      await fs.mkdir(path.dirname(skillPath), { recursive: true });
+      await fs.writeFile(skillPath, "content");
+
       const result = await actions.uninstallSkillAction("test-skill", ["codex"]);
-      // codex returns path.join(HOME, ".codex") which exists in our repoRoot? 
-      // Wait, we didn't create it.
-      // But getGlobalPath just returns the string.
-      // detector.ts's detectTools checks if it exists, but actions/skills.ts calls getGlobalPath directly.
-      
+
+      expect(result.success).toBe(true);
+      expect(result.removed).toContain("Codex: skills/test-skill");
+      await expect(fs.access(path.dirname(skillPath))).rejects.toThrow();
+    });
+
+    it("handles a missing skill gracefully", async () => {
       const result2 = await actions.uninstallSkillAction("test-skill", ["claude-code"]);
       expect(result2.success).toBe(true); // Should be true if no errors even if nothing removed
       expect(result2.removed).toHaveLength(0);

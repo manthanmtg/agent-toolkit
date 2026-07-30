@@ -106,7 +106,7 @@ const DOCS: ToolDoc[] = [
                     Each skill is a separate <Code>SKILL.md</Code> file in a named directory.
                     Can add, update, or remove individually.
                   </td>
-                  <td className="py-2">Claude Code, Cursor, Windsurf, OpenCode</td>
+                  <td className="py-2">Claude Code, Cursor, Windsurf, OpenCode, Codex</td>
                 </tr>
                 <tr>
                   <td className="py-2 pr-4 font-medium text-foreground">Bundled</td>
@@ -114,7 +114,7 @@ const DOCS: ToolDoc[] = [
                     All skills are merged into a single <Code>AGENTS.md</Code> file.
                     Must rebuild via Sync to update.
                   </td>
-                  <td className="py-2">Codex</td>
+                  <td className="py-2">AGENTS.md</td>
                 </tr>
               </tbody>
             </table>
@@ -446,19 +446,27 @@ const DOCS: ToolDoc[] = [
             <div className="flex items-start gap-2">
               <Globe className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
               <div>
-                <span className="text-sm font-medium">Global</span>
-                <p className="text-xs text-muted-foreground font-mono">~/.codex/AGENTS.md</p>
+                <span className="text-sm font-medium">Global Skills</span>
+                <p className="text-xs text-muted-foreground font-mono">~/.codex/skills/&lt;name&gt;/SKILL.md</p>
                 <p className="text-xs text-muted-foreground">
-                  Single file, max 32 KiB. All skills are merged into this one file.
+                  Codex-specific standalone skills, loaded with progressive disclosure.
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-2">
               <Folder className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
               <div>
-                <span className="text-sm font-medium">Project</span>
-                <p className="text-xs text-muted-foreground font-mono">./AGENTS.md</p>
-                <p className="text-xs text-muted-foreground">Codex reads AGENTS.md from any directory in the project tree.</p>
+                <span className="text-sm font-medium">Project Skills</span>
+                <p className="text-xs text-muted-foreground font-mono">.agents/skills/&lt;name&gt;/SKILL.md</p>
+                <p className="text-xs text-muted-foreground">Repository-scoped skills that can be shared with the team.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <FileText className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div>
+                <span className="text-sm font-medium">Global Instructions</span>
+                <p className="text-xs text-muted-foreground font-mono">~/.codex/AGENTS.md</p>
+                <p className="text-xs text-muted-foreground">Always-loaded guidance, limited by the Codex project document budget.</p>
               </div>
             </div>
           </div>
@@ -468,7 +476,8 @@ const DOCS: ToolDoc[] = [
         title: "Activation",
         content: (
           <ul className="space-y-1 text-sm text-muted-foreground">
-            <li><Code>auto</Code> — Always loaded when present (only option)</li>
+            <li><Code>auto</Code> — Codex may invoke the skill when its description matches</li>
+            <li><Code>$skill-name</Code> — Explicitly invoke a skill</li>
           </ul>
         ),
       },
@@ -476,10 +485,10 @@ const DOCS: ToolDoc[] = [
         title: "What the Toolkit Does",
         content: (
           <p className="text-sm text-muted-foreground">
-            Codex does not support per-skill files. The toolkit merges all
-            skills into a single <Code>AGENTS.md</Code> (with a 32 KiB limit
-            warning). The Sync flow rebuilds and deploys to{" "}
-            <Code>~/.codex/AGENTS.md</Code>.
+            Generates standalone <Code>SKILL.md</Code> directories under{" "}
+            <Code>~/.codex/skills/</Code> so skills can be installed, updated,
+            and removed individually. The Sync flow also retains the merged{" "}
+            <Code>~/.codex/AGENTS.md</Code> output for backward compatibility.
           </p>
         ),
       },

@@ -129,6 +129,9 @@ This is the ground truth for how each tool consumes instructions. The toolkit mu
 
 | Scope | Path | Format |
 |-------|------|--------|
+| Global skills | `~/.codex/skills/<skill-name>/SKILL.md` | Agent Skill directory |
+| Shared user skills | `~/.agents/skills/<skill-name>/SKILL.md` | Cross-agent Skill directory |
+| Project skills | `.agents/skills/<skill-name>/SKILL.md` | Repository Skill directory |
 | Global instructions | `~/.codex/AGENTS.md` | Plain markdown |
 | Global overrides | `~/.codex/AGENTS.override.md` | Plain markdown (takes precedence over `AGENTS.md`) |
 | Project instructions | `AGENTS.md` in repo root or any directory | Plain markdown |
@@ -136,6 +139,7 @@ This is the ground truth for how each tool consumes instructions. The toolkit mu
 | Config | `~/.codex/config.toml` | TOML |
 
 **Key details**:
+- Standalone skills use progressive disclosure: Codex sees their metadata first and loads `SKILL.md` when invoked implicitly or explicitly.
 - Discovery chain: Global (`~/.codex/`) → project root → each directory down to CWD. At most one file per directory.
 - In each directory: `AGENTS.override.md` is checked first, then `AGENTS.md`, then fallback filenames from `project_doc_fallback_filenames` in config.
 - Files are concatenated root-down; later files (closer to CWD) override earlier guidance.
@@ -446,7 +450,7 @@ abstract class BaseAdapter {
 | AD-3 | Cursor adapter emits `.mdc` files with `description` and `alwaysApply`/`globs` frontmatter | P0 |
 | AD-4 | Windsurf adapter emits rule files with `trigger` frontmatter (`always_on`/`model_decision`/`glob`/`manual`) and optionally skill directories | P0 |
 | AD-5 | OpenCode adapter emits `<skill-name>/SKILL.md` directories (compatible with Claude Code format) into `.opencode/skills/` and generates an `AGENTS.md` with concatenated skill summaries | P0 |
-| AD-6 | Codex adapter generates `AGENTS.md` files with concatenated skill content (respects `project_doc_max_bytes` 32 KiB default) and optionally an `AGENTS.override.md` | P0 |
+| AD-6 | Codex adapter emits standalone `<skill-name>/SKILL.md` directories and retains a merged `AGENTS.md` compatibility output that respects the 32 KiB default project-document budget | P0 |
 | AD-7 | AGENTS.md adapter generates a combined `AGENTS.md` from selected skills (universal cross-tool format) | P0 |
 | AD-8 | All adapters respect tool-specific character/byte limits (Windsurf global: 6,000 chars, workspace rule: 12,000 chars; OpenCode skill description: 1,024 chars; Codex: 32 KiB combined) and emit warnings when exceeded | P1 |
 | AD-9 | Adapters are idempotent — running twice produces identical output | P0 |
@@ -701,7 +705,7 @@ The safety module ensures the webapp **never breaks existing configurations**.
 ## 11. Value Proposition
 
 ### Cross-Pollination
-Write a Spark optimization guide once → it becomes a Claude Code skill in `~/.claude/skills/`, a Cursor rule in `.cursor/rules/`, a Windsurf rule in `.windsurf/rules/`, an OpenCode skill in `.opencode/skills/`, a Codex instruction in `~/.codex/AGENTS.md`, and a universal `AGENTS.md` entry — simultaneously.
+Write a Spark optimization guide once → it becomes a Claude Code skill in `~/.claude/skills/`, a Cursor rule in `.cursor/rules/`, a Windsurf rule in `.windsurf/rules/`, an OpenCode skill in `.opencode/skills/`, a Codex skill in `~/.codex/skills/`, and a universal `AGENTS.md` entry — simultaneously.
 
 ### Standardization
 Whether you're at Atlan debugging a Spark pipeline or building a FastAPI side project at home, every agent you use follows the same patterns, conventions, and quality bar.

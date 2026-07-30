@@ -37,6 +37,7 @@ export interface BuildResult {
   totalSkills: number;
   totalFiles: number;
   filesByTool: Record<string, number>;
+  outputFiles: Array<{ tool: OutputFile["tool"]; relativePath: string }>;
   errors: string[];
 }
 
@@ -46,6 +47,7 @@ export async function build(profileName: string = "default"): Promise<BuildResul
     totalSkills: 0,
     totalFiles: 0,
     filesByTool: {},
+    outputFiles: [],
     errors: [],
   };
 
@@ -118,6 +120,10 @@ export async function build(profileName: string = "default"): Promise<BuildResul
       });
 
       result.filesByTool[output.tool] = (result.filesByTool[output.tool] || 0) + 1;
+      result.outputFiles.push({
+        tool: output.tool,
+        relativePath: output.relativePath,
+      });
       result.totalFiles++;
     } catch (err) {
       result.errors.push(`Failed to write ${fullPath}: ${err instanceof Error ? err.message : String(err)}`);

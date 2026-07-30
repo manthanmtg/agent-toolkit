@@ -1,16 +1,27 @@
 import path from "path";
 import type { Skill, Profile, OutputFile } from "../types";
 import { BaseAdapter } from "./base";
-import { HOME } from "../safety";
-
-const CODEX_HOME = process.env.CODEX_HOME || path.join(HOME, ".codex");
+import { getGlobalPath } from "../detector";
 
 export class CodexAdapter extends BaseAdapter {
   readonly toolId = "codex" as const;
 
-  translateSkill(_skill: Skill, _profile: Profile): OutputFile[] {
-    // Codex doesn't have per-skill files — everything goes into AGENTS.md
-    return [];
+  translateSkill(skill: Skill, _profile: Profile): OutputFile[] {
+    const frontmatter = [
+      "---",
+      ...this.renderSkillFrontmatter(skill),
+      "---",
+      "",
+    ].join("\n");
+
+    return [
+      {
+        relativePath: `skills/${skill.skillName}/SKILL.md`,
+        content: frontmatter + skill.content + "\n",
+        tool: "codex",
+        scope: "workspace",
+      },
+    ];
   }
 
   translateGlobal(skills: Skill[], _profile: Profile): OutputFile[] {
@@ -50,14 +61,32 @@ export class CodexAdapter extends BaseAdapter {
     ];
   }
 
-  getGlobalSymlinkTargets(): Map<string, string> {
-    return new Map([
-      ["AGENTS.md", path.join(CODEX_HOME, "AGENTS.md")],
+  getGlobalSymlinkTargets(outputFiles: string[] = []): Map<string, string> {
+    const codexHome = getGlobalPath("codex");
+    if (!codexHome) return new Map();
+
+    const targets = new Map<string, string>([
+      ["AGENTS.md", path.join(codexHome, "AGENTS.md")],
     ]);
+
+    for (const relativePath of outputFiles) {
+      const match = relativePath.match(
+        /^skills\/([a-z0-9]+(?:-[a-z0-9]+)*)\/SKILL\.md$/
+      );
+      if (!match) continue;
+
+      const skillName = match[1];
+      targets.set(
+        `skills/${skillName}`,
+        path.join(codexHome, "skills", skillName)
+      );
+    }
+
+    return targets;
   }
 
   getProjectSymlinkTargets(): Map<string, string> {
-    return new Map(); // Codex reads AGENTS.md from any directory — use agents-md adapter for project
+    return new Map([["skills", ".agents/skills"]]);
   }
 
   getCharacterLimit(scope: "global" | "workspace"): number | null {

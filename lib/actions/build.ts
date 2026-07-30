@@ -28,6 +28,7 @@ export async function buildAction(
       totalSkills: 0,
       totalFiles: 0,
       filesByTool: {},
+      outputFiles: [],
       errors: [`Invalid profile name format: ${formatError(parseResult.error)}`],
     };
   }
@@ -38,6 +39,7 @@ export async function buildAction(
       totalSkills: 0,
       totalFiles: 0,
       filesByTool: {},
+      outputFiles: [],
       errors: ["Invalid clean flag: expected true/false."],
     };
   }
@@ -51,6 +53,7 @@ export async function buildAction(
         totalSkills: 0,
         totalFiles: 0,
         filesByTool: {},
+        outputFiles: [],
         errors: [`Failed to clean dist directory: ${formatError(err)}`],
       };
     }
@@ -64,6 +67,7 @@ export async function buildAction(
       totalSkills: 0,
       totalFiles: 0,
       filesByTool: {},
+      outputFiles: [],
       errors: [`Build failed: ${formatError(err)}`],
     };
   }
