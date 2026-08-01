@@ -26,6 +26,7 @@ Agent Toolkit solves this. You write a skill **once** as a Markdown file, and th
 
 - **Universal Skills** — Write Markdown + YAML frontmatter, deploy to 6 tools
 - **Adapter System** — Each tool gets its native format (`.mdc`, `SKILL.md`, `AGENTS.md`, etc.)
+- **Bulk Catalog Install** — Select several skills, review create/replace targets, then install them in one action
 - **My Skills Dashboard** — See what's deployed where, detect drift, update outdated skills in one click
 - **Cross-Agent Discovery** — Skills deployed to Claude Code are automatically visible in Cursor & Windsurf
 - **Profiles** — Compose skill sets per use case (e.g., "python-only", "full-stack")
@@ -57,7 +58,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Skill Library
 
-19 production-ready skills across 14 domains:
+24 production-ready skills across 14 domains:
 
 | Domain | Skill | Description |
 |--------|-------|-------------|
@@ -70,6 +71,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | **docs-gen** | `engineering-docs` | READMEs, API docs, runbooks, changelogs, migration guides |
 | **frontend** | `frontend-design` | Create production-grade frontend UI with strong aesthetics and implementation quality |
 | **frontend** | `frontend-review` | Review frontend code for design, accessibility, responsiveness, and performance |
+| **git-pro** | `add-commit-push-to-main` | Add session changes, commit them, rebase on upstream main, and push to main |
 | **git-pro** | `perfect-commits` | Precise commits, reviewable PRs, clean rebases |
 | **perf-opt** | `performance-tuning` | Profiling, bottleneck analysis, query optimization |
 | **planning** | `design-architect` | Architect code changes by analyzing branches, schemas, and requirements |
@@ -100,7 +102,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Route | What it does |
 |-------|-------------|
 | `/` | Dashboard — skill count, profiles, detected tools, health summary |
-| `/skills` | Browse all skills grouped by domain |
+| `/skills` | Browse skills grouped by domain, select multiple cards, review targets, and install in bulk |
 | `/skills/[domain]/[name]` | Skill detail — metadata, activation config, rendered content |
 | `/skills/new` | Create a new skill with the guided editor |
 | `/my-skills` | Deployed skills per tool — drift detection, update, add, cross-agent view |

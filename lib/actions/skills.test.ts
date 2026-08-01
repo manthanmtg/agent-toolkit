@@ -170,6 +170,28 @@ activation:
       await expect(fs.access(path.join(cursorPath, "rules/test-skill.mdc"))).resolves.toBeUndefined();
     });
 
+    it("replaces existing destinations through the shared installer", async () => {
+      const codexFile = path.join(
+        repoRoot,
+        ".codex",
+        "skills",
+        "test-skill",
+        "SKILL.md"
+      );
+      await fs.mkdir(path.dirname(codexFile), { recursive: true });
+      await fs.writeFile(codexFile, "old content", "utf-8");
+
+      const result = await actions.installSkillAction("test-domain", "test-skill", ["codex"]);
+
+      expect(result.success).toBe(true);
+      expect(result.installed).toEqual(["codex"]);
+      await expect(fs.readFile(codexFile, "utf-8")).resolves.toContain(
+        "Toolkit Skill content"
+      );
+      const backups = await fs.readdir(path.join(repoRoot, ".agent-toolkit-backup"));
+      expect(backups).toHaveLength(1);
+    });
+
     it("installs a standalone Codex skill", async () => {
       const result = await actions.installSkillAction(
         "test-domain",
@@ -204,6 +226,145 @@ activation:
       const result = await actions.installSkillAction("test-domain", "ghost", ["claude-code"]);
       expect(result.success).toBe(false);
       expect(result.errors[0]).toContain("Skill not found");
+    });
+  });
+
+  describe("previewSkillsInstallAction", () => {
+    it("previews several skills across several tools", async () => {
+      await createToolkitSkill("test-domain", "second-skill", "Second Skill");
+
+      const result = await actions.previewSkillsInstallAction({
+        skills: [
+          { source: "toolkit", domain: "test-domain", skillName: "test-skill" },
+          { source: "toolkit", domain: "test-domain", skillName: "second-skill" },
+        ],
+        toolIds: ["claude-code", "codex"],
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.preview.okToInstall).toBe(true);
+      expect(result.preview.summary).toMatchObject({
+        requestedSkills: 2,
+        requestedTools: 2,
+        createFiles: 4,
+        replaceFiles: 0,
+      });
+      expect(result.preview.entries[0]).not.toHaveProperty("content");
+    });
+
+    it("reports replacements without writing during preview", async () => {
+      const codexFile = path.join(
+        repoRoot,
+        ".codex",
+        "skills",
+        "test-skill",
+        "SKILL.md"
+      );
+      await fs.mkdir(path.dirname(codexFile), { recursive: true });
+      await fs.writeFile(codexFile, "old content", "utf-8");
+
+      const result = await actions.previewSkillsInstallAction({
+        skills: [{ source: "toolkit", domain: "test-domain", skillName: "test-skill" }],
+        toolIds: ["codex"],
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.preview.summary.replaceFiles).toBe(1);
+      await expect(fs.readFile(codexFile, "utf-8")).resolves.toBe("old content");
+    });
+
+    it("returns validation errors for unsupported bulk targets", async () => {
+      const result = await actions.previewSkillsInstallAction({
+        skills: [{ source: "toolkit", domain: "test-domain", skillName: "test-skill" }],
+        toolIds: ["agents-md"],
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("AGENTS.md");
+    });
+  });
+
+  describe("installSkillsAction", () => {
+    it("installs several skills across several tools", async () => {
+      await createToolkitSkill("test-domain", "second-skill", "Second Skill");
+
+      const result = await actions.installSkillsAction({
+        skills: [
+          { source: "toolkit", domain: "test-domain", skillName: "test-skill" },
+          { source: "toolkit", domain: "test-domain", skillName: "second-skill" },
+        ],
+        toolIds: ["claude-code", "codex"],
+        confirmReplacements: false,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.result.status).toBe("success");
+      expect(result.result.summary.filesWritten).toBe(4);
+      await expect(
+        fs.access(path.join(repoRoot, ".claude", "skills", "test-skill", "SKILL.md"))
+      ).resolves.toBeUndefined();
+      await expect(
+        fs.access(path.join(repoRoot, ".codex", "skills", "second-skill", "SKILL.md"))
+      ).resolves.toBeUndefined();
+    });
+
+    it("loads local skills by exact source during batch install", async () => {
+      const localSkillDir = path.join(
+        repoRoot,
+        ".agent-toolkit",
+        "local-skills",
+        "test-domain",
+        "test-skill"
+      );
+      await fs.mkdir(localSkillDir, { recursive: true });
+      await fs.writeFile(path.join(localSkillDir, "SKILL.md"), `---
+name: test-skill
+description: Local Skill
+domain: test-domain
+version: 1.0.0
+tags: []
+author: ""
+activation:
+  codex: auto
+---
+# Local Skill content`);
+
+      const result = await actions.installSkillsAction({
+        skills: [{ source: "local", domain: "test-domain", skillName: "test-skill" }],
+        toolIds: ["codex"],
+        confirmReplacements: false,
+      });
+
+      expect(result.success).toBe(true);
+      const installed = await fs.readFile(
+        path.join(repoRoot, ".codex", "skills", "test-skill", "SKILL.md"),
+        "utf-8"
+      );
+      expect(installed).toContain("Local Skill content");
+      expect(installed).not.toContain("Toolkit Skill content");
+    });
+
+    it("aborts before writes when replacements are not confirmed", async () => {
+      const codexFile = path.join(
+        repoRoot,
+        ".codex",
+        "skills",
+        "test-skill",
+        "SKILL.md"
+      );
+      await fs.mkdir(path.dirname(codexFile), { recursive: true });
+      await fs.writeFile(codexFile, "old content", "utf-8");
+
+      const result = await actions.installSkillsAction({
+        skills: [{ source: "toolkit", domain: "test-domain", skillName: "test-skill" }],
+        toolIds: ["codex"],
+        confirmReplacements: false,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.result.status).toBe("failed");
+      expect(result.result.errors.join(" ")).toContain("Replacement confirmation");
+      await expect(fs.readFile(codexFile, "utf-8")).resolves.toBe("old content");
     });
   });
 
@@ -245,4 +406,21 @@ activation:
       expect(result2.removed).toHaveLength(0);
     });
   });
+
+  async function createToolkitSkill(domain: string, skillName: string, description: string) {
+    const skillDir = path.join(repoRoot, "skills", domain, skillName);
+    await fs.mkdir(skillDir, { recursive: true });
+    await fs.writeFile(path.join(skillDir, "SKILL.md"), `---
+name: ${skillName}
+description: ${description}
+domain: ${domain}
+version: 1.0.0
+tags: []
+author: ""
+activation:
+  claude-code: model
+  codex: auto
+---
+# ${description} content`);
+  }
 });

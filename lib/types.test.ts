@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   ActivationSchema,
+  BulkSkillInstallInputSchema,
+  ConfirmedBulkSkillInstallInputSchema,
+  MAX_BULK_SKILLS,
   ProfileSchema,
+  SkillInstallRefSchema,
   SkillFrontmatterSchema,
   TOOL_LABELS,
   TOOL_IDS,
@@ -312,5 +316,88 @@ describe("schema edge cases", () => {
         },
       })
     ).toThrow();
+  });
+});
+
+describe("bulk skill install schemas", () => {
+  const ref = {
+    source: "toolkit",
+    domain: "code-review",
+    skillName: "deep-review",
+  } as const;
+
+  it("accepts unique exact-source skill refs and per-skill tool ids", () => {
+    const parsed = BulkSkillInstallInputSchema.parse({
+      skills: [ref],
+      toolIds: ["claude-code", "cursor"],
+    });
+
+    expect(parsed.skills).toEqual([ref]);
+    expect(parsed.toolIds).toEqual(["claude-code", "cursor"]);
+  });
+
+  it("rejects malformed skill refs", () => {
+    expect(() =>
+      SkillInstallRefSchema.parse({
+        source: "toolkit",
+        domain: "Code Review",
+        skillName: "deep-review",
+      })
+    ).toThrow();
+  });
+
+  it("rejects empty selections and duplicate skill refs", () => {
+    expect(() =>
+      BulkSkillInstallInputSchema.parse({
+        skills: [],
+        toolIds: ["codex"],
+      })
+    ).toThrow();
+
+    expect(() =>
+      BulkSkillInstallInputSchema.parse({
+        skills: [ref, ref],
+        toolIds: ["codex"],
+      })
+    ).toThrow("Duplicate skill");
+  });
+
+  it("rejects oversized selections", () => {
+    expect(() =>
+      BulkSkillInstallInputSchema.parse({
+        skills: Array.from({ length: MAX_BULK_SKILLS + 1 }, (_, index) => ({
+          source: "toolkit",
+          domain: "testing",
+          skillName: `skill-${index}`,
+        })),
+        toolIds: ["codex"],
+      })
+    ).toThrow();
+  });
+
+  it("rejects duplicate tools and AGENTS.md", () => {
+    expect(() =>
+      BulkSkillInstallInputSchema.parse({
+        skills: [ref],
+        toolIds: ["codex", "codex"],
+      })
+    ).toThrow("Duplicate tool");
+
+    expect(() =>
+      BulkSkillInstallInputSchema.parse({
+        skills: [ref],
+        toolIds: ["agents-md"],
+      })
+    ).toThrow("AGENTS.md");
+  });
+
+  it("requires explicit replacement confirmation for confirmed installs", () => {
+    const parsed = ConfirmedBulkSkillInstallInputSchema.parse({
+      skills: [ref],
+      toolIds: ["codex"],
+      confirmReplacements: false,
+    });
+
+    expect(parsed.confirmReplacements).toBe(false);
   });
 });

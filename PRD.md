@@ -659,7 +659,7 @@ A fullstack **Next.js 15** app running locally at `http://localhost:3000`. No se
 |-------|---------|
 | `/` | **Dashboard** — detected tools (with status badges), total skills, active profile, linked projects, quick "Sync" button, health summary |
 | `/install` | **Setup Wizard** — multi-step guided flow: detect tools → pick profile → build → link → MCP → env. Real-time streaming progress per step. |
-| `/skills` | **Skill Browser** — filterable grid/list of all skills. Search by name, domain, tag. Cards show name, domain, tags, description snippet, installed-to indicators. |
+| `/skills` | **Skill Browser** — filterable grid/list of all skills. Cards show name, domain, tags, description snippet, and source. Selection mode supports multi-card selection, common per-skill tool targets, server-side create/replace preview, replacement confirmation, and one bulk install action. |
 | `/skills/[domain]/[name]` | **Skill Detail** — full markdown preview, frontmatter editor, per-tool activation toggles, "Install to..." button (opens tool-target picker), diff viewer, "Refine" panel. |
 | `/skills/new` | **New Skill** — form: domain (dropdown or new), name (validated), description, template selection. Creates directory + `SKILL.md` scaffold. |
 | `/add-skill` | **Add Skill Flow** — the core interactive flow: pick skill → tool-target picker (multi-select checkboxes: tool × scope) → safety check panel → confirm → stream results. |
@@ -681,7 +681,8 @@ A fullstack **Next.js 15** app running locally at `http://localhost:3000`. No se
 | `<DiffViewer />` | Side-by-side or unified diff view. Used in skill refinement, profile changes, and pre-install preview. |
 | `<InstallWizard />` | Multi-step stepper component. Each step has its own Server Action. Progress streams via React `useTransition` + streaming responses. |
 | `<TerminalOutput />` | Monospace streaming output panel for build, install, MCP operations. Supports ANSI-like coloring (green ✓, red ✗, yellow ⚠). |
-| `<SkillCard />` | Card component: skill name, domain badge, tag pills, description truncated, installed-to tool icons. Click → detail page. |
+| `<SkillCard />` | Card component: skill name, source badge, tag pills, description truncated, and version. Browse mode links to detail; selection mode renders a native checkbox card for bulk install. |
+| `<BulkInstallDialog />` | Catalog bulk-install modal: selected skills, target tool checkboxes, server preview, replacement confirmation, grouped results, and partial retry support. |
 
 ### 10.4 Safety Module (`lib/safety.ts`)
 

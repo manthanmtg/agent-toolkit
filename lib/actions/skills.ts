@@ -2,17 +2,27 @@
 
 import fs from "fs/promises";
 import path from "path";
-import { loadAllSkills, loadSkill, loadProfile, getSkillsDir, getLocalSkillsDir } from "../registry";
-import { getAdapter, checkCharacterLimit } from "../adapters";
+import { loadAllSkills, loadSkill, getSkillsDir, getLocalSkillsDir } from "../registry";
 import { getGlobalPath } from "../detector";
-import { atomicWrite, isWithinPath, HOME, checkDuplicate, backupFile, writeToolkitMarker } from "../safety";
+import { atomicWrite, isWithinPath } from "../safety";
 import {
+  buildSkillInstallPlan,
+  executeSkillInstallPlan,
+  loadSkillForInstall,
+  toPublicInstallPreview,
+  type BulkSkillInstallResult,
+  type PublicSkillInstallPreview,
+} from "../skill-installer";
+import {
+  BulkSkillInstallInputSchema,
+  ConfirmedBulkSkillInstallInputSchema,
   CreateSkillInputSchema,
   InstallSkillInputSchema,
   UninstallSkillInputSchema,
   IdentifierSchema,
   TOOL_LABELS,
   type Skill,
+  type SkillInstallRef,
   type ToolId,
 } from "../types";
 import { ZodError } from "zod";
@@ -148,102 +158,111 @@ export async function installSkillAction(
   }
 
   const { domain: validatedDomain, skillName: validatedSkillName, toolIds: validatedToolIds } = parseResult.data;
-  const installed: ToolId[] = [];
   const errors: string[] = [];
+  const supportedToolIds = validatedToolIds.filter((toolId) => toolId !== "agents-md");
+  const unsupportedToolIds = validatedToolIds.filter((toolId) => toolId === "agents-md");
 
-  let skill: Skill | null = null;
-
-  const toolkitDir = path.join(getSkillsDir(), validatedDomain, validatedSkillName);
+  let skillRef: SkillInstallRef;
   try {
-    skill = await loadSkill(toolkitDir, "toolkit");
-  } catch (toolkitErr) {
-    const localDir = path.join(getLocalSkillsDir(), validatedDomain, validatedSkillName);
+    await loadSkillForInstall({
+      source: "toolkit",
+      domain: validatedDomain,
+      skillName: validatedSkillName,
+    });
+    skillRef = {
+      source: "toolkit",
+      domain: validatedDomain,
+      skillName: validatedSkillName,
+    };
+  } catch {
     try {
-      skill = await loadSkill(localDir, "local");
-    } catch (localErr) {
+      await loadSkillForInstall({
+        source: "local",
+        domain: validatedDomain,
+        skillName: validatedSkillName,
+      });
+      skillRef = {
+        source: "local",
+        domain: validatedDomain,
+        skillName: validatedSkillName,
+      };
+    } catch {
       return { 
         success: false, 
-        installed, 
+        installed: [],
         errors: [`Skill not found in toolkit or local registry: ${validatedDomain}/${validatedSkillName}`] 
       };
     }
   }
 
-  let profile;
-  try {
-    profile = await loadProfile("default");
-  } catch {
-    profile = { name: "default", description: "", include: ["*"], exclude: [], tools: {} };
+  for (const toolId of unsupportedToolIds) {
+    errors.push(`${TOOL_LABELS[toolId]}: adapter produced no output for this skill`);
   }
 
-  for (const toolId of validatedToolIds) {
-    try {
-      const adapter = getAdapter(toolId);
-      const outputs = adapter.translateSkill(skill, profile);
-
-      if (outputs.length === 0) {
-        errors.push(`${TOOL_LABELS[toolId]}: adapter produced no output for this skill`);
-        continue;
-      }
-
-      const globalPath = getGlobalPath(toolId);
-      if (!globalPath) {
-        errors.push(`${TOOL_LABELS[toolId]}: tool not detected or global path not configured`);
-        continue;
-      }
-
-      let successfulOutputs = 0;
-      for (const output of outputs) {
-        const destPath = path.join(globalPath, output.relativePath);
-        if (!isWithinPath(globalPath, destPath)) {
-          errors.push(`${TOOL_LABELS[toolId]}: security violation — refusing to write outside global path: ${output.relativePath}`);
-          continue;
-        }
-
-        if (output.scope) {
-          const limitCheck = checkCharacterLimit(
-            output.content,
-            output.tool,
-            output.scope
-          );
-          if (!limitCheck.withinLimit) {
-            errors.push(
-              `${TOOL_LABELS[toolId]}: ${output.relativePath} exceeds ${output.scope} limit (${limitCheck.currentSize} > ${limitCheck.maxSize} chars)`
-            );
-            continue;
-          }
-        }
-
-        try {
-          const dup = await checkDuplicate(destPath);
-          if (dup.exists && !dup.isToolkitManaged) {
-            try {
-              await backupFile(destPath);
-            } catch (err) {
-              console.warn(`Backup failed for ${destPath}: ${err}`);
-            }
-          }
-          await fs.mkdir(path.dirname(destPath), { recursive: true });
-          await atomicWrite(destPath, output.content);
-          successfulOutputs++;
-          try {
-            await writeToolkitMarker(path.dirname(destPath));
-          } catch {}
-        } catch (err) {
-          errors.push(`${TOOL_LABELS[toolId]}: failed to write ${output.relativePath}: ${formatError(err)}`);
-          continue;
-        }
-      }
-
-      if (successfulOutputs > 0) {
-        installed.push(toolId);
-      }
-    } catch (err) {
-      errors.push(`${TOOL_LABELS[toolId]}: ${formatError(err)}`);
-    }
+  if (supportedToolIds.length === 0) {
+    return { success: false, installed: [], errors };
   }
+
+  const result = await executeSkillInstallPlan(
+    await buildSkillInstallPlan({
+      skills: [skillRef],
+      toolIds: supportedToolIds,
+    }),
+    true
+  );
+
+  const installed = result.skills[0]?.targets
+    .filter((target) => target.status !== "failed")
+    .map((target) => target.toolId) ?? [];
+  errors.push(...result.errors);
 
   return { success: installed.length > 0, installed, errors };
+}
+
+export async function previewSkillsInstallAction(
+  input: unknown
+): Promise<
+  | { success: true; preview: PublicSkillInstallPreview }
+  | { success: false; error: string }
+> {
+  const parseResult = BulkSkillInstallInputSchema.safeParse(input);
+  if (!parseResult.success) {
+    return { success: false, error: formatError(parseResult.error) };
+  }
+
+  try {
+    const plan = await buildSkillInstallPlan(parseResult.data);
+    return { success: true, preview: toPublicInstallPreview(plan) };
+  } catch (err) {
+    console.error(`Failed to preview bulk skill install: ${formatError(err)}`);
+    return { success: false, error: formatError(err) };
+  }
+}
+
+export async function installSkillsAction(
+  input: unknown
+): Promise<
+  | { success: true; result: BulkSkillInstallResult }
+  | { success: false; result: BulkSkillInstallResult; error?: string }
+  | { success: false; error: string }
+> {
+  const parseResult = ConfirmedBulkSkillInstallInputSchema.safeParse(input);
+  if (!parseResult.success) {
+    return { success: false, error: formatError(parseResult.error) };
+  }
+
+  try {
+    const { confirmReplacements, ...installInput } = parseResult.data;
+    const plan = await buildSkillInstallPlan(installInput);
+    const result = await executeSkillInstallPlan(plan, confirmReplacements);
+    if (result.status === "success") {
+      return { success: true, result };
+    }
+    return { success: false, result, error: result.errors.join(", ") };
+  } catch (err) {
+    console.error(`Failed to install bulk skills: ${formatError(err)}`);
+    return { success: false, error: formatError(err) };
+  }
 }
 
 export async function uninstallSkillAction(

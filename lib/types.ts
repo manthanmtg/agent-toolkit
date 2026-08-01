@@ -21,6 +21,16 @@ export type ToolId = (typeof TOOL_IDS)[number];
 export const ToolIdSchema = z.enum(TOOL_IDS);
 export const ToolIdsSchema = z.array(ToolIdSchema);
 
+export const PER_SKILL_TOOL_IDS = [
+  "claude-code",
+  "cursor",
+  "windsurf",
+  "opencode",
+  "codex",
+] as const satisfies readonly ToolId[];
+
+export const PerSkillToolIdSchema = z.enum(PER_SKILL_TOOL_IDS);
+
 export const TOOL_LABELS: Record<ToolId, string> = {
   "claude-code": "Claude Code",
   cursor: "Cursor",
@@ -89,6 +99,69 @@ export const InstallSkillInputSchema = z.object({
   skillName: z.string().min(1).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
   toolIds: ToolIdsSchema,
 });
+
+export const MAX_BULK_SKILLS = 100;
+
+export const SkillInstallRefSchema = z.object({
+  source: z.enum(["toolkit", "local"]),
+  domain: IdentifierSchema,
+  skillName: IdentifierSchema,
+}).strict();
+
+export type SkillInstallRef = z.infer<typeof SkillInstallRefSchema>;
+
+const BulkSkillInstallBaseSchema = z.object({
+  skills: z.array(SkillInstallRefSchema).min(1).max(MAX_BULK_SKILLS),
+  toolIds: z.array(ToolIdSchema).min(1).max(PER_SKILL_TOOL_IDS.length),
+}).strict();
+
+function validateBulkSkillInstallSelection(
+  value: z.infer<typeof BulkSkillInstallBaseSchema>,
+  ctx: z.RefinementCtx
+) {
+  const skillKeys = new Set<string>();
+  for (const [index, skill] of value.skills.entries()) {
+    const key = `${skill.source}:${skill.domain}/${skill.skillName}`;
+    if (skillKeys.has(key)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Duplicate skill selection: ${skill.domain}/${skill.skillName}`,
+        path: ["skills", index],
+      });
+    }
+    skillKeys.add(key);
+  }
+
+  const toolKeys = new Set<ToolId>();
+  for (const [index, toolId] of value.toolIds.entries()) {
+    if (toolId === "agents-md") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "AGENTS.md does not support per-skill bulk installation",
+        path: ["toolIds", index],
+      });
+    }
+    if (toolKeys.has(toolId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Duplicate tool selection: ${toolId}`,
+        path: ["toolIds", index],
+      });
+    }
+    toolKeys.add(toolId);
+  }
+}
+
+export const BulkSkillInstallInputSchema = BulkSkillInstallBaseSchema.superRefine(
+  validateBulkSkillInstallSelection
+);
+
+export const ConfirmedBulkSkillInstallInputSchema = BulkSkillInstallBaseSchema.extend({
+  confirmReplacements: z.boolean(),
+}).strict().superRefine(validateBulkSkillInstallSelection);
+
+export type BulkSkillInstallInput = z.infer<typeof BulkSkillInstallInputSchema>;
+export type ConfirmedBulkSkillInstallInput = z.infer<typeof ConfirmedBulkSkillInstallInputSchema>;
 
 export const UninstallSkillInputSchema = z.object({
   skillName: z.string().min(1).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
